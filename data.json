@@ -1,0 +1,30 @@
+[
+    {
+        "day": "001",
+        "noun": "Chair",
+        "description": "Stable platform",
+        "modelSrc": "365/001/chair-web.glb",
+        "imageSrcs": ["365/001/chair01.jpg", "365/001/chair02.jpg"]
+    },
+    {
+        "day": "002",
+        "noun": "Stapler",
+        "description": "Paper fastener",
+        "modelSrc": "365/002/002.glb",
+        "imageSrcs": ["365/002/002stapler1.jpg", "365/002/stapler-04.jpeg"]
+    },
+    {
+        "day": "003",
+        "noun": "Shoes",
+        "description": "Footwear",
+        "modelSrc": "365/003/003.glb",
+        "imageSrcs": ["365/003/shoes3 (3).png"]
+    },
+        {
+        "day": "004",
+        "noun": "Mirror",
+        "description": "Reflective Surface",
+        "modelSrc": "365/004/merr.glb",
+        "imageSrcs": ["365/004/mirror-sticker.png"]
+    }
+]
