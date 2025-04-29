@@ -66,17 +66,16 @@
   
 <!-- File Upload Section -->
 <div id="upload-section">
+
+
   <form id="uploadForm">
-    <!-- Dropdown for selecting an entry -->
-    <label for="entryDropdown"></label>
-    <select id="entryDropdown" required>
-      <option value="" disabled selected>Select an entry</option>
-    </select>
-    
-    <!-- File input -->
-    <input type="file" id="fileInput" required />
-    <button type="submit">Upload File</button>
-  </form>
+  <input type="text" id="titleInput" placeholder="Title (optional)">
+  <input type="text" id="mediumInput" placeholder="Medium (optional)">
+  <textarea id="descriptionInput" placeholder="Description (optional)"></textarea>
+  <input type="file" id="fileInput" required>
+  <button type="submit">Upload File</button>
+</form>
+
   
   <div id="output"></div>
   <div id="todays-prompt" style="font-size: 1.2rem; font-weight: bold;">
