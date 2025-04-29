@@ -5,6 +5,11 @@ body {
   font-family: 'Doto', monospace;
   background: #fcfcfa;
 }
+model-viewer {
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+}
 
 header {
   padding: 1rem;
