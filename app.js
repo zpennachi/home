@@ -164,10 +164,39 @@ function renderFile(url) {
     audio.controls = true;
     return audio;
   }
-  const link = document.createElement('a');
-  link.href = url;
-  link.textContent = 'Download file';
-  link.target = '_blank';
-  return link;
-}
+   function renderFile(url) {
+   const ext = url.split('.').pop().toLowerCase();
+
+   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
+     // …existing image code…
+   }
+
+   if (['mp4','webm','ogg'].includes(ext)) {
+     // …existing video code…
+   }
+
+   if (['mp3','wav','ogg'].includes(ext)) {
+     // …existing audio code…
+   }
+
+  // handle 3D models
+  if (['glb','gltf'].includes(ext)) {
+    const mv = document.createElement('model-viewer');
+    mv.src = url;
+    mv.alt = '3D model';
+    mv.setAttribute('camera-controls', '');
+    mv.setAttribute('auto-rotate', '');
+    mv.style.width  = '200px';
+    mv.style.height = '200px';
+    mv.style.objectFit = 'contain';
+    return mv;
+  }
+
+   // fallback link
+   const link = document.createElement('a');
+   link.href = url;
+   link.textContent = 'Download file';
+   link.target = '_blank';
+   return link;
+ }
 
