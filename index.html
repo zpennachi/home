@@ -2,87 +2,176 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>thoughtful.fun</title>
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Supabase client -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Uploader</title>
+  <style>
+    /* Utility classes */
+    .hidden { display: none !important; }
+    .thumbnail, .video-thumb { max-width: 200px; margin: 8px; vertical-align: middle; }
+  </style>
+  <!-- Supabase client (UMD) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <!-- model-viewer if you still need it -->
-  <script type="module"
-    src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
-  </script>
 </head>
-
 <body>
-  <div class="main">
-    <div class="horizontal-container">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
-           xmlns="http://www.w3.org/2000/svg">
-        <circle cx="9.41177" cy="9.41177" r="9.41177" fill="#1100FF"/>
-        <circle cx="9.41177" cy="32"       r="9.41177" fill="#1100FF"/>
-        <circle cx="9.41177" cy="54.5882"  r="9.41177" fill="#1100FF"/>
-        <circle cx="32"      cy="9.41177"  r="9.41177" fill="#1100FF"/>
-        <circle cx="32"      cy="32"       r="9.41177" fill="#1100FF"/>
-        <circle cx="54.5882" cy="9.41177"  r="9.41177" fill="#1100FF"/>
-        <circle cx="54.5882" cy="32"       r="9.41177" fill="#1100FF"/>
-      </svg>
+  <!-- Login trigger -->
+  <button id="btnShowLogin">Login</button>
 
-      <div class="marquee">
-        <div class="marquee-inner">
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-        </div>
-      </div>
-
-      <button id="showSignInButton">Login :)</button>
-
-      <div id="auth-section" class="hidden">
-        <div id="sign-in">
-          <input type="email"    id="signInEmail"    placeholder="Email"    required />
-          <input type="password" id="signInPassword" placeholder="Password" required />
-          <button id="signInButton">Sign In</button>
-        </div>
-
-        <div id="logged-in" class="hidden">
-          <p><span id="user-email"></span></p>
-          <button id="logOutButton">Log Out</button>
-        </div>
-      </div>
-    </div>
+  <!-- Authentication form -->
+  <div id="authSection" class="hidden">
+    <input type="email"    id="inputEmail"    placeholder="Email"    />
+    <input type="password" id="inputPassword" placeholder="Password" />
+    <button id="btnSignIn">Sign In</button>
+    <button id="btnSignOut" class="hidden">Sign Out</button>
   </div>
 
-  <!-- Free-form upload section (hidden until login) -->
-  <div id="upload-section" class="hidden">
+  <!-- Upload form (requires login) -->
+  <section id="uploadSection" class="hidden">
+    <h2>Upload Portfolio Item</h2>
     <form id="uploadForm">
-      <input type="text"    id="titleInput"       placeholder="Title"       required />
-      <input type="text"    id="mediumInput"      placeholder="Medium"      required />
-      <textarea id="descriptionInput"            placeholder="Description" required></textarea>
-      <input type="file"    id="fileInput"        required />
-      <button type="submit">Upload File</button>
+      <input type="text"    id="inputTitle"       placeholder="Title"       required />
+      <input type="text"    id="inputMedium"      placeholder="Medium"      required />
+      <textarea id="inputDescription" placeholder="Description" required></textarea>
+      <input type="file"    id="inputFile"        required />
+      <button type="submit">Upload</button>
     </form>
-  </div>
+  </section>
 
-  <!-- Portfolio entries list (hidden until login) -->
-  <div class="container">
-    <ul id="entries-list" class="hidden"></ul>
-  </div>
+  <!-- Display list of entries -->
+  <section id="listSection" class="hidden">
+    <h2>Your Portfolio</h2>
+    <ul id="entriesList"></ul>
+  </section>
 
-  <!-- Optional: current-entry-box if you still need it -->
-  <div id="current-entry-box"
-       style="position: fixed; top: 64px; right: 10px;
-              padding: 10px; background: white;
-              border: 1px solid #ddd; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-              z-index: 1000; font-size: 1rem; width: 300px;
-              display: none;">
-    Current Entry: None
-  </div>
+  <script>
+  // --- Configuration ---
+  const SUPABASE_URL = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <!-- Your new script -->
-  <script src="app.js"></script>
+  // --- UI Elements ---
+  const btnShowLogin     = document.getElementById('btnShowLogin');
+  const authSection      = document.getElementById('authSection');
+  const btnSignIn        = document.getElementById('btnSignIn');
+  const btnSignOut       = document.getElementById('btnSignOut');
+  const inputEmail       = document.getElementById('inputEmail');
+  const inputPassword    = document.getElementById('inputPassword');
+
+  const uploadSection    = document.getElementById('uploadSection');
+  const uploadForm       = document.getElementById('uploadForm');
+  const inputTitle       = document.getElementById('inputTitle');
+  const inputMedium      = document.getElementById('inputMedium');
+  const inputDescription = document.getElementById('inputDescription');
+  const inputFile        = document.getElementById('inputFile');
+
+  const listSection      = document.getElementById('listSection');
+  const entriesList      = document.getElementById('entriesList');
+
+  // --- RLS Policy Setup (in Supabase dashboard) ---
+  // 1. Enable RLS on table '365'.
+  // 2. Create INSERT policy:
+  //    CREATE POLICY "Allow insert by owner"
+  //      ON public."365" FOR INSERT
+  //      WITH CHECK (auth.uid() = user_id);
+  // 3. Create SELECT policy:
+  //    CREATE POLICY "Allow select"
+  //      ON public."365" FOR SELECT
+  //      USING (true);
+
+  // --- Auth & UI Logic ---
+  btnShowLogin.onclick = () => {
+    authSection.classList.remove('hidden');
+    btnShowLogin.classList.add('hidden');
+  };
+
+  btnSignIn.onclick = async () => {
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email: inputEmail.value,
+      password: inputPassword.value
+    });
+    if (error) return alert('Sign-in error: ' + error.message);
+    configureUI();
+  };
+
+  btnSignOut.onclick = async () => {
+    await supabase.auth.signOut();
+    configureUI();
+  };
+
+  async function configureUI() {
+    const user = supabase.auth.getSession().then(res => res.data.session?.user);
+    // simplified: fetch current user
+    const { data: { user: u } } = await supabase.auth.getUser();
+    const loggedIn = !!u;
+
+    authSection.classList.toggle('hidden', !loggedIn);
+    uploadSection.classList.toggle('hidden', !loggedIn);
+    listSection.classList.toggle('hidden', !loggedIn);
+    btnSignOut.classList.toggle('hidden', !loggedIn);
+    btnSignIn.classList.toggle('hidden', loggedIn);
+    btnShowLogin.classList.toggle('hidden', loggedIn);
+
+    if (loggedIn) loadEntries();
+  }
+
+  document.addEventListener('DOMContentLoaded', configureUI);
+
+  // --- Upload Handler ---
+  uploadForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return alert('Not authenticated');
+
+    // Upload file
+    const file = inputFile.files[0];
+    const path = `uploads/${user.id}/${Date.now()}_${file.name}`;
+    const { error: upErr } = await supabase.storage
+      .from('portfolio-uploads')
+      .upload(path, file);
+    if (upErr) return alert('Upload error: ' + upErr.message);
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('portfolio-uploads')
+      .getPublicUrl(path);
+
+    // Insert row with user_id
+    const { error: insErr } = await supabase
+      .from('365')
+      .insert([{ user_id: user.id, title: inputTitle.value,
+                 description: inputDescription.value,
+                 medium: inputMedium.value,
+                 file: [publicUrl] }]);
+    if (insErr) return alert('Insert error: ' + insErr.message);
+
+    uploadForm.reset();
+    loadEntries();
+    alert('Upload successful!');
+  };
+
+  // --- Load & Display Entries ---
+  async function loadEntries() {
+    entriesList.innerHTML = '';
+    const { data: entries, error } = await supabase
+      .from('365').select('id, title, description, medium, file')
+      .order('id', { ascending: true });
+    if (error) return console.error(error);
+    entries.forEach(({ title, description, medium, file }) => {
+      const li = document.createElement('li');
+      const info = document.createElement('div');
+      info.innerHTML = `<strong>${title}</strong> <em>(${medium})</em><p>${description}</p>`;
+      li.appendChild(info);
+      file.forEach(url => {
+        const ext = url.split('.').pop().toLowerCase();
+        if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
+          const img = document.createElement('img'); img.src = url; img.className='thumbnail'; li.appendChild(img);
+        } else if (['mp4','webm','ogg'].includes(ext)) {
+          const vid = document.createElement('video'); vid.src=url; vid.controls=true; vid.className='video-thumb'; li.appendChild(vid);
+        } else if (['mp3','wav','ogg'].includes(ext)) {
+          const aud = document.createElement('audio'); aud.src=url; aud.controls=true; li.appendChild(aud);
+        }
+      });
+      entriesList.appendChild(li);
+    });
+  }
+  </script>
 </body>
 </html>
