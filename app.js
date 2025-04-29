@@ -20,18 +20,18 @@ const fileInput        = document.getElementById('fileInput');
 
 const entriesList      = document.getElementById('entries-list');
 
-// Show login form
+// Toggle login form
 showLoginBtn.addEventListener('click', () => {
   authSection.classList.toggle('hidden');
 });
 
-// Load public entries + check auth once DOM is ready
+// On load: fetch entries + auth state
 document.addEventListener('DOMContentLoaded', async () => {
   await loadEntries();
   await checkAuthState();
 });
 
-// Check login state
+// Check whether user is signed in
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
@@ -46,7 +46,7 @@ async function checkAuthState() {
   }
 }
 
-// Sign in
+// Sign in handler
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
@@ -55,31 +55,36 @@ document.getElementById('signInButton').addEventListener('click', async () => {
   else checkAuthState();
 });
 
-// Sign out
+// Sign out handler
 document.getElementById('logOutButton').addEventListener('click', async () => {
   await mySupabaseClient.auth.signOut();
   checkAuthState();
 });
 
-// Handle upload
-uploadForm.addEventListener('submit', async e => {
+// Upload form handler
+uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const title       = titleInput.value.trim();
-  const medium      = mediumInput.value.trim();
-  const desc        = descriptionInput.value.trim();
-  const file        = fileInput.files[0];
-  if (!title || !medium || !desc || !file) return alert('Fill all fields.');
+  const title = titleInput.value.trim();
+  const medium = mediumInput.value.trim();
+  const desc = descriptionInput.value.trim();
+  const file = fileInput.files[0];
+  if (!title || !medium || !desc || !file) {
+    return alert('Please fill all fields.');
+  }
 
+  // 1) upload to storage
   const filePath = `uploads/${Date.now()}_${file.name}`;
-  let { error } = await mySupabaseClient.storage
-    .from('portfolio-uploads')
+  let { error } = await mySupabaseClient
+    .storage.from('portfolio-uploads')
     .upload(filePath, file);
   if (error) return alert(error.message);
 
-  const { data: { publicUrl } } = mySupabaseClient.storage
-    .from('portfolio-uploads')
+  // 2) get public URL
+  const { data: { publicUrl } } = mySupabaseClient
+    .storage.from('portfolio-uploads')
     .getPublicUrl(filePath);
 
+  // 3) insert metadata row
   ({ error } = await mySupabaseClient
     .from('365')
     .insert([{ title, medium, description: desc, file: [publicUrl] }])
@@ -89,6 +94,8 @@ uploadForm.addEventListener('submit', async e => {
   uploadForm.reset();
   loadEntries();
 });
+
+// Fetch & render all entries
 async function loadEntries() {
   entriesList.innerHTML = '';
   const { data: entries, error } = await mySupabaseClient
@@ -100,103 +107,84 @@ async function loadEntries() {
     entriesList.innerHTML = `<li>Error loading entries: ${error.message}</li>`;
     return;
   }
-  if (!entries.length) {
+  if (!entries || entries.length === 0) {
     entriesList.innerHTML = '<li>No uploads yet.</li>';
     return;
   }
 
   entries.forEach(entry => {
-    // 1) Turn entry.file into a real array of URLs
-    let files;
-    if (Array.isArray(entry.file)) {
-      files = entry.file;
-    } else if (typeof entry.file === 'string') {
-      try {
-        // if it's a JSON string like '["url"]'
-        files = JSON.parse(entry.file);
-      } catch {
-        files = [entry.file];
-      }
-    } else {
-      files = [entry.file];
-    }
-
-    // 2) Build the list item
+    const files = normalizeFileArray(entry.file);
     const li = document.createElement('li');
     li.className = 'entry-item';
 
-    // Media container
+    // media container
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     files.forEach(url => mediaDiv.appendChild(renderFile(url)));
 
-    // Text info
-    const info = document.createElement('div');
-    info.innerHTML = `
+    // text info
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'entry-info';
+    infoDiv.innerHTML = `
       <p><strong>${entry.title}</strong> (${entry.medium})</p>
       <p>${entry.description}</p>
     `;
 
-    li.append(mediaDiv, info);
+    li.append(mediaDiv, infoDiv);
     entriesList.append(li);
   });
 }
 
+// Ensure we have an array of URLs
+function normalizeFileArray(fileField) {
+  if (Array.isArray(fileField)) return fileField;
+  if (typeof fileField === 'string') {
+    try {
+      const parsed = JSON.parse(fileField);
+      return Array.isArray(parsed) ? parsed : [fileField];
+    } catch {
+      return [fileField];
+    }
+  }
+  return [];
+}
+
+// Choose the right element to render each URL
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
+
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const img = document.createElement('img');
-    img.src = url;
-    img.alt = '';
-    img.className = 'thumbnail';
+    img.src = url; img.alt = ''; img.className = 'thumbnail';
     return img;
   }
+
   if (['mp4','webm','ogg'].includes(ext)) {
     const video = document.createElement('video');
-    video.src = url;
-    video.controls = true;
-    video.className = 'video-thumb';
+    video.src = url; video.controls = true; video.className = 'video-thumb';
     return video;
   }
+
   if (['mp3','wav','ogg'].includes(ext)) {
     const audio = document.createElement('audio');
-    audio.src = url;
-    audio.controls = true;
+    audio.src = url; audio.controls = true;
     return audio;
   }
-   function renderFile(url) {
-   const ext = url.split('.').pop().toLowerCase();
 
-   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
-     // …existing image code…
-   }
-
-   if (['mp4','webm','ogg'].includes(ext)) {
-     // …existing video code…
-   }
-
-   if (['mp3','wav','ogg'].includes(ext)) {
-     // …existing audio code…
-   }
-
-  // handle 3D models
+  // 3D model support
   if (['glb','gltf'].includes(ext)) {
     const mv = document.createElement('model-viewer');
     mv.src = url;
     mv.alt = '3D model';
     mv.setAttribute('camera-controls', '');
     mv.setAttribute('auto-rotate', '');
-    mv.style.width  = '200px';
+    mv.style.width = '200px';
     mv.style.height = '200px';
-    mv.style.objectFit = 'contain';
     return mv;
   }
 
-   // fallback link
-   const link = document.createElement('a');
-   link.href = url;
-   link.textContent = 'Download file';
-   link.target = '_blank';
-   return link;
- }
-
+  // fallback download link
+  const link = document.createElement('a');
+  link.href = url; link.textContent = 'Download file'; link.target = '_blank';
+  return link;
+}
