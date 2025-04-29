@@ -3,180 +3,143 @@ const supabaseUrl = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// UI Elements
-const signInSection   = document.getElementById('sign-in');
-const loggedInSection = document.getElementById('logged-in');
-const userEmailSpan   = document.getElementById('user-email');
-const uploadSection   = document.getElementById('upload-section');
-const entriesList     = document.getElementById('entries-list');
-const authSection     = document.getElementById('auth-section');
-const showLoginBtn    = document.getElementById('showSignInButton');
 
-// Form inputs
+// UI Elements
+const showLoginBtn     = document.getElementById('showSignInButton');
+const authSection      = document.getElementById('auth-section');
+const signInSection    = document.getElementById('sign-in');
+const loggedInSection  = document.getElementById('logged-in');
+const userEmailSpan    = document.getElementById('user-email');
+
+const uploadSection    = document.getElementById('upload-section');
 const uploadForm       = document.getElementById('uploadForm');
 const titleInput       = document.getElementById('titleInput');
-const descriptionInput = document.getElementById('descriptionInput');
 const mediumInput      = document.getElementById('mediumInput');
+const descriptionInput = document.getElementById('descriptionInput');
 const fileInput        = document.getElementById('fileInput');
 
-// Show sign-in form on Login button click
+const entriesList      = document.getElementById('entries-list');
+
+// Show login form
 showLoginBtn.addEventListener('click', () => {
-  authSection.classList.remove('hidden');
-  showLoginBtn.classList.add('hidden');
+  authSection.classList.toggle('hidden');
 });
 
-// Check authentication and toggle UI
+// Load public entries + check auth once DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadEntries();
+  await checkAuthState();
+});
+
+// Check login state
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
-    userEmailSpan.textContent      = user.email;
-    loggedInSection.classList.remove('hidden');
+    userEmailSpan.textContent = user.email;
     signInSection.classList.add('hidden');
+    loggedInSection.classList.remove('hidden');
     uploadSection.classList.remove('hidden');
-    entriesList.classList.remove('hidden');
-    authSection.classList.remove('hidden');
-    loadEntries();
   } else {
-    loggedInSection.classList.add('hidden');
     signInSection.classList.remove('hidden');
+    loggedInSection.classList.add('hidden');
     uploadSection.classList.add('hidden');
-    entriesList.classList.add('hidden');
-    authSection.classList.add('hidden');
-    showLoginBtn.classList.remove('hidden');
   }
 }
-document.addEventListener('DOMContentLoaded', checkAuthState);
 
-// Sign In
+// Sign in
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
   const { error } = await mySupabaseClient.auth.signInWithPassword({ email, password });
-  if (error) {
-    alert(error.message);
-  } else {
-    checkAuthState();
-  }
+  if (error) alert(error.message);
+  else checkAuthState();
 });
 
-// Log Out
+// Sign out
 document.getElementById('logOutButton').addEventListener('click', async () => {
   await mySupabaseClient.auth.signOut();
   checkAuthState();
 });
 
-// Handle uploads
-uploadForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
+// Handle upload
+uploadForm.addEventListener('submit', async e => {
+  e.preventDefault();
   const title       = titleInput.value.trim();
-  const description = descriptionInput.value.trim();
   const medium      = mediumInput.value.trim();
+  const desc        = descriptionInput.value.trim();
   const file        = fileInput.files[0];
+  if (!title || !medium || !desc || !file) return alert('Fill all fields.');
 
-  if (!title || !description || !medium || !file) {
-    alert('Please fill in all fields and select a file.');
-    return;
-  }
+  const filePath = `uploads/${Date.now()}_${file.name}`;
+  let { error } = await mySupabaseClient.storage
+    .from('portfolio-uploads')
+    .upload(filePath, file);
+  if (error) return alert(error.message);
 
-  try {
-    // Upload file to Supabase Storage
-    const filePath = `uploads/${Date.now()}_${file.name}`;
-    const { error: uploadError } = await mySupabaseClient
-      .storage.from('portfolio-uploads')
-      .upload(filePath, file);
-    if (uploadError) throw uploadError;
+  const { data: { publicUrl } } = mySupabaseClient.storage
+    .from('portfolio-uploads')
+    .getPublicUrl(filePath);
 
-    // Get public URL
-    const { data: publicUrlData } = mySupabaseClient
-      .storage.from('portfolio-uploads')
-      .getPublicUrl(filePath);
-    const fileUrl = publicUrlData.publicUrl;
+  ({ error } = await mySupabaseClient
+    .from('365')
+    .insert([{ title, medium, description: desc, file: [publicUrl] }])
+  );
+  if (error) return alert(error.message);
 
-    // Insert a new row, relying on table's auto-increment id
-    const { error: insertError } = await mySupabaseClient
-      .from('365')
-      .insert([{ title, description, medium, file: [fileUrl] }]);
-    if (insertError) throw insertError;
-
-    alert('Upload successful!');
-    uploadForm.reset();
-    loadEntries();
-  } catch (err) {
-    console.error(err);
-    alert('Error: ' + err.message + '\n\nIf you see a row-level security error, please disable RLS or add a policy to allow inserts.');
-  }
+  uploadForm.reset();
+  loadEntries();
 });
 
-// Load and display entries
+// Fetch & render all entries
 async function loadEntries() {
   entriesList.innerHTML = '';
-  try {
-    const { data: entries, error } = await mySupabaseClient
-      .from('365')
-      .select('id, title, description, medium, file')
-      .order('id', { ascending: false });
-    if (error) throw error;
+  const { data: entries, error } = await mySupabaseClient
+    .from('365')
+    .select('id, title, medium, description, file')
+    .order('id', { ascending: false });
+  if (error) return entriesList.innerHTML = '<li>Error loading entries</li>';
+  if (!entries.length) return entriesList.innerHTML = '<li>No uploads yet.</li>';
 
-    if (entries.length === 0) {
-      entriesList.innerHTML = '<li>No uploads yet.</li>';
-      return;
-    }
+  entries.forEach(({ title, medium, description, file }) => {
+    const li = document.createElement('li');
+    li.className = 'entry-item';
 
-    entries.forEach(entry => {
-      const li = document.createElement('li');
-      li.classList.add('entry-item');
+    // media
+    const mediaDiv = document.createElement('div');
+    mediaDiv.className = 'files-container';
+    file.forEach(url => mediaDiv.appendChild(renderFile(url)));
 
-      // Media
-      const mediaContainer = document.createElement('div');
-      mediaContainer.classList.add('files-container');
-      entry.file.forEach(url => mediaContainer.appendChild(renderFile(url)));
+    // text
+    const info = document.createElement('div');
+    info.innerHTML = `
+      <p><strong>${title}</strong> (${medium})</p>
+      <p>${description}</p>
+    `;
 
-      // Info
-      const infoDiv = document.createElement('div');
-      infoDiv.classList.add('entry-info');
-      infoDiv.innerHTML = `
-        <p><strong>Title:</strong> ${entry.title}</p>
-        <p><strong>Medium:</strong> ${entry.medium}</p>
-        <p>${entry.description}</p>
-      `;
-
-      li.appendChild(mediaContainer);
-      li.appendChild(infoDiv);
-      entriesList.appendChild(li);
-    });
-  } catch (err) {
-    console.error(err);
-    alert('Failed to load entries: ' + err.message);
-  }
+    li.append(mediaDiv, info);
+    entriesList.append(li);
+  });
 }
 
-// Render a single file URL appropriately
-function renderFile(fileUrl) {
-  const ext = fileUrl.split('.').pop().toLowerCase();
+// Pick appropriate element by file extension
+function renderFile(url) {
+  const ext = url.split('.').pop().toLowerCase();
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const img = document.createElement('img');
-    img.src = fileUrl;
-    img.alt = 'Uploaded image';
-    img.classList.add('thumbnail');
+    img.src = url; img.alt = ''; img.className = 'thumbnail';
     return img;
   }
   if (['mp4','webm','ogg'].includes(ext)) {
-    const video = document.createElement('video');
-    video.src = fileUrl;
-    video.controls = true;
-    video.classList.add('video-thumb');
-    return video;
+    const vid = document.createElement('video');
+    vid.src = url; vid.controls = true; vid.className = 'video-thumb';
+    return vid;
   }
   if (['mp3','wav','ogg'].includes(ext)) {
-    const audio = document.createElement('audio');
-    audio.src = fileUrl;
-    audio.controls = true;
-    return audio;
+    const aud = document.createElement('audio');
+    aud.src = url; aud.controls = true;
+    return aud;
   }
   const link = document.createElement('a');
-  link.href = fileUrl;
-  link.textContent = 'Download file';
-  link.target = '_blank';
+  link.href = url; link.textContent = 'Download file'; link.target = '_blank';
   return link;
 }
