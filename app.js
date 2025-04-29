@@ -44,7 +44,6 @@ async function checkAuthState() {
     signInSection.classList.remove('hidden');
     uploadSection.classList.add('hidden');
     entriesList.classList.add('hidden');
-    // Keep auth wrapper hidden until user clicks
     authSection.classList.add('hidden');
     showLoginButton.classList.remove('hidden');
   }
@@ -85,8 +84,12 @@ uploadForm.addEventListener('submit', async (event) => {
   }
 
   try {
+    // Ensure user_id column exists in your table and RLS policy allows inserts
+    const { data: { user } } = await mySupabaseClient.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     // Upload file to Supabase Storage
-    const filePath = `uploads/${Date.now()}_${file.name}`;
+    const filePath = `uploads/${user.id}/${Date.now()}_${file.name}`;
     const { error: uploadError } = await mySupabaseClient
       .storage.from('portfolio-uploads')
       .upload(filePath, file);
@@ -98,10 +101,10 @@ uploadForm.addEventListener('submit', async (event) => {
       .getPublicUrl(filePath);
     const fileUrl = publicUrlData.publicUrl;
 
-    // Insert new record into database
+    // Insert new record into database with user_id
     const { error: insertError } = await mySupabaseClient
       .from('365')
-      .insert([{ title, description, medium, file: [fileUrl] }]);
+      .insert([{ user_id: user.id, title, description, medium, file: [fileUrl] }]);
     if (insertError) throw insertError;
 
     alert('Upload successful!');
@@ -109,7 +112,8 @@ uploadForm.addEventListener('submit', async (event) => {
     loadEntries();
   } catch (err) {
     console.error(err);
-    alert('Error: ' + err.message);
+    alert('Error: ' + err.message + '\n\nMake sure your table has RLS policies the allow authenticated users\n' +
+          'to insert rows with user_id equal to auth.uid().');
   }
 });
 
@@ -119,7 +123,7 @@ async function loadEntries() {
   try {
     const { data: entries, error } = await mySupabaseClient
       .from('365')
-      .select('id, title, description, medium, file')
+      .select('id, user_id, title, description, medium, file')
       .order('id', { ascending: false });
     if (error) throw error;
 
@@ -144,6 +148,7 @@ async function loadEntries() {
         <p><strong>Title:</strong> ${entry.title}</p>
         <p><strong>Medium:</strong> ${entry.medium}</p>
         <p>${entry.description}</p>
+        <p style="font-size:0.8em;color:#666;"><em>Uploaded by: ${entry.user_id}</em></p>
       `;
 
       li.appendChild(mediaContainer);
