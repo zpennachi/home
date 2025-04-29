@@ -3,61 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>thoughtful.fun</title>
+  <title>My Portfolio</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <!-- model-viewer if you still need it -->
-  <script type="module"
-    src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
-  </script>
 </head>
-
 <body>
-  <div class="main">
-    <div class="horizontal-container">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
-           xmlns="http://www.w3.org/2000/svg">
-        <circle cx="9.41177" cy="9.41177" r="9.41177" fill="#1100FF"/>
-        <circle cx="9.41177" cy="32"       r="9.41177" fill="#1100FF"/>
-        <circle cx="9.41177" cy="54.5882"  r="9.41177" fill="#1100FF"/>
-        <circle cx="32"      cy="9.41177"  r="9.41177" fill="#1100FF"/>
-        <circle cx="32"      cy="32"       r="9.41177" fill="#1100FF"/>
-        <circle cx="54.5882" cy="9.41177"  r="9.41177" fill="#1100FF"/>
-        <circle cx="54.5882" cy="32"       r="9.41177" fill="#1100FF"/>
-      </svg>
-
-      <div class="marquee">
-        <div class="marquee-inner">
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-          <span>have fun, be thoughtful, be kind :)</span>
-        </div>
+  <header>
+    <button id="showSignInButton">Login</button>
+    <div id="auth-section" class="hidden">
+      <div id="sign-in">
+        <input type="email"    id="signInEmail"    placeholder="Email"    required />
+        <input type="password" id="signInPassword" placeholder="Password" required />
+        <button id="signInButton">Sign In</button>
       </div>
-
-      <button id="showSignInButton">Login :)</button>
-
-      <div id="auth-section" class="hidden">
-        <div id="sign-in">
-          <input type="email"    id="signInEmail"    placeholder="Email"    required />
-          <input type="password" id="signInPassword" placeholder="Password" required />
-          <button id="signInButton">Sign In</button>
-        </div>
-
-        <div id="logged-in" class="hidden">
-          <p><span id="user-email"></span></p>
-          <button id="logOutButton">Log Out</button>
-        </div>
+      <div id="logged-in" class="hidden">
+        <span id="user-email"></span>
+        <button id="logOutButton">Log Out</button>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Free-form upload section (hidden until login) -->
-  <div id="upload-section" class="hidden">
+  <section id="upload-section" class="hidden">
     <form id="uploadForm">
       <input type="text"    id="titleInput"       placeholder="Title"       required />
       <input type="text"    id="mediumInput"      placeholder="Medium"      required />
@@ -65,24 +31,12 @@
       <input type="file"    id="fileInput"        required />
       <button type="submit">Upload File</button>
     </form>
-  </div>
+  </section>
 
-  <!-- Portfolio entries list (hidden until login) -->
-  <div class="container">
-    <ul id="entries-list" class="hidden"></ul>
-  </div>
+  <main class="container">
+    <ul id="entries-list"></ul>
+  </main>
 
-  <!-- Optional: current-entry-box if you still need it -->
-  <div id="current-entry-box"
-       style="position: fixed; top: 64px; right: 10px;
-              padding: 10px; background: white;
-              border: 1px solid #ddd; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-              z-index: 1000; font-size: 1rem; width: 300px;
-              display: none;">
-    Current Entry: None
-  </div>
-
-  <!-- Your new script -->
   <script src="app.js"></script>
 </body>
 </html>
