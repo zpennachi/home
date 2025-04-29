@@ -9,6 +9,8 @@ const loggedInSection   = document.getElementById('logged-in');
 const userEmailSpan     = document.getElementById('user-email');
 const uploadSection     = document.getElementById('upload-section');
 const entriesList       = document.getElementById('entries-list');
+const authSection       = document.getElementById('auth-section');
+const showLoginButton   = document.getElementById('showSignInButton');
 
 // Form inputs
 const uploadForm        = document.getElementById('uploadForm');
@@ -16,6 +18,12 @@ const titleInput        = document.getElementById('titleInput');
 const descriptionInput  = document.getElementById('descriptionInput');
 const mediumInput       = document.getElementById('mediumInput');
 const fileInput         = document.getElementById('fileInput');
+
+// Show sign-in form when clicking Login button
+showLoginButton.addEventListener('click', () => {
+  authSection.classList.remove('hidden');
+  showLoginButton.classList.add('hidden');
+});
 
 // Check authentication state on page load and update UI
 async function checkAuthState() {
@@ -27,6 +35,7 @@ async function checkAuthState() {
     signInSection.classList.add('hidden');
     uploadSection.classList.remove('hidden');
     entriesList.classList.remove('hidden');
+    authSection.classList.remove('hidden');
     loadEntries();
   } else {
     // Show sign-in UI
@@ -35,9 +44,11 @@ async function checkAuthState() {
     signInSection.classList.remove('hidden');
     uploadSection.classList.add('hidden');
     entriesList.classList.add('hidden');
+    // Keep auth wrapper hidden until user clicks
+    authSection.classList.add('hidden');
+    showLoginButton.classList.remove('hidden');
   }
 }
-
 document.addEventListener('DOMContentLoaded', checkAuthState);
 
 // Sign In
@@ -76,7 +87,7 @@ uploadForm.addEventListener('submit', async (event) => {
   try {
     // Upload file to Supabase Storage
     const filePath = `uploads/${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await mySupabaseClient
+    const { error: uploadError } = await mySupabaseClient
       .storage.from('portfolio-uploads')
       .upload(filePath, file);
     if (uploadError) throw uploadError;
@@ -88,7 +99,7 @@ uploadForm.addEventListener('submit', async (event) => {
     const fileUrl = publicUrlData.publicUrl;
 
     // Insert new record into database
-    const { data: insertData, error: insertError } = await mySupabaseClient
+    const { error: insertError } = await mySupabaseClient
       .from('365')
       .insert([{ title, description, medium, file: [fileUrl] }]);
     if (insertError) throw insertError;
@@ -124,9 +135,7 @@ async function loadEntries() {
       // Media container
       const mediaContainer = document.createElement('div');
       mediaContainer.classList.add('files-container');
-      entry.file.forEach(url => {
-        mediaContainer.appendChild(renderFile(url));
-      });
+      entry.file.forEach(url => mediaContainer.appendChild(renderFile(url)));
 
       // Info container
       const infoDiv = document.createElement('div');
