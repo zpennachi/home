@@ -68,7 +68,7 @@ async function populateDropdown() {
 
     if (entries.length === 0) {
       const noEntriesOption = document.createElement('option');
-      noEntriesOption.textContent = 'No entries found.';
+      noEntriesOption.textContent = 'coming soon :)';
       noEntriesOption.disabled = true;
       dropdown.appendChild(noEntriesOption);
       return;
