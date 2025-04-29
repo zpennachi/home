@@ -89,7 +89,6 @@ uploadForm.addEventListener('submit', async e => {
   uploadForm.reset();
   loadEntries();
 });
-
 async function loadEntries() {
   entriesList.innerHTML = '';
   const { data: entries, error } = await mySupabaseClient
@@ -107,18 +106,31 @@ async function loadEntries() {
   }
 
   entries.forEach(entry => {
-    // ensure `entry.file` is an array
-    const files = Array.isArray(entry.file) ? entry.file : [entry.file];
+    // 1) Turn entry.file into a real array of URLs
+    let files;
+    if (Array.isArray(entry.file)) {
+      files = entry.file;
+    } else if (typeof entry.file === 'string') {
+      try {
+        // if it's a JSON string like '["url"]'
+        files = JSON.parse(entry.file);
+      } catch {
+        files = [entry.file];
+      }
+    } else {
+      files = [entry.file];
+    }
 
+    // 2) Build the list item
     const li = document.createElement('li');
     li.className = 'entry-item';
 
-    // media
+    // Media container
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     files.forEach(url => mediaDiv.appendChild(renderFile(url)));
 
-    // text
+    // Text info
     const info = document.createElement('div');
     info.innerHTML = `
       <p><strong>${entry.title}</strong> (${entry.medium})</p>
@@ -130,25 +142,32 @@ async function loadEntries() {
   });
 }
 
-// Pick appropriate element by file extension
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const img = document.createElement('img');
-    img.src = url; img.alt = ''; img.className = 'thumbnail';
+    img.src = url;
+    img.alt = '';
+    img.className = 'thumbnail';
     return img;
   }
   if (['mp4','webm','ogg'].includes(ext)) {
-    const vid = document.createElement('video');
-    vid.src = url; vid.controls = true; vid.className = 'video-thumb';
-    return vid;
+    const video = document.createElement('video');
+    video.src = url;
+    video.controls = true;
+    video.className = 'video-thumb';
+    return video;
   }
   if (['mp3','wav','ogg'].includes(ext)) {
-    const aud = document.createElement('audio');
-    aud.src = url; aud.controls = true;
-    return aud;
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.controls = true;
+    return audio;
   }
   const link = document.createElement('a');
-  link.href = url; link.textContent = 'Download file'; link.target = '_blank';
+  link.href = url;
+  link.textContent = 'Download file';
+  link.target = '_blank';
   return link;
 }
+
