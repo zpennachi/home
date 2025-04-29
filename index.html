@@ -1,111 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>thoughtful.fun</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 
-
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <!-- model-viewer if you still need it -->
+  <script type="module"
+    src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
+  </script>
 </head>
 
 <body>
+  <div class="main">
+    <div class="horizontal-container">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9.41177" cy="9.41177" r="9.41177" fill="#1100FF"/>
+        <circle cx="9.41177" cy="32"       r="9.41177" fill="#1100FF"/>
+        <circle cx="9.41177" cy="54.5882"  r="9.41177" fill="#1100FF"/>
+        <circle cx="32"      cy="9.41177"  r="9.41177" fill="#1100FF"/>
+        <circle cx="32"      cy="32"       r="9.41177" fill="#1100FF"/>
+        <circle cx="54.5882" cy="9.41177"  r="9.41177" fill="#1100FF"/>
+        <circle cx="54.5882" cy="32"       r="9.41177" fill="#1100FF"/>
+      </svg>
 
+      <div class="marquee">
+        <div class="marquee-inner">
+          <span>have fun, be thoughtful, be kind :)</span>
+          <span>have fun, be thoughtful, be kind :)</span>
+          <span>have fun, be thoughtful, be kind :)</span>
+          <span>have fun, be thoughtful, be kind :)</span>
+          <span>have fun, be thoughtful, be kind :)</span>
+          <span>have fun, be thoughtful, be kind :)</span>
+        </div>
+      </div>
 
+      <button id="showSignInButton">Login :)</button>
 
-  
-<div class="main">
+      <div id="auth-section" class="hidden">
+        <div id="sign-in">
+          <input type="email"    id="signInEmail"    placeholder="Email"    required />
+          <input type="password" id="signInPassword" placeholder="Password" required />
+          <button id="signInButton">Sign In</button>
+        </div>
 
-<div class="horizontal-container">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="9.41177" cy="9.41177" r="9.41177" fill="#1100FF"/>
-                <circle cx="9.41177" cy="32" r="9.41177" fill="#1100FF"/>
-                <circle cx="9.41177" cy="54.5882" r="9.41177" fill="#1100FF"/>
-                <circle cx="32" cy="9.41177" r="9.41177" fill="#1100FF"/>
-                <circle cx="32" cy="32" r="9.41177" fill="#1100FF"/>
-                <circle cx="54.5882" cy="9.41177" r="9.41177" fill="#1100FF"/>
-                <circle cx="54.5882" cy="32" r="9.41177" fill="#1100FF"/>
-            </svg> 
-          
-<div class="marquee">
-    <div class="marquee-inner">
-      <span>have fun, be thoughtful, be kind :)</span>
-      <span>have fun, be thoughtful, be kind :)</span>
-      <span>have fun, be thoughtful, be kind :)</span>
-      <!-- Duplicate content -->
-      <span>have fun, be thoughtful, be kind :)</span>
-      <span>have fun, be thoughtful, be kind :)</span>
-      <span>have fun, be thoughtful, be kind :)</span>
+        <div id="logged-in" class="hidden">
+          <p><span id="user-email"></span></p>
+          <button id="logOutButton">Log Out</button>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- Sign-In Trigger Button -->
 
-  
-<!-- Sign-In Trigger Button -->
-<button id="showSignInButton">Login :)</button>
-
-<!-- Authentication Section -->
-<div id="auth-section" class="hidden">
-  <div id="sign-in">
-    <input type="email" id="signInEmail" placeholder="Email" required>
-    <input type="password" id="signInPassword" placeholder="Password" required>
-    <button id="signInButton">Sign In</button>
+  <!-- Free-form upload section (hidden until login) -->
+  <div id="upload-section" class="hidden">
+    <form id="uploadForm">
+      <input type="text"    id="titleInput"       placeholder="Title"       required />
+      <input type="text"    id="mediumInput"      placeholder="Medium"      required />
+      <textarea id="descriptionInput"            placeholder="Description" required></textarea>
+      <input type="file"    id="fileInput"        required />
+      <button type="submit">Upload File</button>
+    </form>
   </div>
 
-  <div id="logged-in" class="hidden">
-    <p><span id="user-email"></span>hiii</p>
-    <button id="logOutButton">Log Out</button>
+  <!-- Portfolio entries list (hidden until login) -->
+  <div class="container">
+    <ul id="entries-list" class="hidden"></ul>
   </div>
-</div>
-        </div>
-  
-<div class="container">
-      <div class="empty-nav"> </div>
 
-</div>
-  
-<!-- File Upload Section -->
-<div id="upload-section">
+  <!-- Optional: current-entry-box if you still need it -->
+  <div id="current-entry-box"
+       style="position: fixed; top: 64px; right: 10px;
+              padding: 10px; background: white;
+              border: 1px solid #ddd; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 1000; font-size: 1rem; width: 300px;
+              display: none;">
+    Current Entry: None
+  </div>
 
-
-  <form id="uploadForm">
-  <input type="text" id="titleInput" placeholder="Title (optional)">
-  <input type="text" id="mediumInput" placeholder="Medium (optional)">
-  <textarea id="descriptionInput" placeholder="Description (optional)"></textarea>
-  <input type="file" id="fileInput" required>
-  <button type="submit">Upload File</button>
-</form>
-
-  
-  <div id="output"></div>
-  <div id="todays-prompt" style="font-size: 1.2rem; font-weight: bold;">
-  <p id="prompt-noun"></p>
-  <p id="prompt-description"></p>
-</div>
-
-</div>
-  
-<div class="container">
-  <ul id="entries-list"></ul>
-</div>      
-
-  
-  <div id="current-entry-box" style="
-  position: fixed;
-  top: 64px;
-  right: 10px;
-  padding: 10px;
-  background-color: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  font-size: 1rem;
-  width: 300px;
-                                     display: none;
-">Current Entry: None</div>
-
-
-      <script src="app.js"></script>
-
- </body>
+  <!-- Your new script -->
+  <script src="app.js"></script>
+</body>
 </html>
