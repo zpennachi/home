@@ -90,30 +90,39 @@ uploadForm.addEventListener('submit', async e => {
   loadEntries();
 });
 
-// Fetch & render all entries
 async function loadEntries() {
   entriesList.innerHTML = '';
   const { data: entries, error } = await mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file')
     .order('id', { ascending: false });
-  if (error) return entriesList.innerHTML = '<li>Error loading entries</li>';
-  if (!entries.length) return entriesList.innerHTML = '<li>No uploads yet.</li>';
 
-  entries.forEach(({ title, medium, description, file }) => {
+  if (error) {
+    entriesList.innerHTML = `<li>Error loading entries: ${error.message}</li>`;
+    return;
+  }
+  if (!entries.length) {
+    entriesList.innerHTML = '<li>No uploads yet.</li>';
+    return;
+  }
+
+  entries.forEach(entry => {
+    // ensure `entry.file` is an array
+    const files = Array.isArray(entry.file) ? entry.file : [entry.file];
+
     const li = document.createElement('li');
     li.className = 'entry-item';
 
     // media
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
-    file.forEach(url => mediaDiv.appendChild(renderFile(url)));
+    files.forEach(url => mediaDiv.appendChild(renderFile(url)));
 
     // text
     const info = document.createElement('div');
     info.innerHTML = `
-      <p><strong>${title}</strong> (${medium})</p>
-      <p>${description}</p>
+      <p><strong>${entry.title}</strong> (${entry.medium})</p>
+      <p>${entry.description}</p>
     `;
 
     li.append(mediaDiv, info);
