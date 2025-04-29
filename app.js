@@ -4,32 +4,31 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // UI Elements
-const signInSection     = document.getElementById('sign-in');
-const loggedInSection   = document.getElementById('logged-in');
-const userEmailSpan     = document.getElementById('user-email');
-const uploadSection     = document.getElementById('upload-section');
-const entriesList       = document.getElementById('entries-list');
-const authSection       = document.getElementById('auth-section');
-const showLoginButton   = document.getElementById('showSignInButton');
+const signInSection   = document.getElementById('sign-in');
+const loggedInSection = document.getElementById('logged-in');
+const userEmailSpan   = document.getElementById('user-email');
+const uploadSection   = document.getElementById('upload-section');
+const entriesList     = document.getElementById('entries-list');
+const authSection     = document.getElementById('auth-section');
+const showLoginBtn    = document.getElementById('showSignInButton');
 
 // Form inputs
-const uploadForm        = document.getElementById('uploadForm');
-const titleInput        = document.getElementById('titleInput');
-const descriptionInput  = document.getElementById('descriptionInput');
-const mediumInput       = document.getElementById('mediumInput');
-const fileInput         = document.getElementById('fileInput');
+const uploadForm       = document.getElementById('uploadForm');
+const titleInput       = document.getElementById('titleInput');
+const descriptionInput = document.getElementById('descriptionInput');
+const mediumInput      = document.getElementById('mediumInput');
+const fileInput        = document.getElementById('fileInput');
 
-// Show sign-in form when clicking Login button
-showLoginButton.addEventListener('click', () => {
+// Show sign-in form on Login button click
+showLoginBtn.addEventListener('click', () => {
   authSection.classList.remove('hidden');
-  showLoginButton.classList.add('hidden');
+  showLoginBtn.classList.add('hidden');
 });
 
-// Check authentication state on page load and update UI
+// Check authentication and toggle UI
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
-    // Show logged-in UI
     userEmailSpan.textContent      = user.email;
     loggedInSection.classList.remove('hidden');
     signInSection.classList.add('hidden');
@@ -38,14 +37,12 @@ async function checkAuthState() {
     authSection.classList.remove('hidden');
     loadEntries();
   } else {
-    // Show sign-in UI
-    userEmailSpan.textContent      = '';
     loggedInSection.classList.add('hidden');
     signInSection.classList.remove('hidden');
     uploadSection.classList.add('hidden');
     entriesList.classList.add('hidden');
     authSection.classList.add('hidden');
-    showLoginButton.classList.remove('hidden');
+    showLoginBtn.classList.remove('hidden');
   }
 }
 document.addEventListener('DOMContentLoaded', checkAuthState);
@@ -54,7 +51,6 @@ document.addEventListener('DOMContentLoaded', checkAuthState);
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
-
   const { error } = await mySupabaseClient.auth.signInWithPassword({ email, password });
   if (error) {
     alert(error.message);
@@ -69,7 +65,7 @@ document.getElementById('logOutButton').addEventListener('click', async () => {
   checkAuthState();
 });
 
-// Handle new upload submission
+// Handle uploads
 uploadForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -84,12 +80,8 @@ uploadForm.addEventListener('submit', async (event) => {
   }
 
   try {
-    // Ensure user_id column exists in your table and RLS policy allows inserts
-    const { data: { user } } = await mySupabaseClient.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
     // Upload file to Supabase Storage
-    const filePath = `uploads/${user.id}/${Date.now()}_${file.name}`;
+    const filePath = `uploads/${Date.now()}_${file.name}`;
     const { error: uploadError } = await mySupabaseClient
       .storage.from('portfolio-uploads')
       .upload(filePath, file);
@@ -101,10 +93,10 @@ uploadForm.addEventListener('submit', async (event) => {
       .getPublicUrl(filePath);
     const fileUrl = publicUrlData.publicUrl;
 
-    // Insert new record into database with user_id
+    // Insert a new row, relying on table's auto-increment id
     const { error: insertError } = await mySupabaseClient
       .from('365')
-      .insert([{ user_id: user.id, title, description, medium, file: [fileUrl] }]);
+      .insert([{ title, description, medium, file: [fileUrl] }]);
     if (insertError) throw insertError;
 
     alert('Upload successful!');
@@ -112,18 +104,17 @@ uploadForm.addEventListener('submit', async (event) => {
     loadEntries();
   } catch (err) {
     console.error(err);
-    alert('Error: ' + err.message + '\n\nMake sure your table has RLS policies the allow authenticated users\n' +
-          'to insert rows with user_id equal to auth.uid().');
+    alert('Error: ' + err.message + '\n\nIf you see a row-level security error, please disable RLS or add a policy to allow inserts.');
   }
 });
 
-// Load and display all entries
+// Load and display entries
 async function loadEntries() {
   entriesList.innerHTML = '';
   try {
     const { data: entries, error } = await mySupabaseClient
       .from('365')
-      .select('id, user_id, title, description, medium, file')
+      .select('id, title, description, medium, file')
       .order('id', { ascending: false });
     if (error) throw error;
 
@@ -136,19 +127,18 @@ async function loadEntries() {
       const li = document.createElement('li');
       li.classList.add('entry-item');
 
-      // Media container
+      // Media
       const mediaContainer = document.createElement('div');
       mediaContainer.classList.add('files-container');
       entry.file.forEach(url => mediaContainer.appendChild(renderFile(url)));
 
-      // Info container
+      // Info
       const infoDiv = document.createElement('div');
       infoDiv.classList.add('entry-info');
       infoDiv.innerHTML = `
         <p><strong>Title:</strong> ${entry.title}</p>
         <p><strong>Medium:</strong> ${entry.medium}</p>
         <p>${entry.description}</p>
-        <p style="font-size:0.8em;color:#666;"><em>Uploaded by: ${entry.user_id}</em></p>
       `;
 
       li.appendChild(mediaContainer);
@@ -161,7 +151,7 @@ async function loadEntries() {
   }
 }
 
-// Render a single file URL as appropriate media element
+// Render a single file URL appropriately
 function renderFile(fileUrl) {
   const ext = fileUrl.split('.').pop().toLowerCase();
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
