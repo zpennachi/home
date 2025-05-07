@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Portfolio</title>
 
-  <!-- your main stylesheet -->
+  <!-- main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
 
   <!-- GLightbox CSS -->
@@ -17,7 +17,7 @@
   <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- Model-Viewer as an ES module -->
+  <!-- model-viewer -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
@@ -26,7 +26,6 @@
   <header>
     <div class="logo">Your Logo</div>
     <button id="showSignInButton">Login</button>
-
     <div id="auth-section" class="hidden">
       <div id="sign-in">
         <input type="email"    id="signInEmail"    placeholder="Email"    required />
@@ -54,14 +53,14 @@
     <ul id="entries-list"></ul>
   </main>
 
-  <!-- your app logic -->
-  <script src="app.js"></script>
-
-  <!-- GLightbox JS -->
+  <!-- GLightbox JS + global init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <script>
-    // initialize the lightbox on any <a class="glightbox"> links
-    const lightbox = GLightbox({ selector: '.glightbox' });
+    // make the instance global so app.js can reload it
+    window.lightbox = GLightbox({ selector: '.glightbox' });
   </script>
+
+  <!-- your app logic -->
+  <script src="app.js"></script>
 </body>
 </html>
