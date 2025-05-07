@@ -1,7 +1,6 @@
 // Initialize Supabase
-const supabaseUrl      = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
-const supabaseKey   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
-
+const supabaseUrl    = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
+const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -23,7 +22,7 @@ const entriesList      = document.getElementById('entries-list');
 let page       = 0;
 const pageSize = 1;
 
-// IntersectionObserver for infinite scroll
+// Infinite‐scroll observer
 const observer = new IntersectionObserver((entries, obs) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -31,11 +30,9 @@ const observer = new IntersectionObserver((entries, obs) => {
       loadEntries();
     }
   });
-}, {
-  rootMargin: '200px'
-});
+}, { rootMargin: '200px' });
 
-// On load: auth + first entry
+// On load: check auth + first batch
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthState();
   loadEntries();
@@ -76,7 +73,7 @@ document.getElementById('logOutButton').addEventListener('click', async () => {
   checkAuthState();
 });
 
-// Upload form (multi-file)
+// Upload handler
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const title  = titleInput.value.trim();
@@ -89,7 +86,7 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    // 1) upload each file & collect URLs
+    // 1) upload each file & get URL
     const urls = await Promise.all(files.map(async file => {
       const path = `uploads/${Date.now()}_${file.name}`;
       const { error: upErr } = await mySupabaseClient
@@ -111,19 +108,18 @@ uploadForm.addEventListener('submit', async (e) => {
       .insert([{ title, medium, description: desc, file: urls }]);
     if (insertErr) throw insertErr;
 
-    // reset & reload
+    // reset & reload from start
     uploadForm.reset();
     page = 0;
     entriesList.innerHTML = '';
     loadEntries();
-
   } catch (err) {
     console.error(err);
     alert(err.message);
   }
 });
 
-// Load one entry at a time
+// Load entries one at a time (most recent first)
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
@@ -131,7 +127,7 @@ async function loadEntries() {
   const { data: entries, error } = await mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file')
-    .order('id', { ascending: true })
+    .order('id', { ascending: false })   // 🔥 reverse order here
     .range(from, to);
 
   if (error) {
@@ -146,7 +142,7 @@ async function loadEntries() {
     const li = document.createElement('li');
     li.className = 'entry-item';
 
-    // media
+    // media grid
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     normalizeFileArray(entry.file).forEach(url =>
@@ -165,10 +161,10 @@ async function loadEntries() {
     entriesList.append(li);
   });
 
-  // reload lightbox on new anchors
+  // reload lightbox
   if (window.lightbox) window.lightbox.reload();
 
-  // sentinel for next entry
+  // sentinel for next
   const sentinel = document.createElement('div');
   sentinel.style.height = '1px';
   entriesList.append(sentinel);
@@ -177,7 +173,7 @@ async function loadEntries() {
   page++;
 }
 
-// Helpers
+// Helpers (unchanged)
 function normalizeFileArray(field) {
   if (Array.isArray(field)) return field;
   if (typeof field === 'string') {
@@ -194,7 +190,6 @@ function normalizeFileArray(field) {
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
 
-  // image + lightbox
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const link = document.createElement('a');
     link.href = url;
@@ -216,21 +211,18 @@ function renderFile(url) {
     link.append(img);
     return link;
   }
-  // video
   if (['mp4','webm','ogg'].includes(ext)) {
     const vid = document.createElement('video');
     vid.src      = url;
     vid.controls = true;
     return vid;
   }
-  // audio
   if (['mp3','wav','ogg'].includes(ext)) {
     const aud = document.createElement('audio');
     aud.src      = url;
     aud.controls = true;
     return aud;
   }
-  // 3D
   if (['glb','gltf'].includes(ext)) {
     const mv = document.createElement('model-viewer');
     mv.src = url;
@@ -239,7 +231,6 @@ function renderFile(url) {
     mv.setAttribute('auto-rotate', '');
     return mv;
   }
-  // fallback
   const a = document.createElement('a');
   a.href        = url;
   a.textContent = 'Download file';
