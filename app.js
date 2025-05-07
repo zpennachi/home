@@ -61,39 +61,58 @@ document.getElementById('logOutButton').addEventListener('click', async () => {
   checkAuthState();
 });
 
-// Upload form handler
+
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const title = titleInput.value.trim();
-  const medium = mediumInput.value.trim();
-  const desc = descriptionInput.value.trim();
-  const file = fileInput.files[0];
-  if (!title || !medium || !desc || !file) {
-    return alert('Please fill all fields.');
+
+  const title   = titleInput.value.trim();
+  const medium  = mediumInput.value.trim();
+  const desc    = descriptionInput.value.trim();
+  const files   = Array.from(fileInput.files);
+
+  if (!title || !medium || !desc || files.length === 0) {
+    return alert('Please fill all fields and select at least one file.');
   }
 
-  // 1) upload to storage
-  const filePath = `uploads/${Date.now()}_${file.name}`;
-  let { error } = await mySupabaseClient
-    .storage.from('portfolio-uploads')
-    .upload(filePath, file);
-  if (error) return alert(error.message);
+  // 1) upload each file & collect public URLs
+  const uploads = files.map(async file => {
+    const filePath = `uploads/${Date.now()}_${file.name}`;
+    const { error: uploadErr } = await mySupabaseClient
+      .storage
+      .from('portfolio-uploads')
+      .upload(filePath, file);
+    if (uploadErr) throw uploadErr;
 
-  // 2) get public URL
-  const { data: { publicUrl } } = mySupabaseClient
-    .storage.from('portfolio-uploads')
-    .getPublicUrl(filePath);
+    const { data: { publicUrl } } = mySupabaseClient
+      .storage
+      .from('portfolio-uploads')
+      .getPublicUrl(filePath);
 
-  // 3) insert metadata row
-  ({ error } = await mySupabaseClient
+    return publicUrl;
+  });
+
+  let urls;
+  try {
+    urls = await Promise.all(uploads);
+  } catch (err) {
+    console.error('Upload error:', err);
+    return alert(err.message);
+  }
+
+  // 2) insert one row with an array of URLs
+  const { error: insertErr } = await mySupabaseClient
     .from('365')
-    .insert([{ title, medium, description: desc, file: [publicUrl] }])
-  );
-  if (error) return alert(error.message);
+    .insert([{ title, medium, description: desc, file: urls }]);
+
+  if (insertErr) {
+    console.error('Insert error:', insertErr);
+    return alert(insertErr.message);
+  }
 
   uploadForm.reset();
   loadEntries();
 });
+
 
 // Fetch & render all entries
 async function loadEntries() {
