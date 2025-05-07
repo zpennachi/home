@@ -26,7 +26,7 @@
   <header>
     <div class="logo">zpennachi</div>
     <button id="showSignInButton">Login</button>
-    <div id="auth-section" class="hidden">
+    <div id="auth-section" class="signin-dropdown hidden">
       <div id="sign-in">
         <input type="email"    id="signInEmail"    placeholder="Email"    required />
         <input type="password" id="signInPassword" placeholder="Password" required />
@@ -40,12 +40,11 @@
   </header>
 
   <section id="upload-section" class="hidden">
-    <form id="uploadForm">
-      <input type="text"    id="titleInput"       placeholder="Title"       required />
-      <input type="text"    id="mediumInput"      placeholder="Medium"      required />
-      <textarea id="descriptionInput"            placeholder="Description" required></textarea>
-      <input type="file" id="fileInput" multiple />
-      <button type="submit">Upload File</button>
+    <form id="uploadForm" class="upload-form">
+      <input  name="title"       id="titleInput"       type="text"     placeholder="Title"       required />
+      <input  name="medium"      id="mediumInput"      type="text"     placeholder="Medium"      required />
+      <textarea name="description" id="descriptionInput" placeholder="Description" required></textarea>
+      <button type="submit">Submit</button>
     </form>
   </section>
 
@@ -56,7 +55,6 @@
   <!-- GLightbox JS + global init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <script>
-    // make the instance global so app.js can reload it
     window.lightbox = GLightbox({ selector: '.glightbox' });
   </script>
 
