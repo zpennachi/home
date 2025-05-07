@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Doto&display=swap');
+/* —— IMPORT WORK SANS —— */
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 * {
   box-sizing: border-box;
@@ -6,15 +7,15 @@
 
 body {
   margin: 0;
-  font-family: 'Doto', monospace;
+  font-family: 'Work Sans', sans-serif;
   background: #fff;
   padding-top: 60px; /* space for fixed header */
 }
 
 ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 header {
@@ -30,15 +31,14 @@ header {
   align-items: center;
   justify-content: space-between;
   background: rgba(255,255,255,0.95);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   z-index: 1000;
-  box-sizing: border-box;
 }
 
 header .logo {
   font-size: 1.25rem;
   font-weight: bold;
 }
+
 header #showSignInButton {
   font-size: 0.9rem;
   padding: 0.4rem 0.8rem;
@@ -49,6 +49,7 @@ header #showSignInButton {
   border-radius: 4px;
   cursor: pointer;
 }
+
 header #showSignInButton:hover {
   opacity: 0.9;
 }
@@ -77,12 +78,10 @@ header #showSignInButton:hover {
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
-/* portrait: half width, top */
 .files-container a.portrait {
   order: 0;
   flex: 0 0 calc(50% - 0.25rem);
 }
-/* landscape: full width, bottom */
 .files-container a.landscape {
   order: 1;
   flex: 0 0 100%;
