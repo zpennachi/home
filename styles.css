@@ -1,82 +1,109 @@
 @import url('https://fonts.googleapis.com/css2?family=Doto&display=swap');
 
-body {
-  margin: 0;
-  font-family: 'Doto', monospace;
-  background: #ffffff;
-}
-model-viewer {
-  width: 300px;
-  height: 300px;
-  object-fit: contain;
-}
-
-header {
-  padding: 1rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-input, textarea, button {
-  display: block;
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  border-radius: 4px;
-  
+* {
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  font-family: 'Doto', monospace;
+  background: #fff;
+  padding-top: 60px; /* make room for fixed header */
+}
+
+/* —— HEADER —— */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 60px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+header .logo {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+header #showSignInButton {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #000;
+  background: #000;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+header #showSignInButton:hover {
+  opacity: 0.9;
+}
+
+/* —— MAIN CONTAINER —— */
+.container {
+  max-width: 1200px;   /* wider on desktop */
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* —— ENTRY ITEMS —— */
+.entry-item {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* —— FULL-WIDTH STACKED MEDIA —— */
+.files-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.files-container a,
+.files-container img,
+.files-container video,
+.files-container model-viewer {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* —— THUMBNAILS (if you want a max-height) —— */
+.thumbnail {
+  width: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* —— KEEP FORMS & BUTTONS —— */
+input,
+textarea,
+button {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
 button {
   background: #000;
   color: #fff;
   border: none;
   cursor: pointer;
 }
-
 button:hover {
   opacity: 0.9;
 }
-
 .hidden {
   display: none !important;
-}
-
-#upload-section {
-  padding: 1rem;
-  background: rgba(17, 0, 255, 0.8);
-  backdrop-filter: blur(10px);
-}
-
-.container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-.entry-item {
-  border: 1px solid #ddd;
-  background: #fff;
-  margin-bottom: 1rem;
-  padding: 1rem;
-}
-
-.files-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.thumbnail, .video-thumb {
-  width: 150px;
-  height: auto;
-  object-fit: cover;
 }
