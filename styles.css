@@ -39,6 +39,7 @@ header #showSignInButton {
   padding: 0.4rem 0.8rem;
   border: 1px solid #000;
   background: #000;
+  width: 420px;
   color: #fff;
   border-radius: 4px;
   cursor: pointer;
