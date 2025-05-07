@@ -3,7 +3,7 @@ const supabaseUrl   = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
 const supabaseKey   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// UI Elements
+// ——— UI Elements ———
 const showLoginBtn     = document.getElementById('showSignInButton');
 const authSection      = document.getElementById('auth-section');
 const signInSection    = document.getElementById('sign-in');
@@ -17,22 +17,37 @@ const descriptionInput = document.getElementById('descriptionInput');
 const fileInput        = document.getElementById('fileInput');
 const entriesList      = document.getElementById('entries-list');
 
-// Toggle login form
+// ——— Pagination state ———
+let page      = 0;
+const pageSize = 1;
+
+// ——— IntersectionObserver for infinite scroll ———
+const observer = new IntersectionObserver((entries, obs) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      obs.unobserve(entry.target);
+      loadEntries();
+    }
+  });
+}, {
+  rootMargin: '200px'
+});
+
+// ——— On load: auth + first entry ———
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkAuthState();
+  loadEntries();
+});
+
+// ——— Auth handlers ———
 showLoginBtn.addEventListener('click', () => {
   authSection.classList.toggle('hidden');
 });
 
-// On load: fetch entries + auth state
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadEntries();
-  await checkAuthState();
-});
-
-// Check whether user is signed in
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
-    userEmailSpan.textContent = user.email;
+    userEmailSpan.textContent        = user.email;
     signInSection.classList.add('hidden');
     loggedInSection.classList.remove('hidden');
     uploadSection.classList.remove('hidden');
@@ -43,7 +58,6 @@ async function checkAuthState() {
   }
 }
 
-// Sign in handler
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
@@ -52,92 +66,92 @@ document.getElementById('signInButton').addEventListener('click', async () => {
   else checkAuthState();
 });
 
-// Sign out handler
 document.getElementById('logOutButton').addEventListener('click', async () => {
   await mySupabaseClient.auth.signOut();
   checkAuthState();
 });
 
-// Upload form handler (multi-file)
+// ——— Upload form (multi-file) ———
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  const title   = titleInput.value.trim();
-  const medium  = mediumInput.value.trim();
-  const desc    = descriptionInput.value.trim();
-  const files   = Array.from(fileInput.files);
+  const title  = titleInput.value.trim();
+  const medium = mediumInput.value.trim();
+  const desc   = descriptionInput.value.trim();
+  const files  = Array.from(fileInput.files);
 
   if (!title || !medium || !desc || files.length === 0) {
     return alert('Please fill all fields and select at least one file.');
   }
 
-  // 1) upload each file & collect public URLs
-  const uploads = files.map(async file => {
-    const filePath = `uploads/${Date.now()}_${file.name}`;
-    const { error: uploadErr } = await mySupabaseClient
-      .storage
-      .from('portfolio-uploads')
-      .upload(filePath, file);
-    if (uploadErr) throw uploadErr;
-
-    const { data: { publicUrl } } = mySupabaseClient
-      .storage
-      .from('portfolio-uploads')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  });
-
-  let urls;
+  // upload each and collect URLs
   try {
-    urls = await Promise.all(uploads);
+    const urls = await Promise.all(files.map(async file => {
+      const path = `uploads/${Date.now()}_${file.name}`;
+      const { error: uploadErr } = await mySupabaseClient
+        .storage
+        .from('portfolio-uploads')
+        .upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: { publicUrl } } = mySupabaseClient
+        .storage
+        .from('portfolio-uploads')
+        .getPublicUrl(path);
+      return publicUrl;
+    }));
+
+    // insert a single row with the array of URLs
+    const { error: insertErr } = await mySupabaseClient
+      .from('365')
+      .insert([{ title, medium, description: desc, file: urls }]);
+    if (insertErr) throw insertErr;
+
+    // reset and reload from page 0
+    uploadForm.reset();
+    page = 0;
+    entriesList.innerHTML = '';
+    loadEntries();
+
   } catch (err) {
-    console.error('Upload error:', err);
-    return alert(err.message);
+    console.error(err);
+    alert(err.message);
   }
-
-  // 2) insert one row with an array of URLs
-  const { error: insertErr } = await mySupabaseClient
-    .from('365')
-    .insert([{ title, medium, description: desc, file: urls }]);
-
-  if (insertErr) {
-    console.error('Insert error:', insertErr);
-    return alert(insertErr.message);
-  }
-
-  uploadForm.reset();
-  await loadEntries();
 });
 
-// Fetch & render all entries
+// ——— Load one entry at a time ———
 async function loadEntries() {
-  entriesList.innerHTML = '';
+  const from = page * pageSize;
+  const to   = from + pageSize - 1;
+
   const { data: entries, error } = await mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file')
-    .order('id', { ascending: false });
+    .order('id', { ascending: true })
+    .range(from, to);
 
   if (error) {
-    entriesList.innerHTML = `<li>Error loading entries: ${error.message}</li>`;
+    const li = document.createElement('li');
+    li.textContent = `Error loading entries: ${error.message}`;
+    entriesList.append(li);
     return;
   }
-  if (!entries || entries.length === 0) {
-    entriesList.innerHTML = '<li>No uploads yet.</li>';
+
+  if (!entries.length) {
+    // no more entries
     return;
   }
 
   entries.forEach(entry => {
     const files = normalizeFileArray(entry.file);
-    const li = document.createElement('li');
+    const li    = document.createElement('li');
     li.className = 'entry-item';
 
-    // media container
+    // media
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     files.forEach(url => mediaDiv.appendChild(renderFile(url)));
 
-    // text info
+    // sticky info
     const infoDiv = document.createElement('div');
     infoDiv.className = 'entry-info';
     infoDiv.innerHTML = `
@@ -149,19 +163,25 @@ async function loadEntries() {
     entriesList.append(li);
   });
 
-  // re-initialize lightbox after DOM updates
-  if (window.lightbox) {
-    lightbox.reload();
-  }
+  // reload lightbox
+  if (window.lightbox) lightbox.reload();
+
+  // add sentinel for next entry
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  entriesList.append(sentinel);
+  observer.observe(sentinel);
+
+  page++;
 }
 
-// Ensure we have an array of URLs
+// ——— Helpers ———
 function normalizeFileArray(fileField) {
   if (Array.isArray(fileField)) return fileField;
   if (typeof fileField === 'string') {
     try {
-      const parsed = JSON.parse(fileField);
-      return Array.isArray(parsed) ? parsed : [fileField];
+      const p = JSON.parse(fileField);
+      return Array.isArray(p) ? p : [fileField];
     } catch {
       return [fileField];
     }
@@ -169,11 +189,10 @@ function normalizeFileArray(fileField) {
   return [];
 }
 
-// Choose the right element to render each URL
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
 
-  // image branch with orientation & lightbox wrapper
+  // images w/ orientation + lightbox
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const link = document.createElement('a');
     link.href = url;
@@ -190,7 +209,7 @@ function renderFile(url) {
       link.classList.add(cls);
     };
 
-    link.appendChild(img);
+    link.append(img);
     return link;
   }
 
@@ -213,8 +232,8 @@ function renderFile(url) {
   // 3D model
   if (['glb','gltf'].includes(ext)) {
     const mv = document.createElement('model-viewer');
-    mv.src             = url;
-    mv.alt             = '3D model';
+    mv.src = url;
+    mv.alt = '3D model';
     mv.setAttribute('camera-controls', '');
     mv.setAttribute('auto-rotate', '');
     return mv;
