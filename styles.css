@@ -67,7 +67,6 @@ header #showSignInButton:hover {
   border: 1px solid #ddd;
   margin-bottom: 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   padding-bottom: 1rem; /* space for sticky info */
 }
 
@@ -113,7 +112,6 @@ header #showSignInButton:hover {
   background: rgba(255,255,255,0.9);
   padding: 1rem;
   width: 100%;
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
   z-index: 10;
 }
 
@@ -150,7 +148,7 @@ button:hover {
   top: 60px;                /* right under your fixed header */
   right: 1rem;
   width: 280px;             /* match your mock */
-  background: #e0e0e0;      /* light grey backer */
+  background: #ffffff;      /* light grey backer */
   padding: 1rem;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
