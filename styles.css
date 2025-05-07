@@ -8,15 +8,13 @@ body {
   margin: 0;
   font-family: 'Doto', monospace;
   background: #fff;
-  padding-top: 60px; /* make room for fixed header */
+  padding-top: 60px; /* space for fixed header */
 }
 
 /* —— HEADER —— */
 header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 60px;
   padding: 0 1rem;
   display: flex;
@@ -45,20 +43,19 @@ header #showSignInButton:hover {
 
 /* —— MAIN CONTAINER —— */
 .container {
-  max-width: 1200px;   /* wider on desktop */
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
 }
 
 /* —— ENTRY ITEMS —— */
 .entry-item {
-  width: 100%;
   background: #fff;
   border: 1px solid #ddd;
   margin-bottom: 1.5rem;
-  padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  padding-bottom: 1rem; /* space for sticky info */
 }
 
 /* —— FLEX LAYOUT FOR ORIENTATION —— */
@@ -68,14 +65,18 @@ header #showSignInButton:hover {
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
-.files-container a.landscape {
-  flex: 0 0 100%;
-}
+/* portrait: half width, top */
 .files-container a.portrait {
+  order: 0;
   flex: 0 0 calc(50% - 0.25rem);
 }
+/* landscape: full width, bottom */
+.files-container a.landscape {
+  order: 1;
+  flex: 0 0 100%;
+}
 
-/* full-width for non-img elements */
+/* wrappers for non-img media */
 .files-container a,
 .files-container video,
 .files-container model-viewer {
@@ -85,10 +86,10 @@ header #showSignInButton:hover {
   overflow: hidden;
 }
 
-/* let images size themselves via flex */
+/* images fill their wrapper */
 .files-container img {
   display: block;
-  width: auto;
+  width: 100%;
   height: auto;
   border-radius: 4px;
   cursor: pointer;
