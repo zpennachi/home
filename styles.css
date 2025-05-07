@@ -36,7 +36,7 @@ header {
 
 header .logo {
   font-size: 2rem;
-  font-weight: regular;
+  font-weight: 400;
 }
 
 header #showSignInButton {
@@ -141,4 +141,59 @@ button:hover {
 
 .hidden {
   display: none !important;
+}
+
+/* —— SIGN-IN DROPDOWN —— */
+/* wrap your inputs + button in a <div class="signin-dropdown"> */
+.signin-dropdown {
+  position: absolute;
+  top: 60px;                /* right under your fixed header */
+  right: 1rem;
+  width: 280px;             /* match your mock */
+  background: #e0e0e0;      /* light grey backer */
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 1001;
+}
+.signin-dropdown input {
+  width: 100%;
+}
+.signin-dropdown button {
+  align-self: flex-end;     /* push it to the right */
+  width: 80px;              /* as in your mock */
+  padding: 0.5rem;
+}
+
+/* —— UPLOAD FORM LAYOUT —— */
+/* wrap your fields in <form class="upload-form"> */
+.upload-form {
+  background: #e0e0e0;
+  padding: 1rem;
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto 150px;
+  gap: 0.75rem;
+}
+.upload-form input[name="title"] {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+.upload-form input[name="medium"] {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+.upload-form textarea[name="description"] {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  resize: vertical;
+}
+.upload-form button[type="submit"] {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  height: 100%;            /* fill that right-hand cell */
 }
