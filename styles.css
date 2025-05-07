@@ -63,8 +63,7 @@ header #showSignInButton:hover {
 
 /* —— ENTRY ITEMS —— */
 .entry-item {
-  background: #fff;
-  border: 1px solid #ddd;
+  background: #ffffff;
   margin-bottom: 1rem;
   border-radius: 8px;
   padding-bottom: 1rem; /* space for sticky info */
@@ -109,8 +108,8 @@ header #showSignInButton:hover {
 .entry-info {
   position: sticky;
   bottom: 0;
-  background: rgba(255,255,255,0.9);
-  padding: 1rem;
+  background: rgb(255,255,255);
+  padding: .5rem;
   width: 100%;
   z-index: 10;
 }
