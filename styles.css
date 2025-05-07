@@ -11,6 +11,12 @@ body {
   padding-top: 60px; /* space for fixed header */
 }
 
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 /* —— HEADER —— */
 header {
   position: fixed;
