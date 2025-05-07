@@ -1,9 +1,9 @@
 // Initialize Supabase
-const supabaseUrl   = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
-const supabaseKey   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
+const supabaseUrl      = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
+const supabaseKey      = 'YOUR_SUPABASE_ANON_KEY';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// ——— UI Elements ———
+// UI Elements
 const showLoginBtn     = document.getElementById('showSignInButton');
 const authSection      = document.getElementById('auth-section');
 const signInSection    = document.getElementById('sign-in');
@@ -17,11 +17,11 @@ const descriptionInput = document.getElementById('descriptionInput');
 const fileInput        = document.getElementById('fileInput');
 const entriesList      = document.getElementById('entries-list');
 
-// ——— Pagination state ———
-let page      = 0;
+// Pagination state
+let page       = 0;
 const pageSize = 1;
 
-// ——— IntersectionObserver for infinite scroll ———
+// IntersectionObserver for infinite scroll
 const observer = new IntersectionObserver((entries, obs) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -33,21 +33,22 @@ const observer = new IntersectionObserver((entries, obs) => {
   rootMargin: '200px'
 });
 
-// ——— On load: auth + first entry ———
+// On load: auth + first entry
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthState();
   loadEntries();
 });
 
-// ——— Auth handlers ———
+// Toggle login form
 showLoginBtn.addEventListener('click', () => {
   authSection.classList.toggle('hidden');
 });
 
+// Check auth state
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
-    userEmailSpan.textContent        = user.email;
+    userEmailSpan.textContent       = user.email;
     signInSection.classList.add('hidden');
     loggedInSection.classList.remove('hidden');
     uploadSection.classList.remove('hidden');
@@ -58,6 +59,7 @@ async function checkAuthState() {
   }
 }
 
+// Sign in
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
@@ -66,12 +68,13 @@ document.getElementById('signInButton').addEventListener('click', async () => {
   else checkAuthState();
 });
 
+// Sign out
 document.getElementById('logOutButton').addEventListener('click', async () => {
   await mySupabaseClient.auth.signOut();
   checkAuthState();
 });
 
-// ——— Upload form (multi-file) ———
+// Upload form (multi-file)
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const title  = titleInput.value.trim();
@@ -83,15 +86,15 @@ uploadForm.addEventListener('submit', async (e) => {
     return alert('Please fill all fields and select at least one file.');
   }
 
-  // upload each and collect URLs
   try {
+    // 1) upload each file & collect URLs
     const urls = await Promise.all(files.map(async file => {
       const path = `uploads/${Date.now()}_${file.name}`;
-      const { error: uploadErr } = await mySupabaseClient
+      const { error: upErr } = await mySupabaseClient
         .storage
         .from('portfolio-uploads')
         .upload(path, file);
-      if (uploadErr) throw uploadErr;
+      if (upErr) throw upErr;
 
       const { data: { publicUrl } } = mySupabaseClient
         .storage
@@ -100,13 +103,13 @@ uploadForm.addEventListener('submit', async (e) => {
       return publicUrl;
     }));
 
-    // insert a single row with the array of URLs
+    // 2) insert row
     const { error: insertErr } = await mySupabaseClient
       .from('365')
       .insert([{ title, medium, description: desc, file: urls }]);
     if (insertErr) throw insertErr;
 
-    // reset and reload from page 0
+    // reset & reload
     uploadForm.reset();
     page = 0;
     entriesList.innerHTML = '';
@@ -118,7 +121,7 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
-// ——— Load one entry at a time ———
+// Load one entry at a time
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
@@ -135,21 +138,18 @@ async function loadEntries() {
     entriesList.append(li);
     return;
   }
-
-  if (!entries.length) {
-    // no more entries
-    return;
-  }
+  if (!entries.length) return; // no more
 
   entries.forEach(entry => {
-    const files = normalizeFileArray(entry.file);
-    const li    = document.createElement('li');
+    const li = document.createElement('li');
     li.className = 'entry-item';
 
     // media
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
-    files.forEach(url => mediaDiv.appendChild(renderFile(url)));
+    normalizeFileArray(entry.file).forEach(url =>
+      mediaDiv.append(renderFile(url))
+    );
 
     // sticky info
     const infoDiv = document.createElement('div');
@@ -163,10 +163,10 @@ async function loadEntries() {
     entriesList.append(li);
   });
 
-  // reload lightbox
-  if (window.lightbox) lightbox.reload();
+  // reload lightbox on new anchors
+  if (window.lightbox) window.lightbox.reload();
 
-  // add sentinel for next entry
+  // sentinel for next entry
   const sentinel = document.createElement('div');
   sentinel.style.height = '1px';
   entriesList.append(sentinel);
@@ -175,15 +175,15 @@ async function loadEntries() {
   page++;
 }
 
-// ——— Helpers ———
-function normalizeFileArray(fileField) {
-  if (Array.isArray(fileField)) return fileField;
-  if (typeof fileField === 'string') {
+// Helpers
+function normalizeFileArray(field) {
+  if (Array.isArray(field)) return field;
+  if (typeof field === 'string') {
     try {
-      const p = JSON.parse(fileField);
-      return Array.isArray(p) ? p : [fileField];
+      const p = JSON.parse(field);
+      return Array.isArray(p) ? p : [field];
     } catch {
-      return [fileField];
+      return [field];
     }
   }
   return [];
@@ -192,7 +192,7 @@ function normalizeFileArray(fileField) {
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
 
-  // images w/ orientation + lightbox
+  // image + lightbox
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const link = document.createElement('a');
     link.href = url;
@@ -204,7 +204,9 @@ function renderFile(url) {
     img.className = 'thumbnail';
 
     img.onload = () => {
-      const cls = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
+      const cls = img.naturalWidth > img.naturalHeight
+        ? 'landscape'
+        : 'portrait';
       img.classList.add(cls);
       link.classList.add(cls);
     };
@@ -212,24 +214,21 @@ function renderFile(url) {
     link.append(img);
     return link;
   }
-
   // video
   if (['mp4','webm','ogg'].includes(ext)) {
-    const video = document.createElement('video');
-    video.src      = url;
-    video.controls = true;
-    return video;
+    const vid = document.createElement('video');
+    vid.src      = url;
+    vid.controls = true;
+    return vid;
   }
-
   // audio
   if (['mp3','wav','ogg'].includes(ext)) {
-    const audio = document.createElement('audio');
-    audio.src      = url;
-    audio.controls = true;
-    return audio;
+    const aud = document.createElement('audio');
+    aud.src      = url;
+    aud.controls = true;
+    return aud;
   }
-
-  // 3D model
+  // 3D
   if (['glb','gltf'].includes(ext)) {
     const mv = document.createElement('model-viewer');
     mv.src = url;
@@ -238,11 +237,10 @@ function renderFile(url) {
     mv.setAttribute('auto-rotate', '');
     return mv;
   }
-
-  // fallback link
-  const link = document.createElement('a');
-  link.href        = url;
-  link.textContent = 'Download file';
-  link.target      = '_blank';
-  return link;
+  // fallback
+  const a = document.createElement('a');
+  a.href        = url;
+  a.textContent = 'Download file';
+  a.target      = '_blank';
+  return a;
 }
