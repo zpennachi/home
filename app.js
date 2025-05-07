@@ -1,8 +1,7 @@
 // Initialize Supabase
-const supabaseUrl = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
+const supabaseUrl   = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
+const supabaseKey   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
 
 // UI Elements
 const showLoginBtn     = document.getElementById('showSignInButton');
@@ -10,14 +9,12 @@ const authSection      = document.getElementById('auth-section');
 const signInSection    = document.getElementById('sign-in');
 const loggedInSection  = document.getElementById('logged-in');
 const userEmailSpan    = document.getElementById('user-email');
-
 const uploadSection    = document.getElementById('upload-section');
 const uploadForm       = document.getElementById('uploadForm');
 const titleInput       = document.getElementById('titleInput');
 const mediumInput      = document.getElementById('mediumInput');
 const descriptionInput = document.getElementById('descriptionInput');
 const fileInput        = document.getElementById('fileInput');
-
 const entriesList      = document.getElementById('entries-list');
 
 // Toggle login form
@@ -61,7 +58,7 @@ document.getElementById('logOutButton').addEventListener('click', async () => {
   checkAuthState();
 });
 
-
+// Upload form handler (multi-file)
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -110,9 +107,8 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 
   uploadForm.reset();
-  loadEntries();
+  await loadEntries();
 });
-
 
 // Fetch & render all entries
 async function loadEntries() {
@@ -152,6 +148,11 @@ async function loadEntries() {
     li.append(mediaDiv, infoDiv);
     entriesList.append(li);
   });
+
+  // re-initialize lightbox after DOM updates
+  if (window.lightbox) {
+    lightbox.reload();
+  }
 }
 
 // Ensure we have an array of URLs
@@ -172,38 +173,57 @@ function normalizeFileArray(fileField) {
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
 
+  // image branch with orientation & lightbox wrapper
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.classList.add('glightbox');
+
     const img = document.createElement('img');
-    img.src = url; img.alt = ''; img.className = 'thumbnail';
-    return img;
+    img.src       = url;
+    img.alt       = '';
+    img.className = 'thumbnail';
+
+    img.onload = () => {
+      const cls = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
+      img.classList.add(cls);
+      link.classList.add(cls);
+    };
+
+    link.appendChild(img);
+    return link;
   }
 
+  // video
   if (['mp4','webm','ogg'].includes(ext)) {
     const video = document.createElement('video');
-    video.src = url; video.controls = true; video.className = 'video-thumb';
+    video.src      = url;
+    video.controls = true;
     return video;
   }
 
+  // audio
   if (['mp3','wav','ogg'].includes(ext)) {
     const audio = document.createElement('audio');
-    audio.src = url; audio.controls = true;
+    audio.src      = url;
+    audio.controls = true;
     return audio;
   }
 
-  // 3D model support
+  // 3D model
   if (['glb','gltf'].includes(ext)) {
     const mv = document.createElement('model-viewer');
-    mv.src = url;
-    mv.alt = '3D model';
+    mv.src             = url;
+    mv.alt             = '3D model';
     mv.setAttribute('camera-controls', '');
     mv.setAttribute('auto-rotate', '');
-    mv.style.width = '200px';
-    mv.style.height = '200px';
     return mv;
   }
 
-  // fallback download link
+  // fallback link
   const link = document.createElement('a');
-  link.href = url; link.textContent = 'Download file'; link.target = '_blank';
+  link.href        = url;
+  link.textContent = 'Download file';
+  link.target      = '_blank';
   return link;
 }
