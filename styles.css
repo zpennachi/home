@@ -17,12 +17,14 @@ ul {
     margin: 0;
 }
 
-/* —— HEADER —— */
 header {
   position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 60px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   max-width: 1200px;
+  height: 60px;
   padding: 0 1rem;
   display: flex;
   align-items: center;
@@ -30,7 +32,9 @@ header {
   background: rgba(255,255,255,0.95);
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   z-index: 1000;
+  box-sizing: border-box;
 }
+
 header .logo {
   font-size: 1.25rem;
   font-weight: bold;
@@ -40,7 +44,7 @@ header #showSignInButton {
   padding: 0.4rem 0.8rem;
   border: 1px solid #000;
   background: #000;
-  width: 420px;
+  width: 120px;
   color: #fff;
   border-radius: 4px;
   cursor: pointer;
