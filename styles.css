@@ -43,6 +43,7 @@ header .logo {
 /* dropdown sits inline with login button */
 header select#categoryFilter {
   font-size: 0.9rem;
+  max-width: 200px;
   padding: 0.3rem;
   margin-right: 1rem;
 }
