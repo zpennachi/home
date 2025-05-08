@@ -74,7 +74,7 @@ header #showSignInButton:hover {
   border-radius: 8px;
   padding-bottom: 1rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* PROGRESS BAR */
