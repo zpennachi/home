@@ -131,16 +131,14 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
-// LOAD + RENDER ENTRIES
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
 
-  // build query
+  // Build the query (with optional category filter)
   let builder = mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file, category');
-
   if (selectedCategory) {
     builder = builder.eq('category', selectedCategory);
   }
@@ -160,37 +158,36 @@ async function loadEntries() {
   entries.forEach(entry => {
     const li = document.createElement('li');
     li.className = 'entry-item';
-    li.style.position = 'relative';
 
-    // progress bar
-    const bar = document.createElement('div');
-    bar.className = 'entry-progress-bar';
-    li.prepend(bar);
-    progressBars.push(bar);
-
-    // media
+    // media grid
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     normalizeFileArray(entry.file).forEach(url =>
       mediaDiv.append(renderFile(url))
     );
 
-    // info
+    // info + progress bar wrapper
     const infoDiv = document.createElement('div');
     infoDiv.className = 'entry-info';
     infoDiv.innerHTML = `
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
       <p><strong>${entry.title}</strong> (${entry.medium})</p>
       <p>${entry.description}</p>
     `;
 
     li.append(mediaDiv, infoDiv);
     entriesList.append(li);
+
+    // track this entry’s progress bar
+    progressBars.push(infoDiv.querySelector('.progress-bar'));
   });
 
-  // re-init lightbox
+  // re-init lightbox on newly added anchors
   if (window.lightbox) window.lightbox.reload();
 
-  // sentinel
+  // sentinel for infinite scroll
   const sentinel = document.createElement('div');
   sentinel.style.height = '1px';
   entriesList.append(sentinel);
@@ -198,6 +195,7 @@ async function loadEntries() {
 
   page++;
 }
+
 
 // SCROLL‐DRIVEN PROGRESS UPDATE
 let ticking = false;
