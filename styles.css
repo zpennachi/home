@@ -1,3 +1,4 @@
+/* styles.css */
 /* —— IMPORT WORK SANS —— */
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
@@ -112,6 +113,23 @@ header #showSignInButton:hover {
   padding: .5rem;
   width: 100%;
   z-index: 10;
+  /* allow absolutely positioned children */
+  overflow: hidden;
+}
+
+/* —— Progress-bar styles —— */
+.progress-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: #e0e0e0;
+  z-index: 20;
+}
+.progress-bar {
+  width: 0;
+  height: 100%;
+  background: #000;
+  transition: width 0.1s ease-out;
 }
 
 /* —— FORMS & BUTTONS —— */
@@ -141,13 +159,12 @@ button:hover {
 }
 
 /* —— SIGN-IN DROPDOWN —— */
-/* wrap your inputs + button in a <div class="signin-dropdown"> */
 .signin-dropdown {
   position: absolute;
-  top: 60px;                /* right under your fixed header */
+  top: 60px;
   right: 1rem;
-  width: 280px;             /* match your mock */
-  background: #ffffff;      /* light grey backer */
+  width: 280px;
+  background: #ffffff;
   padding: 1rem;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -160,13 +177,12 @@ button:hover {
   width: 100%;
 }
 .signin-dropdown button {
-  align-self: flex-end;     /* push it to the right */
-  width: 80px;              /* as in your mock */
+  align-self: flex-end;
+  width: 80px;
   padding: 0.5rem;
 }
 
 /* —— UPLOAD FORM LAYOUT —— */
-/* wrap your fields in <form class="upload-form"> */
 .upload-form {
   background: #e0e0e0;
   padding: 1rem;
@@ -192,5 +208,5 @@ button:hover {
 .upload-form button[type="submit"] {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
-  height: 100%;            /* fill that right-hand cell */
+  height: 100%;
 }
