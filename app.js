@@ -1,7 +1,7 @@
+// app.js
 // Initialize Supabase
 const supabaseUrl    = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
 const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
-
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // UI Elements
@@ -18,9 +18,10 @@ const descriptionInput = document.getElementById('descriptionInput');
 const fileInput        = document.getElementById('fileInput');
 const entriesList      = document.getElementById('entries-list');
 
-// Pagination state
-let page       = 0;
+// Pagination & progress state
+let page = 0;
 const pageSize = 1;
+const progressBars = [];
 
 // Infinite‐scroll observer
 const observer = new IntersectionObserver((entries, obs) => {
@@ -80,13 +81,12 @@ uploadForm.addEventListener('submit', async (e) => {
   const medium = mediumInput.value.trim();
   const desc   = descriptionInput.value.trim();
   const files  = Array.from(fileInput.files);
-
   if (!title || !medium || !desc || files.length === 0) {
     return alert('Please fill all fields and select at least one file.');
   }
 
   try {
-    // 1) upload each file & get URL
+    // 1) upload files
     const urls = await Promise.all(files.map(async file => {
       const path = `uploads/${Date.now()}_${file.name}`;
       const { error: upErr } = await mySupabaseClient
@@ -108,10 +108,11 @@ uploadForm.addEventListener('submit', async (e) => {
       .insert([{ title, medium, description: desc, file: urls }]);
     if (insertErr) throw insertErr;
 
-    // reset & reload from start
+    // reset & reload
     uploadForm.reset();
     page = 0;
     entriesList.innerHTML = '';
+    progressBars.length = 0;
     loadEntries();
   } catch (err) {
     console.error(err);
@@ -119,15 +120,14 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Load entries one at a time (most recent first)
+// Load entries (most recent first) + inject progress bar markup
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
-
   const { data: entries, error } = await mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file')
-    .order('id', { ascending: false })   // 🔥 reverse order here
+    .order('id', { ascending: false })
     .range(from, to);
 
   if (error) {
@@ -136,35 +136,37 @@ async function loadEntries() {
     entriesList.append(li);
     return;
   }
-  if (!entries.length) return; // no more
+  if (!entries.length) return;
 
   entries.forEach(entry => {
     const li = document.createElement('li');
     li.className = 'entry-item';
 
-    // media grid
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     normalizeFileArray(entry.file).forEach(url =>
       mediaDiv.append(renderFile(url))
     );
 
-    // sticky info
     const infoDiv = document.createElement('div');
     infoDiv.className = 'entry-info';
     infoDiv.innerHTML = `
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
       <p><strong>${entry.title}</strong> (${entry.medium})</p>
       <p>${entry.description}</p>
     `;
 
     li.append(mediaDiv, infoDiv);
     entriesList.append(li);
+
+    // track the new bar
+    progressBars.push(infoDiv.querySelector('.progress-bar'));
   });
 
-  // reload lightbox
   if (window.lightbox) window.lightbox.reload();
 
-  // sentinel for next
   const sentinel = document.createElement('div');
   sentinel.style.height = '1px';
   entriesList.append(sentinel);
@@ -173,7 +175,28 @@ async function loadEntries() {
   page++;
 }
 
-// Helpers (unchanged)
+// Scroll-driven progress updates (throttled)
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!progressBars.length) return;
+  if (!ticking) {
+    window.requestAnimationFrame(() => {
+      const vh = window.innerHeight;
+      progressBars.forEach(bar => {
+        const item = bar.closest('.entry-item');
+        const rect = item.getBoundingClientRect();
+        const distance = vh - rect.top;
+        let pct = (distance / rect.height) * 100;
+        pct = Math.min(Math.max(pct, 0), 100);
+        bar.style.width = pct + '%';
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+
+// Helpers
 function normalizeFileArray(field) {
   if (Array.isArray(field)) return field;
   if (typeof field === 'string') {
@@ -189,25 +212,19 @@ function normalizeFileArray(field) {
 
 function renderFile(url) {
   const ext = url.split('.').pop().toLowerCase();
-
   if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) {
     const link = document.createElement('a');
     link.href = url;
     link.classList.add('glightbox');
-
     const img = document.createElement('img');
     img.src       = url;
     img.alt       = '';
     img.className = 'thumbnail';
-
     img.onload = () => {
-      const cls = img.naturalWidth > img.naturalHeight
-        ? 'landscape'
-        : 'portrait';
+      const cls = img.naturalWidth > img.naturalHeight ? 'landscape' : 'portrait';
       img.classList.add(cls);
       link.classList.add(cls);
     };
-
     link.append(img);
     return link;
   }
