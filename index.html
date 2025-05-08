@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +26,16 @@
 <body>
   <header>
     <div class="logo">zpennachi</div>
+
+    <!-- CATEGORY FILTER -->
+    <select id="categoryFilter">
+      <option value="">All work</option>
+      <option value="product renders">Product renders</option>
+      <option value="artwork">Artwork</option>
+      <option value="immersive experiences">Immersive experiences</option>
+      <option value="sounds">Sounds</option>
+    </select>
+
     <button id="showSignInButton">Login</button>
     <div id="auth-section" class="signin-dropdown hidden">
       <div id="sign-in">
@@ -44,6 +55,19 @@
       <input  name="title"       id="titleInput"       type="text"     placeholder="Title"       required />
       <input  name="medium"      id="mediumInput"      type="text"     placeholder="Medium"      required />
       <textarea name="description" id="descriptionInput" placeholder="Description" required></textarea>
+
+      <!-- CATEGORY INPUT -->
+      <select name="category" id="categoryInput" required>
+        <option value="">Select category</option>
+        <option value="product renders">Product renders</option>
+        <option value="artwork">Artwork</option>
+        <option value="immersive experiences">Immersive experiences</option>
+        <option value="sounds">Sounds</option>
+      </select>
+
+      <!-- FILE INPUT -->
+      <input type="file" id="fileInput" name="file" multiple required />
+
       <button type="submit">Submit</button>
     </form>
   </section>
@@ -52,7 +76,7 @@
     <ul id="entries-list"></ul>
   </main>
 
-  <!-- GLightbox JS + global init -->
+  <!-- GLightbox JS + init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <script>
     window.lightbox = GLightbox({ selector: '.glightbox' });
