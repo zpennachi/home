@@ -15,12 +15,15 @@ const uploadForm       = document.getElementById('uploadForm');
 const titleInput       = document.getElementById('titleInput');
 const mediumInput      = document.getElementById('mediumInput');
 const descriptionInput = document.getElementById('descriptionInput');
+const categoryInput    = document.getElementById('categoryInput');
 const fileInput        = document.getElementById('fileInput');
+const categoryFilter   = document.getElementById('categoryFilter');
 const entriesList      = document.getElementById('entries-list');
 
-// Pagination & progress state
+// State
 let page = 0;
 const pageSize = 1;
+let selectedCategory = '';
 const progressBars = [];
 
 // Infinite‐scroll observer
@@ -33,18 +36,17 @@ const observer = new IntersectionObserver((entries, obs) => {
   });
 }, { rootMargin: '200px' });
 
-// On load: check auth + first batch
+// INIT
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthState();
   loadEntries();
 });
 
-// Toggle login form
+// AUTH UI
 showLoginBtn.addEventListener('click', () => {
   authSection.classList.toggle('hidden');
 });
 
-// Check auth state
 async function checkAuthState() {
   const { data: { user } } = await mySupabaseClient.auth.getUser();
   if (user) {
@@ -59,7 +61,6 @@ async function checkAuthState() {
   }
 }
 
-// Sign in
 document.getElementById('signInButton').addEventListener('click', async () => {
   const email    = document.getElementById('signInEmail').value;
   const password = document.getElementById('signInPassword').value;
@@ -68,21 +69,31 @@ document.getElementById('signInButton').addEventListener('click', async () => {
   else checkAuthState();
 });
 
-// Sign out
 document.getElementById('logOutButton').addEventListener('click', async () => {
   await mySupabaseClient.auth.signOut();
   checkAuthState();
 });
 
-// Upload handler
+// CATEGORY FILTER
+categoryFilter.addEventListener('change', () => {
+  selectedCategory = categoryFilter.value; // "" = all
+  page = 0;
+  entriesList.innerHTML = '';
+  progressBars.length = 0;
+  loadEntries();
+});
+
+// UPLOAD HANDLER
 uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const title  = titleInput.value.trim();
-  const medium = mediumInput.value.trim();
-  const desc   = descriptionInput.value.trim();
-  const files  = Array.from(fileInput.files);
-  if (!title || !medium || !desc || files.length === 0) {
-    return alert('Please fill all fields and select at least one file.');
+  const title    = titleInput.value.trim();
+  const medium   = mediumInput.value.trim();
+  const desc     = descriptionInput.value.trim();
+  const category = categoryInput.value;
+  const files    = Array.from(fileInput.files);
+
+  if (!title || !medium || !desc || !category || files.length === 0) {
+    return alert('Please fill all fields, select a category, and choose at least one file.');
   }
 
   try {
@@ -105,7 +116,7 @@ uploadForm.addEventListener('submit', async (e) => {
     // 2) insert row
     const { error: insertErr } = await mySupabaseClient
       .from('365')
-      .insert([{ title, medium, description: desc, file: urls }]);
+      .insert([{ title, medium, description: desc, category, file: urls }]);
     if (insertErr) throw insertErr;
 
     // reset & reload
@@ -120,13 +131,21 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Load entries (most recent first) + inject progress bar markup
+// LOAD + RENDER ENTRIES
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
-  const { data: entries, error } = await mySupabaseClient
+
+  // build query
+  let builder = mySupabaseClient
     .from('365')
-    .select('id, title, medium, description, file')
+    .select('id, title, medium, description, file, category');
+
+  if (selectedCategory) {
+    builder = builder.eq('category', selectedCategory);
+  }
+
+  const { data: entries, error } = await builder
     .order('id', { ascending: false })
     .range(from, to);
 
@@ -141,32 +160,37 @@ async function loadEntries() {
   entries.forEach(entry => {
     const li = document.createElement('li');
     li.className = 'entry-item';
+    li.style.position = 'relative';
 
+    // progress bar
+    const bar = document.createElement('div');
+    bar.className = 'entry-progress-bar';
+    li.prepend(bar);
+    progressBars.push(bar);
+
+    // media
     const mediaDiv = document.createElement('div');
     mediaDiv.className = 'files-container';
     normalizeFileArray(entry.file).forEach(url =>
       mediaDiv.append(renderFile(url))
     );
 
+    // info
     const infoDiv = document.createElement('div');
     infoDiv.className = 'entry-info';
     infoDiv.innerHTML = `
-      <div class="progress-container">
-        <div class="progress-bar"></div>
-      </div>
       <p><strong>${entry.title}</strong> (${entry.medium})</p>
       <p>${entry.description}</p>
     `;
 
     li.append(mediaDiv, infoDiv);
     entriesList.append(li);
-
-    // track the new bar
-    progressBars.push(infoDiv.querySelector('.progress-bar'));
   });
 
+  // re-init lightbox
   if (window.lightbox) window.lightbox.reload();
 
+  // sentinel
   const sentinel = document.createElement('div');
   sentinel.style.height = '1px';
   entriesList.append(sentinel);
@@ -175,7 +199,7 @@ async function loadEntries() {
   page++;
 }
 
-// Scroll-driven progress updates (throttled)
+// SCROLL‐DRIVEN PROGRESS UPDATE
 let ticking = false;
 window.addEventListener('scroll', () => {
   if (!progressBars.length) return;
@@ -196,7 +220,7 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Helpers
+// HELPERS
 function normalizeFileArray(field) {
   if (Array.isArray(field)) return field;
   if (typeof field === 'string') {
