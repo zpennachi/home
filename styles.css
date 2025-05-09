@@ -45,8 +45,7 @@ header .logo {
 header select#categoryFilter {
   font-size: 0.9rem;
   max-width: 200px;
- 
-  margin-right: 1rem;
+  padding: 0.3rem;
 }
 
 header #showSignInButton {
