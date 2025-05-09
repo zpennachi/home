@@ -237,3 +237,12 @@ button:hover {
   grid-row: 4 / 5;
   height: auto;
 }
+
+const CATEGORY_COLORS = {
+  'all work':                 '#000000',  // fallback/black
+  'product renders':          '#E55F0E',
+  'artwork':                  '#39FF14',
+  'immersive experiences':    '#FF2D95',
+  'sounds':                   '#1E90FF',
+};
+
