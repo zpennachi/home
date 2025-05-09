@@ -1,6 +1,7 @@
 /* styles.css */
-/* —— IMPORT WORK SANS —— */
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* —— IMPORT FONTS —— */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;400&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 * {
   box-sizing: border-box;
@@ -124,6 +125,7 @@ header #showSignInButton:hover {
   cursor: pointer;
 }
 
+/* ENTRY INFO */
 .entry-info {
   position: sticky;
   bottom: 0;
@@ -131,9 +133,10 @@ header #showSignInButton:hover {
   padding: .5rem;
   width: 100%;
   z-index: 10;
-  overflow: hidden;    /* ← clip the bar to this box */
+  overflow: hidden;    /* clip the bar to this box */
 }
 
+/* PROGRESS CONTAINER */
 .progress-container {
   position: absolute;
   top: 0; left: 0;
@@ -142,7 +145,6 @@ header #showSignInButton:hover {
   background: #e0e0e0;
   z-index: 20;
 }
-
 .progress-bar {
   width: 0;
   height: 100%;
@@ -150,6 +152,32 @@ header #showSignInButton:hover {
   transition: width 0.1s ease-out;
 }
 
+/* —— TYPOGRAPHY VARIATIONS —— */
+/* Title (first <p> > <strong>) */
+.entry-info p:first-of-type strong {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+
+/* Medium text (the rest of first <p>) */
+.entry-info p:first-of-type {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #555;
+  margin: 0.25rem 0;
+}
+
+/* Description text (second <p>) */
+.entry-info p:nth-of-type(2) {
+  font-family: 'Work Sans', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin: 0;
+}
 
 /* FORMS & BUTTONS */
 input,
@@ -237,12 +265,3 @@ button:hover {
   grid-row: 4 / 5;
   height: auto;
 }
-
-const CATEGORY_COLORS = {
-  'all work':                 '#000000',  // fallback/black
-  'product renders':          '#E55F0E',
-  'artwork':                  '#39FF14',
-  'immersive experiences':    '#FF2D95',
-  'sounds':                   '#1E90FF',
-};
-
