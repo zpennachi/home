@@ -11,7 +11,7 @@ const CATEGORY_COLORS = {
 
 // Initialize Supabase
 const supabaseUrl    = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
-const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
+const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // UI Elements
