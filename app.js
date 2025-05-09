@@ -1,7 +1,17 @@
 // app.js
+
+// 1) Category→color map
+const CATEGORY_COLORS = {
+  'all work':              '#000000',
+  'product renders':       '#E55F0E',
+  'artwork':               '#39FF14',
+  'immersive experiences': '#FF2D95',
+  'sounds':                '#1E90FF',
+};
+
 // Initialize Supabase
 const supabaseUrl    = 'https://sgvcogsjbwyfdvepalzf.supabase.co';
-const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
+const supabaseKey    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJzdXBhYmFzZSIsInJlZiI6InNndmNvZ3NqYnd5ZmR2ZXBhbHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODQxNjgsImV4cCI6MjA1NDk2MDE2OH0.24hgp5RB6lwt8GRDGTy7MmbujkBv4FLstA-z5SOuqNo';
 const mySupabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // UI Elements
@@ -76,7 +86,9 @@ document.getElementById('logOutButton').addEventListener('click', async () => {
 
 // CATEGORY FILTER
 categoryFilter.addEventListener('change', () => {
-  selectedCategory = categoryFilter.value; // "" = all
+  selectedCategory = categoryFilter.value;        // e.g. "artwork" or ""
+  // tint the select's displayed text
+  categoryFilter.style.color = CATEGORY_COLORS[selectedCategory] || '#000';
   page = 0;
   entriesList.innerHTML = '';
   progressBars.length = 0;
@@ -113,7 +125,7 @@ uploadForm.addEventListener('submit', async (e) => {
       return publicUrl;
     }));
 
-    // 2) insert row
+    // 2) insert row with category
     const { error: insertErr } = await mySupabaseClient
       .from('365')
       .insert([{ title, medium, description: desc, category, file: urls }]);
@@ -131,11 +143,12 @@ uploadForm.addEventListener('submit', async (e) => {
   }
 });
 
+// LOAD + RENDER ENTRIES
 async function loadEntries() {
   const from = page * pageSize;
   const to   = from + pageSize - 1;
 
-  // Build the query (with optional category filter)
+  // Build the query with optional category filter
   let builder = mySupabaseClient
     .from('365')
     .select('id, title, medium, description, file, category');
@@ -180,11 +193,13 @@ async function loadEntries() {
     li.append(mediaDiv, infoDiv);
     entriesList.append(li);
 
-    // track this entry’s progress bar
-    progressBars.push(infoDiv.querySelector('.progress-bar'));
+    // color & track this entry’s progress bar
+    const bar = infoDiv.querySelector('.progress-bar');
+    bar.style.backgroundColor = CATEGORY_COLORS[entry.category] || '#000';
+    progressBars.push(bar);
   });
 
-  // re-init lightbox on newly added anchors
+  // re-init lightbox
   if (window.lightbox) window.lightbox.reload();
 
   // sentinel for infinite scroll
@@ -195,7 +210,6 @@ async function loadEntries() {
 
   page++;
 }
-
 
 // SCROLL‐DRIVEN PROGRESS UPDATE
 let ticking = false;
