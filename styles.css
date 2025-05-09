@@ -130,7 +130,7 @@ header #showSignInButton:hover {
   position: sticky;
   bottom: 0;
   background: #fff;
-  padding: .5rem;
+  padding: 1.5rem;
   width: 100%;
   z-index: 10;
   overflow: hidden;    /* clip the bar to this box */
@@ -167,7 +167,7 @@ header #showSignInButton:hover {
   font-family: 'DM Sans', sans-serif;
   font-size: .75rem;
   font-style: italic;
-  color: #fff;
+  color: #000;
   margin: 0.25rem 0;
 }
 
