@@ -157,7 +157,7 @@ header #showSignInButton:hover {
 .entry-info p:first-of-type strong {
   font-family: 'DM Sans', sans-serif;
   font-weight: 400;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   margin-right: 0.5rem;
   display: inline-block;
 }
@@ -165,16 +165,16 @@ header #showSignInButton:hover {
 /* Medium text (the rest of first <p>) */
 .entry-info p:first-of-type {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
+  font-size: .75rem;
   font-style: italic;
-  color: #555;
+  color: #fff;
   margin: 0.25rem 0;
 }
 
 /* Description text (second <p>) */
 .entry-info p:nth-of-type(2) {
   font-family: 'Work Sans', sans-serif;
-  font-size: 1.1rem;
+  font-size: .8rem;
   line-height: 1.4;
   margin: 0;
 }
