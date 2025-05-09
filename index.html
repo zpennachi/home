@@ -1,10 +1,10 @@
-<!-- index.html -->
+<!-- index.html (updated category colors) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Portfolio</title>
+  <title>zpennachi</title>
 
   <!-- main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
@@ -27,13 +27,13 @@
   <header>
     <div class="logo">zpennachi</div>
 
-    <!-- CATEGORY FILTER -->
-    <select id="categoryFilter">
-      <option value="">All work</option>
-      <option value="product renders">Product renders</option>
-      <option value="artwork">Artwork</option>
-      <option value="immersive experiences">Immersive experiences</option>
-      <option value="sounds">Sounds</option>
+    <!-- CATEGORY FILTER with inline colors -->
+    <select id="categoryFilter" style="color: #000;">
+      <option value=""       style="color: #000;">All work</option>
+      <option value="product renders" style="color: #E55F0E;">Product renders</option>
+      <option value="artwork" style="color: #39FF14;">Artwork</option>
+      <option value="immersive experiences" style="color: #FF2D95;">Immersive experiences</option>
+      <option value="sounds"  style="color: #1E90FF;">Sounds</option>
     </select>
 
     <button id="showSignInButton">Login</button>
@@ -65,9 +65,7 @@
         <option value="sounds">Sounds</option>
       </select>
 
-      <!-- FILE INPUT -->
       <input type="file" id="fileInput" name="file" multiple required />
-
       <button type="submit">Submit</button>
     </form>
   </section>
@@ -78,9 +76,7 @@
 
   <!-- GLightbox JS + init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script>
-    window.lightbox = GLightbox({ selector: '.glightbox' });
-  </script>
+  <script> window.lightbox = GLightbox({ selector: '.glightbox' }); </script>
 
   <!-- your app logic -->
   <script src="app.js"></script>
