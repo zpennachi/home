@@ -1,12 +1,11 @@
-<!-- index.html (updated category colors) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>zpennachi</title>
+  <title>My Portfolio</title>
 
-  <!-- main stylesheet -->
+  <!-- your main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
 
   <!-- GLightbox CSS -->
@@ -27,13 +26,13 @@
   <header>
     <div class="logo">zpennachi</div>
 
-    <!-- CATEGORY FILTER with inline colors -->
+    <!-- CATEGORY FILTER (unchanged) -->
     <select id="categoryFilter" style="color: #000;">
-      <option value=""       style="color: #000;">All work</option>
+      <option value="" style="color: #000;">All work</option>
       <option value="product renders" style="color: #E55F0E;">Product renders</option>
       <option value="artwork" style="color: #39FF14;">Artwork</option>
       <option value="immersive experiences" style="color: #FF2D95;">Immersive experiences</option>
-      <option value="sounds"  style="color: #1E90FF;">Sounds</option>
+      <option value="sounds" style="color: #1E90FF;">Sounds</option>
     </select>
 
     <button id="showSignInButton">Login</button>
@@ -52,11 +51,20 @@
 
   <section id="upload-section" class="hidden">
     <form id="uploadForm" class="upload-form">
+      <!-- existing fields -->
       <input  name="title"       id="titleInput"       type="text"     placeholder="Title"       required />
       <input  name="medium"      id="mediumInput"      type="text"     placeholder="Medium"      required />
       <textarea name="description" id="descriptionInput" placeholder="Description" required></textarea>
 
-      <!-- CATEGORY INPUT -->
+      <!-- NEW: Case study toggle -->
+      <label><input type="checkbox" id="caseStudyCheckbox" /> Case Study</label>
+
+      <!-- NEW: extra CS sections, hidden by default -->
+      <textarea id="csSection1" name="cs_section1" class="hidden" placeholder="Case Study Section 1 (HTML allowed)"></textarea>
+      <textarea id="csSection2" name="cs_section2" class="hidden" placeholder="Case Study Section 2 (HTML allowed)"></textarea>
+      <textarea id="csSection3" name="cs_section3" class="hidden" placeholder="Case Study Section 3 (HTML allowed)"></textarea>
+
+      <!-- category + file inputs -->
       <select name="category" id="categoryInput" required>
         <option value="">Select category</option>
         <option value="product renders">Product renders</option>
@@ -64,8 +72,8 @@
         <option value="immersive experiences">Immersive experiences</option>
         <option value="sounds">Sounds</option>
       </select>
-
       <input type="file" id="fileInput" name="file" multiple required />
+
       <button type="submit">Submit</button>
     </form>
   </section>
@@ -74,11 +82,11 @@
     <ul id="entries-list"></ul>
   </main>
 
-  <!-- GLightbox JS + init -->
+  <!-- GLightbox + model-viewer init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script> window.lightbox = GLightbox({ selector: '.glightbox' }); </script>
+  <script>window.lightbox = GLightbox({ selector: '.glightbox' });</script>
 
-  <!-- your app logic -->
+  <!-- your updated app logic -->
   <script src="app.js"></script>
 </body>
 </html>
