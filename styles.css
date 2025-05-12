@@ -265,3 +265,8 @@ button:hover {
   grid-row: 4 / 5;
   height: auto;
 }
+
+.cs-section {
+  margin: 1rem 0;
+  /* allow rich HTML inside */
+}
