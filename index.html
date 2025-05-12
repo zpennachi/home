@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>zpennachi</title>
+  <title>ZPennachi — Portfolio</title>
 
   <!-- main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
@@ -13,9 +13,6 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css"
   />
-
-  <!-- Supabase client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <!-- model-viewer -->
   <script type="module"
@@ -36,64 +33,15 @@
     </select>
   </header>
 
-  <section id="upload-section" class="hidden">
-    <form id="uploadForm" class="upload-form">
-      <input  name="title"       id="titleInput"       type="text"     placeholder="Title"       required />
-      <input  name="medium"      id="mediumInput"      type="text"     placeholder="Medium"      required />
-      <textarea name="description" id="descriptionInput" placeholder="Description" required></textarea>
-
-      <!-- Case study toggle -->
-      <label>
-        <input type="checkbox" id="caseStudyCheckbox" />
-        Case Study
-      </label>
-
-      <!-- Case study sections (hidden by default) -->
-      <textarea id="csSection1" name="cs_section1" class="hidden" placeholder="Case Study Section 1 (HTML allowed)"></textarea>
-      <textarea id="csSection2" name="cs_section2" class="hidden" placeholder="Case Study Section 2 (HTML allowed)"></textarea>
-      <textarea id="csSection3" name="cs_section3" class="hidden" placeholder="Case Study Section 3 (HTML allowed)"></textarea>
-
-      <!-- Category & file inputs -->
-      <select name="category" id="categoryInput" required>
-        <option value="">Select category</option>
-        <option value="product renders">Product renders</option>
-        <option value="artwork">Artwork</option>
-        <option value="immersive experiences">Immersive experiences</option>
-        <option value="sounds">Sounds</option>
-      </select>
-
-      <input type="file" id="fileInput" name="file" multiple required />
-      <button type="submit">Submit</button>
-    </form>
-  </section>
-
   <main class="container">
     <ul id="entries-list"></ul>
   </main>
 
-  <!-- LOGIN WIDGET fixed bottom right -->
-  <div id="login-container">
-    <button id="showSignInButton">Login</button>
-    <div id="auth-section" class="signin-dropdown hidden">
-      <div id="sign-in">
-        <input type="email"    id="signInEmail"    placeholder="Email"    required />
-        <input type="password" id="signInPassword" placeholder="Password" required />
-        <button id="signInButton">Sign In</button>
-      </div>
-      <div id="logged-in" class="hidden">
-        <span id="user-email"></span>
-        <button id="logOutButton">Log Out</button>
-      </div>
-    </div>
-  </div>
-
   <!-- GLightbox JS + init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-  <script>
-    window.lightbox = GLightbox({ selector: '.glightbox' });
-  </script>
+  <script>window.lightbox = GLightbox({ selector: '.glightbox' });</script>
 
-  <!-- app logic -->
+  <!-- portfolio logic -->
   <script src="app.js"></script>
 </body>
 </html>
