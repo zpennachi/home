@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SoundCloud Downloader</title>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5; color: #333; padding: 2rem; }
+    .container { max-width: 400px; margin: auto; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.75rem; }
+    input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { width: 100%; padding: 0.75rem; background: #0070f3; color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #005bb5; }
+    #status { margin-top: 1rem; }
+    #downloadLink { display: none; margin-top: 1rem; text-decoration: none; color: #0070f3; }
+    #downloadLink:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SoundCloud Downloader</h1>
+    <label for="trackUrl">Track URL
+      <input type="text" id="trackUrl" placeholder="https://soundcloud.com/.../track" />
+    </label>
+    <button id="fetchBtn">Get Download Link</button>
+    <p id="status"></p>
+    <a id="downloadLink"></a>
+  </div>
+
+  <script>
+    const RESOLVE_ENDPOINT = 
+      'https://sgvcogsjbwyfdvepalzf.supabase.co/functions/v1/resolve';
+
+    const trackInput = document.getElementById('trackUrl');
+    const btn        = document.getElementById('fetchBtn');
+    const status     = document.getElementById('status');
+    const link       = document.getElementById('downloadLink');
+
+    btn.addEventListener('click', async () => {
+      const trackUrl = trackInput.value.trim();
+      if (!trackUrl) {
+        status.textContent = '🔴 Please enter a SoundCloud track URL.';
+        return;
+      }
+      status.textContent = '⏳ Resolving track…';
+      link.style.display = 'none';
+
+      try {
+        const res = await fetch(RESOLVE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: trackUrl })
+        });
+        if (!res.ok) throw new Error(`Resolve failed: ${res.status}`);
+        const { title, download_url } = await res.json();
+
+        link.href        = download_url;
+        link.download    = `${title}.mp3`;
+        link.textContent = `↓ Download “${title}”`;
+        link.style.display = 'block';
+        status.textContent = '✅ Ready! Click the link:';
+      } catch (err) {
+        console.error(err);
+        status.textContent = `❌ ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
