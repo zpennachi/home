@@ -21,7 +21,61 @@
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
+
+  <!-- marquee styles (you can move this into styles.css if you want) -->
+  <style>
+    .marquee{
+      --gap: 2.25rem;
+      --duration: 22s;
+      --text: rgba(255,255,255,.86);
+      --line: rgba(255,255,255,.12);
+
+      width: 100%;
+      overflow: hidden;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      display: flex;
+      user-select: none;
+    }
+
+    .marquee__track{
+      flex: 0 0 auto;
+      min-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--gap);
+      padding: .9rem var(--gap);
+      white-space: nowrap;
+      animation: marquee var(--duration) linear infinite;
+      will-change: transform;
+    }
+
+    .marquee__track span{
+      font: 500 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .marquee__track span::after{
+      content: "•";
+      margin-left: var(--gap);
+      color: rgba(255,255,255,.22);
+    }
+    .marquee__track span:last-child::after{ content: ""; margin: 0; }
+
+    @keyframes marquee{
+      from { transform: translateX(0); }
+      to   { transform: translateX(-100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .marquee__track{ animation: none; }
+    }
+  </style>
 </head>
+
 <body>
   <header>
     <div class="logo">zpennachi</div>
@@ -35,6 +89,40 @@
       <option value="sounds" style="color: #1E90FF;">Sounds</option>
     </select>
   </header>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-label="Tools marquee">
+    <div class="marquee__track">
+      <span>Blender</span>
+      <span>Unreal Engine</span>
+      <span>Figma</span>
+      <span>Illustrator</span>
+      <span>After Effects</span>
+      <span>Photoshop</span>
+      <span>Webflow</span>
+      <span>Three.js</span>
+      <span>TouchDesigner</span>
+      <span>Lens Studio</span>
+      <span>Effect House</span>
+      <span>Adobe Medium</span>
+      <span>Half-Life 2</span>
+    </div>
+    <div class="marquee__track" aria-hidden="true">
+      <span>Blender</span>
+      <span>Unreal Engine</span>
+      <span>Figma</span>
+      <span>Illustrator</span>
+      <span>After Effects</span>
+      <span>Photoshop</span>
+      <span>Webflow</span>
+      <span>Three.js</span>
+      <span>TouchDesigner</span>
+      <span>Lens Studio</span>
+      <span>Effect House</span>
+      <span>Adobe Medium</span>
+      <span>Half-Life 2</span>
+    </div>
+  </div>
 
   <main class="container">
     <ul id="entries-list"></ul>
