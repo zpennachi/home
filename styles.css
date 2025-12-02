@@ -270,3 +270,58 @@ button:hover {
   margin: 1rem 0;
   /* allow rich HTML inside */
 }
+
+/* ===== MARQUEE ===== */
+.marquee{
+  --gap: 2.25rem;
+  --duration: 22s;
+
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+
+  background: #000;
+  border-top: 1px solid rgba(0,0,0,.12);
+  border-bottom: 1px solid rgba(0,0,0,.12);
+
+  position: relative;
+  z-index: 9999;
+
+  /* ensures it sits below your fixed header */
+  margin-top: 0;
+}
+
+.marquee__track{
+  flex: 0 0 auto;
+  min-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: .9rem var(--gap);
+  white-space: nowrap;
+  animation: marquee var(--duration) linear infinite;
+  will-change: transform;
+}
+
+.marquee__track span{
+  font: 500 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.marquee__track span::after{
+  content: "•";
+  margin-left: var(--gap);
+  color: rgba(255,255,255,.22);
+}
+.marquee__track span:last-child::after{ content: ""; margin: 0; }
+
+@keyframes marquee{
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .marquee__track{ animation: none; }
+}
