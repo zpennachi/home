@@ -1,6 +1,3 @@
-/* styles.css */
-
-/* —— IMPORT FONTS —— */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;400&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 * {
@@ -11,7 +8,7 @@ body {
   margin: 0;
   font-family: 'Work Sans', sans-serif;
   background: #fff;
-  padding-top: 60px; /* space for fixed header */
+  padding-top: 60px;
 }
 
 ul {
@@ -41,7 +38,6 @@ header .logo {
   font-weight: 400;
 }
 
-/* dropdown sits inline with login button */
 header select#categoryFilter {
   font-size: 0.9rem;
   max-width: 200px;
@@ -50,7 +46,6 @@ header select#categoryFilter {
 
 header #showSignInButton {
   font-size: 0.9rem;
- 
   padding: 0.4rem 0.8rem;
   border: 1px solid #000;
   background: #000;
@@ -59,6 +54,7 @@ header #showSignInButton {
   border-radius: 4px;
   cursor: pointer;
 }
+
 header #showSignInButton:hover {
   opacity: 0.9;
 }
@@ -69,7 +65,6 @@ header #showSignInButton:hover {
   padding: 1rem;
 }
 
-/* ENTRY ITEMS */
 .entry-item {
   background: #ffffff;
   margin-bottom: 1rem;
@@ -79,10 +74,10 @@ header #showSignInButton:hover {
   overflow: visible;
 }
 
-/* PROGRESS BAR */
 .entry-progress-bar {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   height: 3px;
   width: 0;
   background: #000;
@@ -92,23 +87,23 @@ header #showSignInButton:hover {
   z-index: 10;
 }
 
-/* MEDIA GRID */
 .files-container {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
+
 .files-container a.portrait {
   order: 0;
   flex: 0 0 calc(50% - 0.25rem);
 }
+
 .files-container a.landscape {
   order: 1;
   flex: 0 0 100%;
 }
 
-/* wrappers for video/model */
 .files-container a,
 .files-container video,
 .files-container model-viewer {
@@ -117,6 +112,7 @@ header #showSignInButton:hover {
   border-radius: 4px;
   overflow: hidden;
 }
+
 .files-container img {
   display: block;
   width: 100%;
@@ -125,7 +121,6 @@ header #showSignInButton:hover {
   cursor: pointer;
 }
 
-/* ENTRY INFO */
 .entry-info {
   position: sticky;
   bottom: 0;
@@ -133,18 +128,19 @@ header #showSignInButton:hover {
   padding: 1.5rem 0rem;
   width: 100%;
   z-index: 10;
-  overflow: hidden;    /* clip the bar to this box */
+  overflow: hidden;
 }
 
-/* PROGRESS CONTAINER */
 .progress-container {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 3px;
   background: #e0e0e0;
   z-index: 20;
 }
+
 .progress-bar {
   width: 0;
   height: 100%;
@@ -152,8 +148,6 @@ header #showSignInButton:hover {
   transition: width 0.1s ease-out;
 }
 
-/* —— TYPOGRAPHY VARIATIONS —— */
-/* Title (first <p> > <strong>) */
 .entry-info p:first-of-type strong {
   font-family: 'DM Sans', sans-serif;
   font-weight: 400;
@@ -162,7 +156,6 @@ header #showSignInButton:hover {
   display: inline-block;
 }
 
-/* Medium text (the rest of first <p>) */
 .entry-info p:first-of-type {
   font-family: 'DM Sans', sans-serif;
   font-size: .75rem;
@@ -171,7 +164,6 @@ header #showSignInButton:hover {
   margin: 0.25rem 0;
 }
 
-/* Description text (second <p>) */
 .entry-info p:nth-of-type(2) {
   font-family: 'Work Sans', sans-serif;
   font-size: .8rem;
@@ -179,7 +171,6 @@ header #showSignInButton:hover {
   margin: 0;
 }
 
-/* FORMS & BUTTONS */
 input,
 textarea,
 select,
@@ -191,12 +182,14 @@ button {
   border-radius: 4px;
   border: 1px solid #ccc;
 }
+
 button {
   background: #000;
   color: #fff;
   border: none;
   cursor: pointer;
 }
+
 button:hover {
   opacity: 0.9;
 }
@@ -205,7 +198,6 @@ button:hover {
   display: none !important;
 }
 
-/* SIGN-IN DROPDOWN */
 .signin-dropdown {
   position: absolute;
   top: 60px;
@@ -220,16 +212,17 @@ button:hover {
   gap: 0.75rem;
   z-index: 1001;
 }
+
 .signin-dropdown input {
   width: 100%;
 }
+
 .signin-dropdown button {
   align-self: flex-end;
   width: 80px;
   padding: 0.5rem;
 }
 
-/* UPLOAD FORM */
 .upload-form {
   background: #e0e0e0;
   padding: 1rem;
@@ -239,27 +232,33 @@ button:hover {
   grid-template-rows: auto 150px;
   gap: 0.75rem;
 }
+
 .upload-form input[name="title"] {
   grid-column: 1 / 2;
   grid-row: 1 / 2;
 }
+
 .upload-form input[name="medium"] {
   grid-column: 2 / 3;
   grid-row: 1 / 2;
 }
+
 .upload-form textarea[name="description"] {
   grid-column: 1 / 2;
   grid-row: 2 / 3;
   resize: vertical;
 }
+
 .upload-form select[name="category"] {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
 }
+
 .upload-form input[type="file"] {
   grid-column: 1 / 3;
   grid-row: 3 / 4;
 }
+
 .upload-form button[type="submit"] {
   grid-column: 1 / 3;
   grid-row: 4 / 5;
@@ -268,25 +267,20 @@ button:hover {
 
 .cs-section {
   margin: 1rem 0;
-  /* allow rich HTML inside */
 }
 
-
-/* ===== MARQUEE (white site-friendly) ===== */
-.marquee{
+.marquee {
   --gap: 2.25rem;
   --duration: 22s;
-
   width: 100%;
   overflow: hidden;
   display: flex;
-
-  background: #fff; /* key */
+  background: #fff;
   border-top: 1px solid rgba(0,0,0,.10);
   border-bottom: 1px solid rgba(0,0,0,.10);
 }
 
-.marquee__track{
+.marquee__track {
   flex: 0 0 auto;
   min-width: 100%;
   display: inline-flex;
@@ -298,21 +292,25 @@ button:hover {
   will-change: transform;
 }
 
-.marquee__track span{
-  color: #000; /* key */
+.marquee__track span {
+  color: #000;
   font: 500 12px/1 'Work Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   letter-spacing: .22em;
   text-transform: uppercase;
 }
 
-.marquee__track span::after{
+.marquee__track span::after {
   content: "•";
   margin-left: var(--gap);
   color: rgba(0,0,0,.25);
 }
-.marquee__track span:last-child::after{ content: ""; margin: 0; }
 
-@keyframes marquee{
+.marquee__track span:last-child::after {
+  content: "";
+  margin: 0;
+}
+
+@keyframes marquee {
   from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
+  to { transform: translateX(-100%); }
 }
