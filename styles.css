@@ -67,7 +67,7 @@ header #showSignInButton:hover {
 
 .entry-item {
   background: #ffffff;
-  margin-bottom: 1rem;
+  margin-bottom: 50vh;
   border-radius: 8px;
   padding-bottom: 1rem;
   position: relative;
@@ -271,13 +271,11 @@ button:hover {
 
 .marquee {
   --gap: 2.25rem;
-  --duration: 22s;
+  --duration: 30s;
   width: 100%;
   overflow: hidden;
   display: flex;
   background: #fff;
-  border-top: 1px solid rgba(0,0,0,.10);
-  border-bottom: 1px solid rgba(0,0,0,.10);
 }
 
 .marquee__track {
