@@ -5,30 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZPennachi — Portfolio</title>
 
-  <!-- main stylesheet -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- GLightbox CSS -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css"
   />
 
-  <!-- Supabase client (needed by app.js) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- model-viewer -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
-
 </head>
 
 <body>
   <header>
     <div class="logo">zpennachi</div>
 
-    <!-- CATEGORY FILTER -->
     <select id="categoryFilter" style="color: #000;">
       <option value="" style="color: #000;">All work</option>
       <option value="product renders" style="color: #E55F0E;">Product renders</option>
@@ -38,12 +32,13 @@
     </select>
   </header>
 
-  <!-- MARQUEE -->
   <div class="marquee" aria-label="Tools marquee">
     <div class="marquee__track">
       <span>Blender</span>
       <span>Unreal Engine</span>
       <span>Figma</span>
+      <span>strudel.cc</span>
+      <span>javascript</span>
       <span>Illustrator</span>
       <span>After Effects</span>
       <span>Photoshop</span>
@@ -53,12 +48,13 @@
       <span>Lens Studio</span>
       <span>Effect House</span>
       <span>Adobe Medium</span>
-      <span>Half-Life 2</span>
     </div>
     <div class="marquee__track" aria-hidden="true">
       <span>Blender</span>
       <span>Unreal Engine</span>
       <span>Figma</span>
+      <span>strudel.cc</span>
+      <span>javascript</span>
       <span>Illustrator</span>
       <span>After Effects</span>
       <span>Photoshop</span>
@@ -68,7 +64,6 @@
       <span>Lens Studio</span>
       <span>Effect House</span>
       <span>Adobe Medium</span>
-      <span>Half-Life 2</span>
     </div>
   </div>
 
@@ -76,13 +71,11 @@
     <ul id="entries-list"></ul>
   </main>
 
-  <!-- GLightbox JS + init -->
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <script>
     window.lightbox = GLightbox({ selector: '.glightbox' });
   </script>
 
-  <!-- portfolio logic -->
   <script src="app.js"></script>
 </body>
 </html>
