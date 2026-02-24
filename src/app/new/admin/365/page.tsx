@@ -20,7 +20,7 @@ export default async function Admin365Page() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 <Link
-                    href="/admin/365/new"
+                    href="/new/admin/365/new"
                     className="group aspect-square rounded-2xl border border-dashed border-muted hover:border-foreground/20 hover:bg-muted/30 transition-all flex flex-col items-center justify-center gap-3 text-muted-fg hover:text-foreground relative overflow-hidden"
                 >
                     <div className="p-4 rounded-full bg-muted/50 group-hover:bg-foreground group-hover:text-background transition-all duration-300">

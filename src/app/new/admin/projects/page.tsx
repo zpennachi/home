@@ -20,7 +20,7 @@ export default async function AdminProjectsPage() {
                     <p className="text-muted-fg text-sm font-mono uppercase tracking-widest font-bold">Global Strategic Archive — Index V1</p>
                 </div>
                 <Link
-                    href="/admin/projects/new"
+                    href="/new/admin/projects/new"
                     className="group bg-foreground text-background px-8 py-4 rounded-full font-bold text-sm tracking-widest uppercase flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-foreground/10"
                 >
                     <Plus className="w-4 h-4" />
