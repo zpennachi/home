@@ -16,7 +16,7 @@ export async function updateContent(id: string, value: string) {
         return { error: error.message }
     }
 
-    revalidatePath('/')
-    revalidatePath('/admin/content')
+    revalidatePath('/new')
+    revalidatePath('/new/admin/content')
     return { success: true }
 }

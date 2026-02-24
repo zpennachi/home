@@ -83,7 +83,7 @@ export async function saveDesignTokens(tokens: Record<string, string>, mode: 'li
         fs.writeFileSync(GLOBALS_CSS_PATH, newCss)
 
         console.log(`[DesignSystem] Write successful to ${GLOBALS_CSS_PATH}`)
-        revalidatePath('/', 'layout')
+        revalidatePath('/new', 'layout')
         return { success: true }
     } catch (error) {
         console.error('[DesignSystem] Save error:', error)
