@@ -234,9 +234,9 @@ export async function promoteSessionToProject(session: HarvestedSession, status:
 
         if (error) throw error
 
-        revalidatePath('/work')
-        revalidatePath(`/work/${slug}`)
-        revalidatePath('/admin/harvester')
+        revalidatePath('/new/work')
+        revalidatePath(`/new/work/${slug}`)
+        revalidatePath('/new/admin/harvester')
         return { success: true, slug }
     } catch (error: any) {
         console.error('[Harvester] Promotion failed:', error)
