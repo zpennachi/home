@@ -2,32 +2,44 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/session'
 
 export async function middleware(request: NextRequest) {
+    // 1. Update Supabase Session first (refreshes tokens)
+    let response = await updateSession(request);
     const { pathname } = request.nextUrl;
 
     // --- Portfolio Gate ---
-    // All /new/* routes require the 'portfolio-password' cookie.
-    // The gate is at / and APIs are at /api/* (public).
     if (pathname.startsWith('/new')) {
         const authCookie = request.cookies.get('portfolio-password');
 
         if (!authCookie || authCookie.value !== process.env.PORTFOLIO_PASSWORD) {
-            // Redirect to the root gate page
+            // Redirect to root gate - preserve Supabase cookies by creating redirect from standard response
             const gateUrl = new URL('/', request.url);
-            return NextResponse.redirect(gateUrl);
+            const redirectResponse = NextResponse.redirect(gateUrl);
+
+            // Copy cookies from standard response to redirect response
+            response.cookies.getAll().forEach(cookie => {
+                redirectResponse.cookies.set(cookie.name, cookie.value, {
+                    ...cookie,
+                    // Ensure options are serialized correctly
+                } as any);
+            });
+
+            return redirectResponse;
         }
     }
 
-    // If accessing the gate at / but already have a valid cookie, redirect to /new
+    // Redirect from gate to /new if already authenticated
     if (pathname === '/') {
         const authCookie = request.cookies.get('portfolio-password');
         if (authCookie && authCookie.value === process.env.PORTFOLIO_PASSWORD) {
-            return NextResponse.redirect(new URL('/new', request.url));
+            const redirectResponse = NextResponse.redirect(new URL('/new', request.url));
+            response.cookies.getAll().forEach(cookie => {
+                redirectResponse.cookies.set(cookie.name, cookie.value, cookie as any);
+            });
+            return redirectResponse;
         }
     }
 
-    // --- Supabase Session ---
-    // This handles Auth for admin routes etc.
-    return await updateSession(request);
+    return response;
 }
 
 export const config = {

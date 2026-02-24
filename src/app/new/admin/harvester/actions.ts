@@ -5,7 +5,7 @@ import path from 'path'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-const PROJECTS_ROOT = 'C:\\Users\\z\\OneDrive\\Desktop\\projects'
+const PROJECTS_ROOT = process.env.HARVESTER_PROJECTS_ROOT || 'C:\\Users\\z\\OneDrive\\Desktop\\projects'
 
 export type ProjectBrand = {
     primaryColor: string
