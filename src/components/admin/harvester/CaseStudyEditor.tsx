@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { HarvestedSession, ProjectBrand, promoteSessionToProject, synthesizeProject } from '@/app/admin/harvester/actions'
+import { HarvestedSession, ProjectBrand, promoteSessionToProject, synthesizeProject } from '@/app/new/admin/harvester/actions'
 import { CaseStudyLayout } from '@/components/work/CaseStudyLayout'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
