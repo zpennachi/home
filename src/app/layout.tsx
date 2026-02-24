@@ -1,0 +1,43 @@
+import type { Metadata } from 'next'
+import { Inter, Instrument_Sans, Outfit } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/work/ThemeProvider'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  variable: '--font-instrument',
+  display: 'swap',
+})
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: 'ZPennachi — Design Engineer',
+  description: 'Portfolio of ZPennachi, a Design Engineer focused on emotional density and performance.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${instrumentSans.variable} ${outfit.variable} font-sans antialiased`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
