@@ -1,0 +1,200 @@
+[
+  {
+    "id": "krampus",
+    "title": "Krampus Slap Fight",
+    "category": "Interactive AR",
+    "medium": "8th Wall / WebAR",
+    "description": "A strength-based AR mini-game where users 'slap' a character to trigger branching reaction animations.",
+    "content": "## Executive Summary\n\n**Krampus Slap Fight** is a multi-step AR mini-game designed for a holiday campaign. Users engage in a strength-based interaction: holding a 'slap' button builds up power, which triggers one of several branching reaction animations from the 3D Krampus character. The experience concludes with a 'My turn' retaliation sequence, an outro loop with randomized backgrounds, and a retry/share flow.\n\n## The Challenge\n\nThe primary technical challenge was creating a responsive, physics-like interaction (the 'slap') within the constraints of WebAR. The system needed to detect touch duration, map it to a strength variance, and seamlessly blend into the correct animation state (weak vs. strong reaction) without visual popping. Additionally, the asset pipeline required optimizing a high-fidelity character rig for mobile browser performance while maintaining detailed facial expressions.\n\n## Key Features\n\n- **Strength-Based Input**: A 'charge-up' mechanic that branches the narrative based on user participation.\n- **Branching Animation Tree**: Distinct reaction timelines for 'Tickle', 'Normal', and 'Powerful' hits.\n- **Dynamic Outro**: A randomized background system that keeps the replay loop fresh.\n- **Desktop Capability**: A fallback flow to ensure the campaign was accessible on all devices, despite being mobile-first.",
+    "stack": [
+      "8thwall",
+      "three",
+      "javascript",
+      "html5",
+      "css3"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "box-nn",
+    "title": "8th Wall Box + Naughty/Nice",
+    "category": "Interactive AR",
+    "medium": "8th Wall / WebAR",
+    "description": "A combined image-tracking and face-tracking experience merging a physical box scan with a Naughty/Nice determination.",
+    "content": "## Executive Summary\n\nThis project merged two distinct AR modalities—image tracking and face tracking—into a single seamless web experience. Users scan a physical gift box to unlock content, which then transitions into a selfie-based 'Naughty or Nice' determination game. The experience drives users to a commercial CTA (ticket purchase) upon completion.\n\n## The Challenge\n\nMemory management was the critical bottleneck. Running image tracking (for the box) and face tracking (for the game) simultaneously in a mobile browser pushed the limits of WebGL memory. We had to implement aggressive asset disposal and de-scoping (removing non-essential particle effects and a beautifying layer) to ensure stability across mid-range devices. The 'no native background removal' constraint of 8th Wall also required creative vignetting to frame the user.\n\n## Key Features\n\n- **Hybrid Tracking**: Seamless handover from world-tracking/image-target to front-facing camera.\n- **Logic Gating**: A 'max re-trigger' logic to prevent users from spamming the determination result.\n- **Integrated Commerce**: A direct 'Buy Tickets' flow woven into the AR ending.",
+    "stack": [
+      "8thwall",
+      "three",
+      "javascript",
+      "glsl"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "nn-snap",
+    "title": "Naughty/Nice (Snap)",
+    "category": "Social AR",
+    "medium": "Snapchat Lens",
+    "description": "A viral social lens using facial feature detection (smile/no-smile) to determine a user's holiday status.",
+    "content": "## Executive Summary\n\n**Naughty/Nice (Snap)** is a social-first lens built for the Snapchat platform. Unlike the WebAR version, this lens leverages Snap's native facial feature detection to drive the logic: the 'Smile' vs. 'No Smile' state directly triggers the Naughty or Nice outcome. The experience is optimized for rapid sharing, with a clean UI-free 'selfie moment' at the climax.\n\n## The Challenge\n\nThe main engineering hurdle was tuning the determination logic to feel fair but random. We encountered issues where the randomizer would streak (e.g., 5 'Nice' results in a row), requiring a pseudo-random distribution fix. We also had to rigorously optimize the 'meter' animation to ensure the needle movement felt weighted and physical, rather than just playing a linear video.\n\n## Key Features\n\n- **Smile Detection Trigger**: 'Not Smiling' is the trigger input, inverting standard AR interactions.\n- **Clean Capture Mode**: Automated UI hiding ensures the final shared asset is free of buttons or text clutter.\n- **Polished Physics**: Custom animation curves for the determination wheel to remove 'robotic' pauses.",
+    "stack": [
+      "lens-studio",
+      "javascript",
+      "visual-scripting"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "snowmen",
+    "title": "Snowmen Attack",
+    "category": "AR Game",
+    "medium": "8th Wall / WebAR",
+    "description": "A survival shooter where an ice cream truck spawns attacking snowmen. Features headshot mechanics and high scores.",
+    "content": "## Executive Summary\n\n**Snowmen Attack** is a full-featured AR survival shooter. An ice cream truck drives into the user's real-world environment, opens its doors, and spawns waves of hostile snowmen. The user must tap to shoot, with distinct damage modeling for headshots (instakill) vs. body shots. The game tracks a high score and features a polished particle system for enemy defeat.\n\n## The Challenge\n\nBalancing gameplay performace with tracking stability was key. We had to implement a 'camera flip' workaround because 8th Wall restricts custom buttons from triggering hardware camera swaps, requiring a custom instructional UI flow. On the rendering side, we used object pooling for the snowballs and snowmen to maintain a steady 60fps even during chaotic waves.\n\n## Key Features\n\n- **Damage Modeling**: Headshots grant more points and instant kills; body shots require double taps.\n- **Particle Emitters**: Custom particle systems for 'snow explosion' death effects.\n- **Object Pooling**: Optimized entity management to prevent garbage collection stutters.\n- **Spatial Audio**: 3D sound effects for truck arrival and projectile impacts.",
+    "stack": [
+      "8thwall",
+      "three",
+      "a-frame",
+      "javascript"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "hawkeye",
+    "title": "Hawkeye",
+    "category": "Engineering",
+    "medium": "Computer Vision",
+    "description": "A high-frequency skeletal tracking visualization engine for sports analytics, processing 60Hz joint data for 3D game reconstruction.",
+    "content": "## Overview\n\nHawkeye is a specialized visualization engine designed for professional sports analytics. It ingests raw computer vision data—specifically 3D skeletal tracking of 22 joints per player—and reconstructs the game in a high-fidelity 3D environment.\n\n## The Problem\n\nCoaches and analysts struggle to see the \"whole picture\" from broadcast angles. 2D video flattens depth and obscures off-ball movement. Hawkeye provides a god-mode view of the court, allowing for spatial querying and tactical analysis that was previously impossible.\n\n## Key Features\n\n- **60Hz Smooth Playback**: Custom interpolation logic to handle dropped frames and sensor noise.\n- **Spatial Queries**: Filter plays by player spacing, defensive breakdown, or shot arc.\n- **3D Replay**: View any play from any angle, including the player's own perspective (First-Person View).",
+    "stack": [
+      "@react-three/drei",
+      "@react-three/fiber",
+      "leva",
+      "maath",
+      "react",
+      "react-dom",
+      "three"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "MVPIQ",
+    "title": "MVP IQ",
+    "category": "Product",
+    "medium": "Web App",
+    "description": "A platform connecting high school football players with professional athletes for video analysis and feedback.",
+    "content": "## Overview\n\nMVP IQ is a video feedback platform that democratizes access to elite coaching. It enables high school football players to upload game footage and receive detailed, time-stamped video analysis from professional athletes and mentors.\n\n## Key Features\n\n- **Player & Mentor Dashboards**: Distinct interfaces for athletes to manage submissions and mentors to provide feedback.\n- **Video Analysis Pipeline**: Secure video upload (Supabase Storage), transcoding, and playback.\n- **Monetization**: Integrated Stripe payments for per-submission feedback fees.\n- **Role-Based Security**: Strict Row Level Security (RLS) policies ensuring data privacy between users.\n\n## User Journey\n\n### Player Flow\n1. **Upload**: Players upload raw game footage (up to 100MB).\n2. **Request**: They select a specific play or clip and request feedback ($50/video).\n3. **Payment**: Secure checkout via Stripe triggers the feedback request.\n4. **Review**: Once analyzed, they receive a notification to view the annotated video.\n\n### Mentor Flow\n1. **Queue**: Mentors view a dashboard of pending submissions.\n2. **Analyze**: They watch the footage and provide a star rating + detailed written critique.\n3. **Complete**: Submitting the feedback triggers the payout and notifies the player.\n\n## Technical Architecture\n\nBuilt on **Next.js 14** (App Router) for server-side rendering and performance. **Supabase** handles the heavy lifting of authentication, database (PostgreSQL), and real-time event subscriptions.\n\n- **Authentication**: Supabase Auth with custom role management (Player vs. Mentor).\n- **Database**: PostgreSQL with complex RLS policies to secure user data.\n- **Payments**: Stripe Connect integration for handling payout flows to mentors.\n- **UI System**: Tailwind CSS with a custom design system for a cohesive, athletic aesthetic.",
+    "stack": [
+      "next",
+      "supabase",
+      "stripe",
+      "tailwind",
+      "typescript",
+      "postgresql"
+    ],
+    "repo": "",
+    "images": [
+      "/work/mvpiq/hero.png",
+      "/work/mvpiq/logo.svg"
+    ],
+    "source": "local"
+  },
+  {
+    "id": "particle-life-131",
+    "title": "Particle Life",
+    "category": "Creative Coding",
+    "medium": "WebGL",
+    "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+    "content": "# React + TypeScript + Vite\n\nThis template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.\n\nCurrently, two official plugins are available:\n\n- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh\n- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh\n\n## React Compiler\n\nThe React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).\n\n## Expanding the ESLint configuration\n\nIf you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:\n\n```js\nexport default defineConfig([\n  globalIgnores(['dist']),\n  {\n    files: ['**/*.{ts,tsx}'],\n    extends: [\n      // Other configs...\n\n      // Remove tseslint.configs.recommended and replace with this\n      tseslint.configs.recommendedTypeChecked,\n      // Alternatively, use this for stricter rules\n      tseslint.configs.strictTypeChecked,\n      // Optionally, add this for stylistic rules\n      tseslint.configs.stylisticTypeChecked,\n\n      // Other configs...\n    ],\n    languageOptions: {\n      parserOptions: {\n        project: ['./tsconfig.node.json', './tsconfig.app.json'],\n        tsconfigRootDir: import.meta.dirname,\n      },\n      // other options...\n    },\n  },\n])\n```\n\nYou can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:\n\n```js\n// eslint.config.js\nimport reactX from 'eslint-plugin-react-x'\nimport reactDom from 'eslint-plugin-react-dom'\n\nexport default defineConfig([\n  globalIgnores(['dist']),\n  {\n    files: ['**/*.{ts,tsx}'],\n    extends: [\n      // Other configs...\n      // Enable lint rules for React\n      reactX.configs['recommended-typescript'],\n      // Enable lint rules for React DOM\n      reactDom.configs.recommended,\n    ],\n    languageOptions: {\n      parserOptions: {\n        project: ['./tsconfig.node.json', './tsconfig.app.json'],\n        tsconfigRootDir: import.meta.dirname,\n      },\n      // other options...\n    },\n  },\n])\n```\n",
+    "stack": [
+      "@react-three/drei",
+      "@react-three/fiber",
+      "@react-three/postprocessing",
+      "@types/three",
+      "leva",
+      "postprocessing"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "streamer",
+    "title": "Streamer Tools",
+    "category": "Engineering",
+    "medium": "Node.js",
+    "description": "Invite-only, authenticated livestream page with realtime chat + admin moderation.",
+    "content": "## Streamer MVP (private Twitch-like)\n\nInvite-only, authenticated livestream page with realtime chat + admin moderation.\n\n**Stack**\n- Next.js (App Router, TypeScript)\n- Supabase (Auth magic links, Postgres, Realtime)\n- Tailwind CSS\n- Video via AWS IVS (RTMP ingest → HLS playback) or Cloudflare Stream Live\n\n## Getting Started\n\n### 1) Configure environment variables\n\nCreate `.env.local` from `env.example.txt` and fill in values.\n\n### 2) Create Supabase schema (roles/invites/chat/moderation)\n\nIn your Supabase project:\n- Go to **SQL Editor**\n- Run `supabase/schema.sql`\n\nThen in **Auth → URL Configuration**, set:\n- **Site URL**: `http://localhost:3005`\n- (Magic link redirect URLs are not needed for the current email+password MVP)\n\n### 3) Run the dev server\n\n```bash\nnpm run dev\n```\n\nOpen `http://localhost:3005`.\n\n### 4) First admin\n\nTo create your first admin, insert an invite row for your email with role `admin`:\n- Table: `public.invites`\n- Columns: `email`, `role`\n\nThen log in using email + password (account created in Supabase Auth).\n\n---\n\nMore detailed setup (Supabase + AWS IVS/Cloudflare + OBS) is in `supabase/SETUP.md`.\n",
+    "stack": [
+      "@stripe/react-stripe-js",
+      "@stripe/stripe-js",
+      "@supabase/ssr",
+      "@supabase/supabase-js",
+      "clsx",
+      "hls.js"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "Volumetric-Design-System-ESR--main",
+    "title": "Volumetric Design System",
+    "category": "Research",
+    "medium": "VR / Unity",
+    "description": "The **Volumetric Design System** is an immersive audio-visual platform developed for **Edge Sound Research (ESR)**. It translates complex spatial data—such as NBA player tracking (Hawkeye) and biometric sensors—into premium, high-fidelity 3D experiences with integrated spatial audio.",
+    "content": "# Volumetric Design System (ESR)\n\n![ESR Logo](https://img.shields.io/badge/Edge_Sound_Research-Volumetric-orange)\n![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20|%20R3F%20|%20Supabase-blue)\n\nThe **Volumetric Design System** is an immersive audio-visual platform developed for **Edge Sound Research (ESR)**. It translates complex spatial data—such as NBA player tracking (Hawkeye) and biometric sensors—into premium, high-fidelity 3D experiences with integrated spatial audio.\n\n## 🚀 Vision\nTo redefine how audiences experience live sports and digital environments by \"embodying\" sound within physical and virtual space. Our system doesn't just show data; it creates a visceral connection between the viewer and the event through synchronized volumetric rendering and HLS-driven spatial audio.\n\n## 🛠 Tech Stack\n- **Framework**: [Next.js](https://nextjs.org/) (App Router)\n- **3D Engine**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) / [Three.js](https://threejs.org/)\n- **State Management**: [Zustand](https://github.com/pmndrs/zustand)\n- **Database/Auth**: [Supabase](https://supabase.com/) (pgvector for AI memory)\n- **Animations**: [GSAP](https://greensock.com/gsap/) & [Framer Motion](https://www.framer.com/motion/)\n- **Data Ingestion**: Server-Sent Events (SSE) for raw tracking feeds\n\n## 💎 Key Features\n\n### 1. Hawkeye Live NBA Visualization\nA real-time 3D reconstruction of NBA games using Hawkeye tracking data.\n- **Interpolated Sync**: Custom playback engine that synchronizes jittery raw data into smooth 60fps animations.\n- **Embedded Audio**: HLS audio streams are \"attached\" to the ball or players in 3D space with professional-grade attenuation.\n- **Skeleton Rendering**: Full 17-point skeletal pose estimation reconstructed in real-time.\n\n### 2. ESR Intelligence (AI Chat & Slack)\nA sophisticated AI layer that provides context and insight over the entire ESR ecosystem.\n- **Global Truth Node**: Centralized knowledge base of ESR business logic and project history.\n- **Slack Integration**: An automated bot that monitors channels for design/dev feedback and updates the knowledge graph.\n- **Vector Memory**: Uses `pgvector` in Supabase to maintain long-term context across conversations.\n\n### 3. \"Embodied Sound\" Painter\nA premium generative art experience that visualizes sound as a \"painter\" moving through space.\n- **Dynamic Particles**: GPU-accelerated particle systems that react to audio frequencies.\n- **Organic Motion**: Physics-based character controllers that simulate \"dancing\" or \"sitting\" based on ambient data.\n\n## 📂 Project Structure\n- `/app`: Next.js pages and API routes.\n- `/components/hawkeye`: Core logic for the NBA tracking visualization.\n- `/components/painter`: Generative art and character logic.\n- `/lib/supabase`: Database schemas and vector search utilities.\n- `/agent`: Custom AI agent workflows and context.\n\n## 🛠 Getting Started\n1. Clone the repository.\n2. Install dependencies: `npm install`\n3. Set up environment variables for Supabase and NBA API.\n4. Run the development server: `npm run dev`\n\n---\n© 2024 Edge Sound Research. Confidential & Proprietary.\n",
+    "stack": [
+      "@ai-sdk/openai",
+      "@ai-sdk/react",
+      "@react-three/drei",
+      "@react-three/fiber",
+      "@react-three/postprocessing",
+      "@react-three/xr"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "0ghost-chat",
+    "title": "0Ghost",
+    "category": "Engineering",
+    "medium": "Zero-Trust Architecture",
+    "description": "A comprehensive engineering deep-dive into a Zero-Trust communication protocol, featuring Capability-Based Access Control (CapBAC) and client-side RSA-OAEP key exchange.",
+    "content": "## Engineering Overview\n\n0Ghost (codenamed `athoughtful.fun`) is an implementation of **Zero-Trust Architecture** applied to messaging. It challenges the traditional server-authoritative model by pushing all identity and cryptographic operations to the client edge.\n\n## Core Architecture\n\n### 1. Capability-Based Access Control (CapBAC)\nUnlike Role-Based Access Control (RBAC) which asks \"Who are you?\", CapBAC asks \"What can you do?\". Users possess cryptographic **Capability Tokens**—high-entropy bearer keys—that grant specific, temporary rights (e.g., `SEND_MESSAGE`, `READ_CIRCLE`) to the relay server. This decouples permission from identity.\n\n### 2. Client-Side Cryptography\n- **Identity**: `RSA-OAEP` keypairs generated via `crypto.subtle` in the browser. Keys are stored in `IndexedDB` and never transmitted.\n- **Transport**: Messages are encrypted with `AES-256-GCM` using rotating symmetric keys.\n- **Exchange**: Key distribution is 100% out-of-band (QR Code / Manual). The server never brokers keys, eliminating Man-in-the-Middle vectors.\n\n### 3. Database Isolation\nSupabase Row Level Security (RLS) policies are used strictly for enforcement. The database stores opaque ciphertext blobs which it cannot inspect, ensuring true Zero Knowledge storage.",
+    "stack": [
+      "next",
+      "supabase",
+      "webcrypto",
+      "tailwind",
+      "typescript",
+      "zustand"
+    ],
+    "repo": "https://github.com/zpennachi/0ghost",
+    "images": [],
+    "source": "local"
+  },
+  {
+    "id": "OHM-site",
+    "title": "OHM",
+    "category": "Brand",
+    "medium": "Web",
+    "description": "No description provided.",
+    "content": "# OHM-site",
+    "stack": [],
+    "repo": "",
+    "images": [],
+    "source": "remote"
+  }
+]

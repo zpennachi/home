@@ -1,0 +1,94 @@
+[
+    {
+        "id": "vantage",
+        "title": "Vantage",
+        "category": "Concept",
+        "medium": "Fintech",
+        "description": "A high-frequency liquidity monitoring dashboard for institutional treasuries.",
+        "content": "## Overview\n\nVantage is a real-time liquidity engine designed for high-growth startups to monitor burn rate, runway, and treasury yield in millisecond resolution.\n\n## The Problem\n\nTraditional treasury management is static and monthly. Vantage treats cash flow like server metrics—streaming, observable, and reactive.\n\n## Key Features\n\n- **Live Liquidity Stream**: A WebSocket connection aggregation across 20+ bank APIs to show a unified cash position.\n- **Yield Optimization**: Automated sweeping of idle cash into high-yield MMAs based on real-time rate changes.\n- **Anomaly Detection**: Machine learning models that flag irregular burn variances (e.g., duplicate vendor charges) instantly.\n\n## Technical Core\n\n- **Rendering**: Custom Canvas 2D render engine for charting 1M+ data points without layout thrashing.\n- **State**: Optimized React Context with selector-based subscription to avoid re-renders on high-frequency updates.\n- **Data**: Aggregated WebSocket streams normalized via a Node.js mid-layer.",
+        "stack": [
+            "next",
+            "typescript",
+            "canvas-api",
+            "websocket",
+            "tailwind"
+        ],
+        "repo": "",
+        "images": [],
+        "source": "local"
+    },
+    {
+        "id": "nexus",
+        "title": "Nexus",
+        "category": "Concept",
+        "medium": "Internal Tool",
+        "description": "A graph-based knowledge OS for engineering teams, treating documentation as a living network.",
+        "content": "## Overview\n\nNexus is a \"Linear for Knowledge Management.\" It replaces folder-based wikis (Confluence, Notion) with a semantic graph that auto-links concepts as you write.\n\n## The Problem\n\nEngineering knowledge is fragmented. The \"truth\" is split between Slack threads, PR comments, and outdated wiki pages. Nexus unifies this by treating every paragraph as an addressable node in a global graph.\n\n## Key Features\n\n- **Semantic Auto-Linking**: Typing \"Deploy Pipeline\" automatically creates a backlink to that concept's definition.\n- **Graph Visualization**: A live force-directed graph showing knowledge clusters and silos within the organization.\n- **Temporal Versioning**: Every node update is immutable, allowing teams to \"rewind\" the state of their knowledge base to any point in time.\n\n## Technical Core\n\n- **Editor**: Custom Prosemirror implementation with hybrid local-first state (CRDTs) for offline-capable collaboration.\n- **Graph Engine**: D3.js force simulation running in a Web Worker to handle 50k+ nodes without blocking the main thread.\n- **Search**: Vector-based semantic search (Rust + WASM) running entirely in the client.",
+        "stack": [
+            "next",
+            "prosemirror",
+            "d3",
+            "rust",
+            "typescript"
+        ],
+        "repo": "",
+        "images": [],
+        "source": "local"
+    },
+    {
+        "id": "synthetix",
+        "title": "Synthetix",
+        "category": "Concept",
+        "medium": "DevTools",
+        "description": "A spatial CI/CD interface transforming distinct YAML pipelines into interactive, observable graphs.",
+        "content": "## Overview\n\nSynthetix reimagines the CI/CD pipeline as a spatial problem. Instead of parsing thousands of lines of YAML logs, engineers interact with a live Directed Acyclic Graph (DAG) of their infrastructure.\n\n## The Problem\n\nModern microservices architectures are complex distributed systems, but deployment tools (Jenkins, CircleCI) still treat them like linear scripts. Debugging a failed dependency in a complex mesh is a nightmare of log-crawling.\n\n## Key Features\n\n- **Spatial Pipelines**: Drag-and-drop builder that compiles to Valid Kubernetes manifests automatically.\n- **Live Observability**: Nodes pulse in real-time based on CPU/Memory pressure during build steps.\n- **Instant Rollback**: \"Time-travel\" debugging allows users to click any previous node state to revert infrastructure instantly.\n\n## Technical Core\n\n- **Graph Engine**: Custom SVG/Canvas hybrid renderer for handling 1000+ node graphs.\n- **State Sync**: Optimistic UI updates backed by a Go control plane that reconciles state with the Kubernetes API.\n- **Terminal Emulation**: WebGL-accelerated terminal renderer (xterm.js custom shader) for high-throughput log streaming.",
+        "stack": [
+            "next",
+            "react-flow",
+            "kubernetes",
+            "go",
+            "typescript"
+        ],
+        "repo": "",
+        "images": [],
+        "source": "local"
+    },
+    {
+        "id": "weekend",
+        "title": "Weekend",
+        "category": "Creative Engineering",
+        "medium": "React Three Fiber",
+        "description": "A cinematic, high-performance 3D portfolio foundation. A 'ghost-weight' framework for immersive web experiences.",
+        "content": "## Overview\n\nWeekend is a production-ready research project into high-performance, cinematic 3D web experiences. It serves as a \"ghost-weight\" foundation—invisible but omnipresent—handling the heavy lifting of WebGL state management, asset preloading, and scroll synchronization so creators can focus purely on the art.\n\n## The Philosophy\n\nMost 3D websites feel heavy. They load slowly, scroll jankily, and drain batteries. Weekend was built to prove that **immersion doesn't require optimization sacrifices**. It treats the scrollbar as a timeline, turning a website into a playable movie.\n\n## Key Capabilities\n\n- **Cinematic Pacing**: Scroll acts as a 'playhead', scrubbing through GSAP timelines and R3F animations seamlessly.\n- **Adaptive Performance**: Automatically scales internal resolution (DPR) based on device power and current frame variance.\n- **Hybrid Animation**: A unique orchestrator that syncs DOM (Framer Motion) and Canvas (GSAP/Maath) timelines.\n- **Accessibility First**: First-class support for `prefers-reduced-motion`, instantly swapping 3D flythroughs for static optimized compositions.\n\n## Technical Core\n\n- **Renderer**: React Three Fiber (Three.js) with custom shader materials.\n- **State**: Zustand for global gl/dom synchronization.\n- **Motion**: GSAP for complex timelines, Framer Motion for UI entry/exit.\n- **Optimization**: Draco compression, texture atlasing, and aggressive lazy-loading of off-screen geometry.",
+        "stack": [
+            "@react-three/fiber",
+            "@react-three/drei",
+            "gsap",
+            "framer-motion",
+            "zustand",
+            "vite"
+        ],
+        "repo": "https://github.com/zpennachi/weekend",
+        "images": [],
+        "source": "local"
+    },
+    {
+        "id": "streamer-portfolio",
+        "title": "Streamer Portfolio",
+        "category": "Design",
+        "medium": "Web",
+        "description": "Award‑worthy designer portfolio: editorial typography, high contrast, intentional motion, performance‑first. Suited for Awwwards / Dribbble‑style presentation.",
+        "content": "# Designer Portfolio\r\n\r\nAward‑worthy designer portfolio: editorial typography, high contrast, intentional motion, performance‑first. Suited for Awwwards / Dribbble‑style presentation.\r\n\r\n---\r\n\r\n## Tech Stack\r\n\r\n- **Next.js 14** (App Router) + **TypeScript**\r\n- **Tailwind CSS** — utility‑first, design tokens (spacing, type, color)\r\n- **Framer Motion** — scroll reveals, hero animations, reduced‑motion support\r\n- **Inter** (variable font) via `next/font`\r\n\r\nOptional extensions (not included): **GSAP ScrollTrigger**, **Locomotive Scroll**, **R3F / WebGL** for project heroes.\r\n\r\n---\r\n\r\n## Getting Started\r\n\r\n### 1. Install dependencies\r\n\r\n```bash\r\nnpm install\r\n```\r\n\r\n### 2. Run dev server\r\n\r\n```bash\r\nnpm run dev\r\n```\r\n\r\nOpen [http://localhost:3005](http://localhost:3005).\r\n\r\n### 3. Build for production\r\n\r\n```bash\r\nnpm run build\r\nnpm start\r\n```\r\n\r\n---\r\n\r\n## Project Structure\r\n\r\n```\r\nsrc/\r\n├── app/\r\n│   ├── globals.css       # Design tokens (CSS vars), base styles, reduced-motion\r\n│   ├── layout.tsx        # Root layout: Nav, main, Footer, FluidCursor, skip link\r\n│   ├── page.tsx          # Homepage: Hero → Work → About → Contact\r\n│   ├── not-found.tsx     # Global 404\r\n│   └── projects/\r\n│       └── [slug]/\r\n│           ├── page.tsx        # Project detail (dynamic)\r\n│           └── not-found.tsx   # Project 404\r\n├── components/\r\n│   ├── Nav.tsx           # Sticky nav; hidden-until-scroll background; mobile menu\r\n│   ├── Hero.tsx          # Oversized headline, subline, CTA\r\n│   ├── ProjectCard.tsx   # Project grid item; image + title; hover scale\r\n│   ├── ProjectGrid.tsx   # Work section; grid of ProjectCards\r\n│   ├── ProjectDetailTemplate.tsx  # Split layout: content + visuals\r\n│   ├── About.tsx         # About section\r\n│   ├── Contact.tsx       # Contact section\r\n│   ├── Footer.tsx        # Footer nav + socials + copyright\r\n│   ├── ScrollReveal.tsx  # Scroll-triggered reveal (IntersectionObserver)\r\n│   └── FluidCursor.tsx   # Desktop-only cursor glow; reduced-motion aware\r\n├── data/\r\n│   └── projects.ts       # Project index + detail data; replace with real content\r\n├── lib/\r\n│   └── design-tokens.ts  # Tokens for JS (Figma handoff, etc.)\r\n└── ...\r\ndocs/\r\n├── FIGMA_STYLE_GUIDE.md  # Colors, grid, type scale, motion — Figma-ready\r\n├── COMPONENT_LIST.md     # Components, states, ARIA\r\n├── HOMEPAGE_LAYOUT.md    # Hero → Work → About → Contact\r\n└── PROTOTYPING_OUTLINE.md # Routes, interactions, keyboard nav\r\npublic/                   # Static assets (favicon, images)\r\n```\r\n\r\n---\r\n\r\n## What Each Piece Does\r\n\r\n### Layout & global\r\n\r\n- **`layout.tsx`** — Wraps all pages with Nav, main (`#main`), Footer. Injects skip link and FluidCursor. Uses Inter via `next/font`.\r\n- **`globals.css`** — Tailwind base; CSS variables for colors, grid, motion. `prefers-reduced-motion` overrides durations to 0.\r\n\r\n### Homepage\r\n\r\n- **`page.tsx`** — Composes Hero, ProjectGrid, About, Contact. Single scroll flow.\r\n- **`Hero`** — Large headline (≥96px), optional subline, “View work” CTA. Staggered fade‑in; respects reduced motion.\r\n- **`ProjectGrid`** — “Selected work” heading + grid of `ProjectCard`s. Data from `data/projects`.\r\n- **`ProjectCard`** — Image (4:3), title, meta. Link to `/projects/[slug]`. Hover scale + overlay; scroll reveal with stagger.\r\n- **`About`** / **`Contact`** — ScrollReveal sections; short copy and email link.\r\n\r\n### Project detail\r\n\r\n- **`projects/[slug]/page.tsx`** — Resolves `slug` via `getProjectBySlug`, renders `ProjectDetailTemplate`. `generateStaticParams` prebuilds known slugs.\r\n- **`ProjectDetailTemplate`** — Back link, hero image, split layout: left = title/meta/description, right = body + gallery. Scroll reveals throughout.\r\n\r\n### Shared components\r\n\r\n- **`Nav`** — Logo, Work / About / Contact. Background appears on scroll. Mobile: hamburger + collapsible menu.\r\n- **`Footer`** — Same nav links + socials + copyright.\r\n- **`ScrollReveal`** — Wraps children; when in view (Framer `whileInView`), animates opacity + y/x. `once`, optional delay, `amount`. Disabled when `prefers-reduced-motion`.\r\n- **`FluidCursor`** — Follows mouse; glow scales on hover. Desktop only; hidden on touch and when reduced motion.\r\n\r\n### Data & config\r\n\r\n- **`data/projects`** — `projects` (grid), `projectDetails` (detail), `getProjectBySlug`. Replace with your projects and assets.\r\n- **`tailwind.config`** — Design tokens: spacing (8pt grid), colors, type scale, motion. Mirrors `design-tokens.ts` and style guide.\r\n- **`next.config`** — `images.remotePatterns` for picsum (or your image host).\r\n\r\n---\r\n\r\n## Design Constraints\r\n\r\n- **Typography:** Hero ≥96px, H2 ≥56px, body 18–20px. Inter (or swap for GT America / Neue Haas Grotesk).\r\n- **Color:** Black / near‑black bg, white text, **one accent** (`#ff3d00`).\r\n- **Spacing:** 8pt base grid.\r\n- **Motion:** Scroll reveals, hover micro‑interactions, fluid cursor. All respect `prefers-reduced-motion`.\r\n\r\n---\r\n\r\n## Accessibility\r\n\r\n- Skip link to `#main`; focus‑visible only.\r\n- Semantic layout: `main`, `nav`, `header`, `footer`, `article`, sections with `aria-labelledby`.\r\n- Keyboard navigation; focus rings (accent, 2px offset).\r\n- Reduced motion: no scroll/load animations when user prefers reduced motion.\r\n\r\n---\r\n\r\n## Performance\r\n\r\n- **Code‑splitting:** Next.js automatic; project detail route is its own chunk.\r\n- **Images:** `next/image`; `priority` on hero and first two project cards; lazy load rest. `remotePatterns` for external URLs.\r\n- **Fonts:** `next/font` for Inter; minimal layout shift.\r\n\r\n---\r\n\r\n## Docs\r\n\r\n| Doc | Purpose |\r\n|-----|---------|\r\n| **FIGMA_STYLE_GUIDE** | Colors, grid, type scale, motion — Figma setup |\r\n| **COMPONENT_LIST** | Components, states, ARIA |\r\n| **HOMEPAGE_LAYOUT** | Hero → Work → About → Contact |\r\n| **PROTOTYPING_OUTLINE** | Routes, clicks, scroll, keyboard |\r\n| **DESIGN_TOKENS.json** | Machine-readable tokens (Figma, etc.) |\r\n\r\n---\r\n\r\n## Customization\r\n\r\n1. **Content:** Edit `data/projects.ts`; add real images (e.g. under `public/`) and update `image` paths.\r\n2. **Colors / type:** Adjust `tailwind.config` and `globals.css`; keep `design-tokens` and `FIGMA_STYLE_GUIDE` in sync.\r\n3. **Nav / footer:** Update links in `Nav`, `Footer`, and project data.\r\n4. **Contact:** Change `mailto` in `Contact.tsx`.\r\n\r\n---\r\n\r\n## Scripts\r\n\r\n| Command | Description |\r\n|---------|-------------|\r\n| `npm run dev` | Dev server (port 3005) |\r\n| `npm run build` | Production build |\r\n| `npm start` | Run production server |\r\n| `npm run lint` | Next.js ESLint |\r\n\r\n---\r\n\r\nBuilt with Next.js, Tailwind, and Framer Motion. Replace placeholder copy and images with your work to ship.\r\n",
+        "stack": [
+            "next",
+            "react",
+            "react-dom",
+            "framer-motion",
+            "@types/node",
+            "@types/react"
+        ],
+        "repo": "",
+        "images": [],
+        "source": "local"
+    }
+]
