@@ -15,7 +15,7 @@ export default async function Home() {
 
   const { data: projects, error: projectsError } = await supabase
     .from('projects')
-    .select('id, title, category, medium, images')
+    .select('id, title, category, medium, images, description')
     .order('created_at', { ascending: false });
 
   if (entriesError || projectsError) {

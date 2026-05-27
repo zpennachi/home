@@ -5,7 +5,6 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectThumbnail } from "./ProjectThumbnail";
 import { WorkFilter } from "./WorkFilter";
-import { cn } from "@/lib/utils";
 
 export interface ProjectEntry {
     id: number | string;
@@ -14,6 +13,7 @@ export interface ProjectEntry {
     medium: string;
     file: string | string[] | null;
     branding?: any;
+    description?: string;
     type?: 'project' | 'entry';
 }
 
@@ -22,8 +22,35 @@ interface DynamicGridProps {
     projects?: any[] | null;
 }
 
+// Map custom client names and years for a highly editorial feel
+function getProjectMetadata(id: string | number, fallbackClient: string) {
+    const clientMap: Record<string, { client: string, year: string }> = {
+        'krampus': { client: '8th Wall Campaign', year: '2024' },
+        'box-nn': { client: 'Holiday Experience', year: '2024' },
+        'nn-snap': { client: 'Snap Inc.', year: '2024' },
+        'snowmen': { client: 'Survival Game Dev', year: '2023' },
+        'hawkeye': { client: 'Coaching Analytics', year: '2024' },
+        'MVPIQ': { client: 'MVP IQ Platform', year: '2024' },
+        'particle-life-131': { client: 'Creative Code Lab', year: '2024' },
+        'streamer': { client: 'Twitch Alternative', year: '2023' },
+        'Volumetric-Design-System-ESR--main': { client: 'Edge Sound Research', year: '2024' },
+        '0ghost-chat': { client: '0Ghost Security', year: '2024' },
+        'OHM-site': { client: 'OHM Brand System', year: '2023' }
+    };
+
+    const key = String(id);
+    if (clientMap[key]) return clientMap[key];
+
+    return {
+        client: fallbackClient || 'Freelance',
+        year: '2024'
+    };
+}
+
 export function DynamicGrid({ entries, projects }: DynamicGridProps) {
     const [activeCategory, setActiveCategory] = useState("All");
+    const [hoveredItem, setHoveredItem] = useState<any>(null);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     // Combine projects and entries
     const allItems = useMemo(() => {
@@ -34,17 +61,18 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             medium: p.medium,
             file: p.images?.[0] || null,
             branding: p.branding || null,
+            description: p.description || '',
             type: 'project'
         }));
 
         const eItems = (entries || []).map(e => ({
             ...e,
+            description: '',
             type: 'entry' as const
         }));
 
         return [...pItems, ...eItems];
     }, [entries, projects]);
-
 
     // Extract unique categories
     const categories = useMemo(() => {
@@ -60,70 +88,107 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
         return allItems.filter(e => e.category === activeCategory);
     }, [allItems, activeCategory]);
 
+    // Mouse movement tracker to move the hover popup dynamically
+    const handleMouseMove = (e: React.MouseEvent) => {
+        setMousePos({ x: e.clientX, y: e.clientY });
+    };
+
     if (!allItems || allItems.length === 0) return null;
 
     return (
-        <div>
+        <div className="relative">
             <WorkFilter
                 categories={categories}
                 activeCategory={activeCategory}
                 onCategoryChange={setActiveCategory}
             />
 
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-20 auto-rows-fr grid-flow-dense">
+            {/* Ultra-Minimal List Wrapper */}
+            <div className="flex flex-col border-t border-muted selection:bg-foreground selection:text-background">
                 <AnimatePresence mode="popLayout">
                     {filteredEntries.map((entry, i) => {
-                        // Standardize all cards
-                        const spanClass = "flex flex-col group/card col-span-1";
-                        const aspectClass = "aspect-[4/5]";
-
                         const href = `/new/work/${entry.id}`;
+                        const { client, year } = getProjectMetadata(entry.id, entry.medium);
 
                         return (
                             <motion.div
                                 layout
                                 key={entry.id}
-                                className={spanClass}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.5, delay: i * 0.05 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.4, delay: i * 0.02, ease: [0.16, 1, 0.3, 1] }}
+                                className="border-b border-muted/50"
                             >
-                                <Link href={href} className="group cursor-pointer h-full flex flex-col relative">
-                                    {/* Image Frame */}
-                                    <div className={cn("relative bg-muted overflow-hidden mb-8 transition-all duration-700 ease-[0.2,0,0,1] group-hover:scale-[1.02] rounded-md shadow-lg shadow-black/5 ring-1 ring-foreground/5", aspectClass)}>
-                                        <ProjectThumbnail
-                                            id={String(entry.id)}
-                                            files={entry.file}
-                                            title={entry.title}
-                                            branding={entry.type === 'project' ? entry.branding : undefined}
-                                        />
-                                        <div className="absolute inset-0 bg-background/5 group-hover:bg-transparent transition-colors duration-500" />
-
-                                        {/* Hover Overlay Mono metadata */}
-                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                            <span className="text-[8px] font-mono uppercase tracking-[0.4em] bg-foreground text-background px-2 py-1 rounded-sm font-black">
-                                                Exhibition Ref. {i.toString().padStart(3, '0')}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Typography */}
-                                    <div className="flex flex-col gap-4 mt-auto px-1">
-                                        <h3 className="text-2xl md:text-3xl font-display font-light uppercase tracking-tighter leading-none group-hover:text-accent transition-colors line-clamp-2">
+                                <Link
+                                    href={href}
+                                    onMouseEnter={() => setHoveredItem(entry)}
+                                    onMouseLeave={() => setHoveredItem(null)}
+                                    onMouseMove={handleMouseMove}
+                                    className="grid grid-cols-12 py-5 items-center hover:bg-muted/15 transition-all duration-300 px-4 group cursor-pointer"
+                                >
+                                    {/* Number & Title */}
+                                    <div className="col-span-12 md:col-span-6 flex items-center gap-6">
+                                        <span className="text-[9px] font-mono text-muted-fg/40 group-hover:text-accent transition-colors">
+                                            {String(i + 1).padStart(2, '0')}
+                                        </span>
+                                        <h3 className="text-base font-light tracking-tight text-foreground group-hover:translate-x-1.5 transition-transform duration-300">
                                             {entry.title}
                                         </h3>
-                                        <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-[0.2em] font-black text-muted-fg border-t border-muted pt-4 group-hover:border-foreground transition-colors group-active:translate-y-1 transition-transform">
-                                            <span>{entry.category}</span>
-                                            <span className="opacity-40">{entry.medium}</span>
-                                        </div>
+                                    </div>
+
+                                    {/* Client Name */}
+                                    <div className="col-span-8 md:col-span-4 mt-1 md:mt-0">
+                                        <span className="text-xs font-light text-muted-fg/70 tracking-tight">
+                                            {client}
+                                        </span>
+                                    </div>
+
+                                    {/* Date/Year */}
+                                    <div className="col-span-4 md:col-span-2 text-right mt-1 md:mt-0">
+                                        <span className="text-xs font-mono text-muted-fg/40 tracking-wider">
+                                            {year}
+                                        </span>
                                     </div>
                                 </Link>
                             </motion.div>
                         );
                     })}
                 </AnimatePresence>
-            </motion.div>
+            </div>
+
+            {/* Mouse-following Floating Card Preview */}
+            <AnimatePresence>
+                {hoveredItem && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        style={{
+                            position: 'fixed',
+                            left: mousePos.x + 20,
+                            top: mousePos.y + 20,
+                        }}
+                        className="bg-background/95 backdrop-blur-md border border-muted p-4 rounded-xl shadow-2xl w-64 z-50 space-y-3 pointer-events-none"
+                    >
+                        <div className="w-full aspect-[16/10] bg-muted rounded-lg overflow-hidden relative border border-muted/20">
+                            <ProjectThumbnail
+                                id={String(hoveredItem.id)}
+                                files={hoveredItem.file}
+                                title={hoveredItem.title}
+                                branding={hoveredItem.type === 'project' ? hoveredItem.branding : undefined}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-[11px] font-mono uppercase tracking-wider text-foreground">{hoveredItem.title}</h4>
+                            <p className="text-[10px] text-muted-fg/90 leading-relaxed font-light line-clamp-3">
+                                {hoveredItem.description || "Interactive digital experience developed at the intersection of design and engineering."}
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
