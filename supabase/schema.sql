@@ -26,3 +26,28 @@ create policy "Admin Manage 365"
   to authenticated
   using (true)
   with check (true);
+
+-- Create the table for design tokens
+create table if not exists "design_tokens" (
+  id text primary key, -- e.g. 'light' or 'dark'
+  tokens jsonb not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Turn on Row Level Security
+alter table "design_tokens" enable row level security;
+
+-- Create public read policy
+create policy "Public Design Tokens Access"
+  on "design_tokens"
+  for select
+  to public
+  using (true);
+
+-- Create admin manage policy
+create policy "Admin Manage Design Tokens"
+  on "design_tokens"
+  for all
+  to authenticated
+  using (true)
+  with check (true);
