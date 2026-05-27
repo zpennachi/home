@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProjectThumbnail } from "./ProjectThumbnail";
-import { WorkFilter } from "./WorkFilter";
 
 export interface ProjectEntry {
     id: number | string;
@@ -48,7 +47,6 @@ function getProjectMetadata(id: string | number, fallbackClient: string) {
 }
 
 export function DynamicGrid({ entries, projects }: DynamicGridProps) {
-    const [activeCategory, setActiveCategory] = useState("All");
     const [hoveredItem, setHoveredItem] = useState<any>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -74,20 +72,6 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
         return [...pItems, ...eItems];
     }, [entries, projects]);
 
-    // Extract unique categories
-    const categories = useMemo(() => {
-        if (!allItems.length) return ["All"];
-        const unique = Array.from(new Set(allItems.map(e => e.category)));
-        return ["All", ...unique.sort()];
-    }, [allItems]);
-
-    // Filter logic
-    const filteredEntries = useMemo(() => {
-        if (!allItems.length) return [];
-        if (activeCategory === "All") return allItems;
-        return allItems.filter(e => e.category === activeCategory);
-    }, [allItems, activeCategory]);
-
     // Mouse movement tracker to move the hover popup dynamically
     const handleMouseMove = (e: React.MouseEvent) => {
         setMousePos({ x: e.clientX, y: e.clientY });
@@ -97,16 +81,10 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
 
     return (
         <div className="relative">
-            <WorkFilter
-                categories={categories}
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
-            />
-
             {/* Ultra-Minimal List Wrapper */}
             <div className="flex flex-col border-t border-muted selection:bg-foreground selection:text-background">
                 <AnimatePresence mode="popLayout">
-                    {filteredEntries.map((entry, i) => {
+                    {allItems.map((entry, i) => {
                         const href = `/new/work/${entry.id}`;
                         const { client, year } = getProjectMetadata(entry.id, entry.medium);
 
