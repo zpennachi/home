@@ -30,8 +30,8 @@ export default function AdminLayout({
                             >
                                 <Menu className="w-5 h-5" />
                             </button>
-                            <div className="w-6 h-6 bg-foreground rounded shadow-sm" />
-                            <span className="text-xs font-black uppercase tracking-widest pt-0.5">Admin</span>
+                            <div className="w-5 h-5 bg-foreground rounded-sm" />
+                            <span className="text-[10px] font-medium uppercase tracking-widest pt-0.5">admin</span>
                         </div>
                         <button className="p-2 text-muted-fg hover:text-foreground">
                             <SearchIcon className="w-4 h-4" />
@@ -41,8 +41,8 @@ export default function AdminLayout({
                     <AdminSidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
                     <AdminCommandPalette />
 
-                    <main className="flex-1 overflow-hidden md:ml-[280px] flex flex-col">
-                        <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-700 flex flex-col px-4 md:px-12 py-6 md:py-10">
+                    <main className="flex-1 overflow-hidden md:ml-64 flex flex-col">
+                        <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto animate-in fade-in duration-500 flex flex-col px-4 md:px-12 py-6 md:py-10">
                             {children}
                         </div>
                     </main>

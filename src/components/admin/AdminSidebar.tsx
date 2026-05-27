@@ -143,17 +143,17 @@ export function AdminSidebar({
                 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                    "fixed md:left-4 md:top-4 md:bottom-4 w-[280px] md:w-64 bg-background/80 backdrop-blur-xl border-r md:border border-muted flex flex-col z-50 shadow-2xl shadow-black/5 h-full md:h-auto md:rounded-2xl transition-all",
+                    "fixed left-0 top-0 bottom-0 w-64 bg-background border-r border-muted flex flex-col z-50 transition-all h-full md:rounded-none shadow-none",
                     !isMobileOpen && "-translate-x-full md:translate-x-0"
                 )}
             >
                 {/* Header */}
                 <div className="h-20 flex items-center px-6 border-b border-muted relative">
-                    <div className="w-8 h-8 bg-foreground rounded-lg mr-3 shadow-lg" />
+                    <div className="w-6 h-6 bg-foreground rounded-sm mr-3" />
                     <div>
-                        <span className="block font-bold tracking-tight text-foreground text-sm">ZPennachi</span>
+                        <span className="block font-light text-foreground text-xs uppercase tracking-wider">zpennachi</span>
                         <div className="flex items-center gap-1.5">
-                            <span className="block text-[10px] text-muted-fg uppercase tracking-wider font-mono">Command Center</span>
+                            <span className="block text-[9px] text-muted-fg uppercase tracking-widest font-mono">admin</span>
                         </div>
                     </div>
 
@@ -173,11 +173,11 @@ export function AdminSidebar({
                         <button
                             onClick={() => setIsToolsOpen(!isToolsOpen)}
                             className={cn(
-                                "w-full group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-200",
+                                "w-full group flex items-center gap-3 px-3 py-2 rounded-sm text-[10px] font-medium uppercase tracking-widest transition-all duration-200",
                                 isToolsOpen ? "text-foreground bg-muted/50" : "text-muted-fg hover:text-foreground hover:bg-muted/30"
                             )}
                         >
-                            <span className="flex-1 text-left">Tools</span>
+                            <span className="flex-1 text-left">tools</span>
                             <ChevronRight className={cn("w-3.5 h-3.5 transition-transform duration-300", isToolsOpen && "rotate-90")} />
                         </button>
 
@@ -200,12 +200,12 @@ export function AdminSidebar({
                                                     if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                                 }}
                                                 className={cn(
-                                                    "group flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
+                                                    "group flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light lowercase transition-all duration-150",
                                                     isActive ? "bg-muted text-foreground" : "text-muted-fg hover:text-foreground hover:bg-muted/30"
                                                 )}
                                             >
-                                                <item.icon className={cn("w-4 h-4 transition-colors", isActive ? "text-foreground" : "text-muted-fg group-hover:text-foreground")} />
-                                                <span>{item.name}</span>
+                                                <item.icon className={cn("w-3.5 h-3.5 transition-colors", isActive ? "text-foreground" : "text-muted-fg group-hover:text-foreground")} />
+                                                <span>{item.name.toLowerCase()}</span>
                                             </Link>
                                         )
                                     })}
@@ -217,17 +217,17 @@ export function AdminSidebar({
                     {/* Persistent Notes Area */}
                     <div className="flex-1 flex flex-col min-h-0 space-y-3">
                         <div className="flex items-center justify-between px-3">
-                            <span className="text-xs font-bold uppercase tracking-widest text-muted-fg">Notes</span>
+                            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-fg">notes</span>
                             <button
                                 onClick={handleCreateNote}
                                 disabled={isCreating}
-                                className="p-1.5 hover:bg-muted rounded-lg transition-colors group/plus"
+                                className="p-1 hover:bg-muted rounded-sm transition-colors group/plus"
                                 title="Quick Create Note"
                             >
                                 {isCreating ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-foreground" />
+                                    <Loader2 className="w-3 h-3 animate-spin text-foreground" />
                                 ) : (
-                                    <Plus className="w-3.5 h-3.5 text-muted-fg group-hover/plus:text-foreground group-hover/plus:scale-110 transition-all" />
+                                    <Plus className="w-3 h-3 text-muted-fg group-hover/plus:text-foreground transition-all" />
                                 )}
                             </button>
                         </div>
@@ -243,22 +243,18 @@ export function AdminSidebar({
                                             if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                         }}
                                         className={cn(
-                                            "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] transition-all duration-200 relative group/note",
+                                            "flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs font-light lowercase transition-all duration-150 relative group/note",
                                             isNoteActive
-                                                ? "bg-muted text-foreground font-medium shadow-sm"
+                                                ? "bg-muted text-foreground"
                                                 : "text-muted-fg hover:text-foreground hover:bg-muted/30"
                                         )}
                                     >
-                                        <FileText className={cn("w-3.5 h-3.5 transition-colors", note.is_pinned ? "text-amber-500" : "text-muted-fg/40 group-hover/note:text-muted-fg/70")} />
+                                        <FileText className={cn("w-3 h-3 transition-colors", note.is_pinned ? "text-amber-500" : "text-muted-fg/40 group-hover/note:text-muted-fg/70")} />
                                         <span className="truncate flex-1">
-                                            {updatedTitles[note.id] || note.title || 'Untitled'}
+                                            {(updatedTitles[note.id] || note.title || 'untitled').toLowerCase()}
                                         </span>
                                         {isNoteActive && (
-                                            <motion.div
-                                                layoutId="activeNote"
-                                                className="absolute left-0 w-1 h-4 bg-foreground rounded-r-full"
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
+                                            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-foreground" />
                                         )}
                                     </Link>
                                 )
@@ -270,9 +266,9 @@ export function AdminSidebar({
                                     onClick={() => {
                                         if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                     }}
-                                    className="block text-[11px] text-muted-fg hover:text-foreground font-bold uppercase tracking-widest px-3 py-3 mt-2 border-t border-muted/30"
+                                    className="block text-[9px] text-muted-fg hover:text-foreground font-medium uppercase tracking-widest px-3 py-3 mt-2 border-t border-muted/30"
                                 >
-                                    View All Archive
+                                    view all archive
                                 </Link>
                             )}
                         </div>
@@ -283,30 +279,30 @@ export function AdminSidebar({
                 <div className="p-3 mt-auto space-y-2 border-t border-muted">
                     <button
                         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors group"
+                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors group lowercase"
                     >
                         <div className="relative w-3 h-3">
                             <Sun className="absolute inset-0 w-3 h-3 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                             <Moon className="absolute inset-0 w-3 h-3 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                         </div>
                         <span className="flex-1 text-left">
-                            {mounted && (theme === 'dark' ? 'Switch to Light' : 'Switch to Dark')}
+                            {mounted && (theme === 'dark' ? 'switch to light' : 'switch to dark')}
                         </span>
                     </button>
                     <Link
                         href="/new"
                         target="_blank"
-                        className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors"
+                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors lowercase"
                     >
                         <ExternalLink className="w-3 h-3" />
-                        Live Site
+                        live site
                     </Link>
                     <button
                         onClick={() => signout()}
-                        className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-500/10 w-full transition-colors"
+                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-red-500 hover:bg-red-500/10 w-full transition-colors lowercase"
                     >
                         <LogOut className="w-3 h-3" />
-                        Sign Out
+                        sign out
                     </button>
                 </div>
             </motion.div>

@@ -116,91 +116,87 @@ export function NotesList() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-between pb-4 border-b border-muted/50">
                 <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-fg group-focus-within:text-foreground transition-colors" />
+                    <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-fg group-focus-within:text-foreground transition-colors" />
                     <input
                         type="search"
-                        placeholder="Search notes..."
+                        placeholder="search notes..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-background/50 backdrop-blur-sm border border-muted rounded-2xl pl-12 pr-4 py-3.5 md:py-4 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all"
+                        className="w-full bg-transparent border-0 border-b border-muted/50 pl-7 pr-4 py-2 text-sm focus:outline-none focus:border-foreground font-light transition-all lowercase"
                     />
                 </div>
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="hidden sm:flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-muted-fg bg-muted/20 h-11 md:h-14 px-4 rounded-xl border border-muted/50 whitespace-nowrap">
-                        <span>{filteredNotes.length} Notes</span>
-                    </div>
+                <div className="flex items-center gap-6 w-full md:w-auto shrink-0 justify-between md:justify-end">
+                    <span className="text-xs text-muted-fg font-light tracking-wide select-none lowercase">
+                        {filteredNotes.length} notes
+                    </span>
                     <button
                         onClick={handleCreate}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 h-11 md:h-14 bg-foreground text-background rounded-xl md:rounded-2xl font-bold hover:scale-[1.02] md:hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2 border border-muted hover:border-foreground rounded-sm text-xs uppercase tracking-widest font-light transition-all bg-transparent hover:bg-foreground hover:text-background"
                     >
-                        <Plus className="w-4 h-4" />
-                        <span>New Note</span>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>new note</span>
                     </button>
                 </div>
             </div>
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Notes List */}
+            <div className="flex flex-col border-t border-muted/50">
                 <AnimatePresence mode="popLayout">
                     {filteredNotes.map((note) => (
                         <motion.div
                             layout
                             key={note.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="group"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="border-b border-muted/50"
                         >
-                            <Link href={`/new/admin/notes/${note.id}`}>
-                                <div className={cn(
-                                    "h-full p-6 bg-background border rounded-3xl transition-all duration-300 relative flex flex-col gap-4 overflow-hidden",
-                                    note.is_pinned ? "border-foreground/20 ring-1 ring-foreground/5 shadow-lg shadow-black/5" : "border-muted hover:border-foreground/20 hover:shadow-xl hover:shadow-black/5"
-                                )}>
-                                    {/* Actions Overlay */}
-                                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        <button
-                                            onClick={(e) => togglePin(e, note)}
-                                            className={cn(
-                                                "p-2 rounded-xl transition-colors",
-                                                note.is_pinned ? "bg-foreground text-background" : "bg-muted/50 hover:bg-muted text-muted-fg hover:text-foreground"
-                                            )}
-                                        >
-                                            <Pin className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDelete(e, note.id)}
-                                            className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-colors"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                            <Link 
+                                href={`/new/admin/notes/${note.id}`}
+                                className="flex items-center justify-between py-4 hover:px-2 transition-all duration-150 group"
+                            >
+                                <div className="flex items-center gap-4 min-w-0 flex-1">
+                                    {/* Pin Button */}
+                                    <button
+                                        onClick={(e) => togglePin(e, note)}
+                                        className={cn(
+                                            "p-1.5 rounded-sm hover:bg-muted transition-colors shrink-0",
+                                            note.is_pinned ? "text-amber-500" : "text-muted-fg/40 hover:text-foreground"
+                                        )}
+                                        title={note.is_pinned ? "Unpin note" : "Pin note"}
+                                    >
+                                        <Pin className="w-3.5 h-3.5" />
+                                    </button>
 
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="p-3 bg-muted/50 rounded-2xl">
-                                            <FileText className="w-5 h-5 text-foreground" />
-                                        </div>
+                                    {/* Details */}
+                                    <div className="flex items-baseline gap-6 min-w-0 flex-1">
+                                        <span className="font-medium text-sm text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
+                                            {note.title || 'untitled'}
+                                        </span>
+                                        <span className="text-xs text-muted-fg truncate font-light max-w-xl hidden md:inline lowercase">
+                                            {note.content || 'no content yet...'}
+                                        </span>
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <h3 className="font-bold text-lg mb-2 line-clamp-1 group-hover:text-foreground transition-colors">
-                                            {note.title || 'Untitled'}
-                                        </h3>
-                                        <p className="text-muted-fg text-xs leading-relaxed line-clamp-3">
-                                            {note.content || 'No content yet...'}
-                                        </p>
-                                    </div>
+                                <div className="flex items-center gap-6 shrink-0 ml-4">
+                                    {/* Timestamp */}
+                                    <span className="text-[10px] font-mono text-muted-fg uppercase tracking-wider">
+                                        {formatDistanceToNow(new Date(note.updated_at))} ago
+                                    </span>
 
-                                    <div className="mt-auto pt-4 border-t border-muted/30 flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-[10px] text-muted-fg font-medium">
-                                            <Clock className="w-3 h-3" />
-                                            {formatDistanceToNow(new Date(note.updated_at))} ago
-                                        </div>
-                                        <ArrowRight className="w-4 h-4 text-muted-fg group-hover:translate-x-1 group-hover:text-foreground transition-all" />
-                                    </div>
+                                    {/* Action Buttons */}
+                                    <button
+                                        onClick={(e) => handleDelete(e, note.id)}
+                                        className="p-1.5 rounded-sm text-muted-fg hover:text-red-500 hover:bg-red-500/10 md:opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                                        title="Delete note"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </Link>
                         </motion.div>
@@ -208,10 +204,15 @@ export function NotesList() {
                 </AnimatePresence>
 
                 {filteredNotes.length === 0 && !loading && (
-                    <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-muted/10 rounded-3xl border border-dashed border-muted">
-                        <FileText className="w-12 h-12 text-muted-fg/20 mb-4" />
-                        <p className="text-muted-fg text-sm">No notes found. Create your first one!</p>
-                        <button onClick={handleCreate} className="mt-4 text-foreground font-bold hover:underline">New Note</button>
+                    <div className="py-24 flex flex-col items-center justify-center text-center">
+                        <FileText className="w-8 h-8 text-muted-fg/30 mb-4 font-light" />
+                        <p className="text-muted-fg text-xs font-light lowercase">no notes found. write a new one.</p>
+                        <button 
+                            onClick={handleCreate} 
+                            className="mt-3 text-xs font-medium uppercase tracking-widest text-foreground hover:underline"
+                        >
+                            create note
+                        </button>
                     </div>
                 )}
             </div>
