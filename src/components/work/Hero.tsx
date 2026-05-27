@@ -20,7 +20,7 @@ export function Hero() {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                         className="text-4xl md:text-5xl font-light tracking-tight text-foreground"
                     >
-                        Creative Technologist
+                        building, learning, and having fun
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: 10 }}
