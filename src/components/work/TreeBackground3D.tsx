@@ -61,26 +61,27 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
     const targetLookAt = useRef(new THREE.Vector3(0, 2.2, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
+    // Progression starts at the bottom trunk/floor and spirals upward to the top canopy
     const cameraKeyframes = useMemo(() => [
         {
-            pct: 0.0, // Hero: Top Canopy close-up
-            pos: new THREE.Vector3(0.6, 2.3, 3.0),
+            pct: 0.0, // Hero: Bottom base / stump
+            pos: new THREE.Vector3(0.0, -1.8, 4.5),
+            look: new THREE.Vector3(0, -1.4, 0)
+        },
+        {
+            pct: 0.33, // Manifesto: Mid-trunk, rotated to left side
+            pos: new THREE.Vector3(-2.2, -0.6, 3.8),
+            look: new THREE.Vector3(-0.2, -0.3, 0)
+        },
+        {
+            pct: 0.66, // Tech Stack: Branch split, rotated to right-front
+            pos: new THREE.Vector3(2.0, 0.6, 3.2),
+            look: new THREE.Vector3(0.2, 0.8, 0)
+        },
+        {
+            pct: 1.0, // Selected Works: Top Canopy close-up looking down
+            pos: new THREE.Vector3(-0.4, 2.4, 2.8),
             look: new THREE.Vector3(0, 1.9, 0)
-        },
-        {
-            pct: 0.33, // Manifesto: Upper branches / side profile
-            pos: new THREE.Vector3(-1.8, 1.2, 3.5),
-            look: new THREE.Vector3(-0.3, 0.8, 0)
-        },
-        {
-            pct: 0.66, // Tech Stack: Trunk split / wide right angle
-            pos: new THREE.Vector3(2.2, 0.2, 3.8),
-            look: new THREE.Vector3(0.2, -0.2, 0)
-        },
-        {
-            pct: 1.0, // Selected Works: Root up-perspective
-            pos: new THREE.Vector3(0.0, -1.8, 5.5),
-            look: new THREE.Vector3(0, 0.4, 0)
         }
     ], []);
 
