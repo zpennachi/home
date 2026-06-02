@@ -140,7 +140,7 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         float totalMask = max(finalMask, ambientMask);
                         if (totalMask < 0.01) discard;
 
-                        // --- Psychedelic iridescent color overlay ---
+                        // --- Psychedelic iridescent color overlay (smooth cosine palette) ---
                         float hue = fract(
                             vWorldPosition.y * 0.3
                             + vWorldPosition.x * 0.15
@@ -154,20 +154,11 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         );
                         float h = fract(mix(hue, hue2, 0.4 + 0.1 * sin(uTime * 0.3)));
                         
-                        float s = 0.55;
-                        float l = 0.58;
-                        float c = (1.0 - abs(2.0 * l - 1.0)) * s;
-                        float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
-                        float m = l - c * 0.5;
-                        vec3 hslRgb;
-                        float hSector = h * 6.0;
-                        if (hSector < 1.0) hslRgb = vec3(c, x, 0.0);
-                        else if (hSector < 2.0) hslRgb = vec3(x, c, 0.0);
-                        else if (hSector < 3.0) hslRgb = vec3(0.0, c, x);
-                        else if (hSector < 4.0) hslRgb = vec3(0.0, x, c);
-                        else if (hSector < 5.0) hslRgb = vec3(x, 0.0, c);
-                        else hslRgb = vec3(c, 0.0, x);
-                        vec3 psychColor = hslRgb + m;
+                        // Smooth cosine palette: no branching, perfectly continuous gradients
+                        // rgb = a + b * cos(2π * (c * t + d))
+                        vec3 psychColor = vec3(0.55) + vec3(0.45) * cos(
+                            6.28318 * (h * vec3(1.0, 1.0, 1.0) + vec3(0.0, 0.33, 0.67))
+                        );
 
                         vec3 base = gl_FragColor.rgb;
                         vec3 blended = mix(base, mix(base, psychColor, 0.55), totalMask);
