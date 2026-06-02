@@ -46,10 +46,10 @@ function CedarTreeModel() {
                             '#include <begin_vertex>',
                             `
                             #include <begin_vertex>
-                            // Extremely tight, slow, and microscopic organic ripples affecting only local details
-                            float wave = sin(position.y * 12.0 + uTime * 0.20) * 0.005;
+                            // Microscopic, organic flowing ripples moving through details at a natural, smooth speed
+                            float wave = sin(position.y * 10.0 + uTime * 0.7) * 0.006;
                             transformed.x += wave;
-                            transformed.z += cos(position.y * 10.0 + uTime * 0.16) * 0.005;
+                            transformed.z += cos(position.y * 8.5 + uTime * 0.55) * 0.006;
                             `
                         );
                         
