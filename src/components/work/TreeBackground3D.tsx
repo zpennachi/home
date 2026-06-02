@@ -403,35 +403,35 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0,
-            angle: 0.08,  // Starting angle
-            radius: 3.6,  // Same zoom level
+            angle: 0.08,  // Starting angle (looking down at grass)
+            radius: 3.6,
             y: 0.2,       // Camera positioned higher
             look: new THREE.Vector3(-1.5, -2.8, 0) // Looking down at grass/ground
         },
         {
             pct: 0.12,
-            angle: 0.12,  // Leveling out
+            angle: 0.08,  // Same angle — no rotation yet
             radius: 3.6,
             y: -1.4,      // Camera drops to old base height
             look: new THREE.Vector3(-1.5, -1.6, 0) // Looking straight at trunk base
         },
         {
-            pct: 0.4,
-            angle: 0.18,  // Subtle rotation
+            pct: 0.5,
+            angle: 0.08,  // Still no rotation — holds through Hero + Manifesto
             radius: 3.6,
             y: -0.6,      // Floating up the trunk
             look: new THREE.Vector3(-1.5, -0.8, 0)
         },
         {
-            pct: 0.7,
-            angle: 0.24,  // Continuing subtle rotation
+            pct: 0.75,
+            angle: 0.20,  // Rotation begins at ToolStack section
             radius: 3.6,
             y: 0.2,       // Approaching foliage
             look: new THREE.Vector3(-1.5, 0.0, 0)
         },
         {
             pct: 1.0,
-            angle: 0.30,  // Max subtle rotation (about 10 degrees total)
+            angle: 0.30,  // Max rotation at bottom of page
             radius: 3.6,
             y: 1.0,       // Reached upper canopy
             look: new THREE.Vector3(-1.5, 0.8, 0)
