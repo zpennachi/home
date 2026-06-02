@@ -53,8 +53,8 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                     shader.uniforms.uRadius = { value: 1.0 };
                     shader.uniforms.uFeather = { value: 0.7 };
                     shader.uniforms.uAmbientPoint = { value: new THREE.Vector3(-10000, -10000, -10000) };
-                    shader.uniforms.uAmbientRadius = { value: 2.8 };
-                    shader.uniforms.uAmbientFeather = { value: 2.0 };
+                    shader.uniforms.uAmbientRadius = { value: 1.8 };
+                    shader.uniforms.uAmbientFeather = { value: 1.3 };
                     shader.uniforms.uAmbientOpacity = { value: 1.0 };
                     
                     shader.vertexShader = `
