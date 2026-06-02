@@ -1,15 +1,21 @@
+import { FloatingShape3D } from './FloatingShape3D';
+
 export function ToolStack() {
     return (
         <section className="container py-24 md:py-48 border-t border-muted" >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
 
-                <div className="lg:col-span-4 space-y-6">
-                    <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                        Tech Stack
-                    </h2>
-                    <p className="text-muted-fg/80 text-base font-normal leading-relaxed">
-                        These tools and platforms are a core part to my flexibility and confidence to take on new unknown projects. The tech stacks specifically have been proven to be incredibley <strong className="font-bold text-foreground">flexible</strong>, <strong className="font-bold text-foreground">scalable</strong>, and <strong className="font-bold text-foreground">secure</strong> and I use this core structure for almost every web project I set up.
-                    </p>
+                <div className="lg:col-span-4 flex flex-col justify-between h-full min-h-[360px]">
+                    <div className="space-y-6">
+                        <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
+                            Tech Stack
+                        </h2>
+                        <p className="text-muted-fg/80 text-base font-normal leading-relaxed">
+                            These tools and platforms are a core part to my flexibility and confidence to take on new unknown projects. The tech stacks specifically have been proven to be incredibley <strong className="font-bold text-foreground">flexible</strong>, <strong className="font-bold text-foreground">scalable</strong>, and <strong className="font-bold text-foreground">secure</strong> and I use this core structure for almost every web project I set up.
+                        </p>
+                    </div>
+                    {/* Floating 3D Accent Shape */}
+                    <FloatingShape3D type="torus" className="w-28 h-28 md:w-36 md:h-36 mt-8 opacity-80" />
                 </div>
 
                 <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16">

@@ -5,6 +5,8 @@ import { ToolStack } from "@/components/work/ToolStack";
 import { DynamicGrid } from "@/components/work/DynamicGrid";
 import { ParticleBackground } from "@/components/work/ParticleBackground";
 
+import { FloatingShape3D } from "@/components/work/FloatingShape3D";
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -42,12 +44,24 @@ export default async function Home() {
 
       {/* 4. THE OUTPUT - Solid */}
       <section id="work" className="relative z-10 container py-24 border-t border-muted">
-        <div className="flex justify-between items-end mb-16">
-          <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
-          <span className="text-sm font-mono text-foreground/80">2023 — Present</span>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
+          
+          {/* Left Column Label & Floating Shape */}
+          <div className="lg:col-span-4 flex flex-col justify-between h-full min-h-[220px]">
+            <div className="space-y-2">
+              <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
+              <p className="text-xs font-mono text-muted-fg/60">2023 — Present</p>
+            </div>
+            {/* Floating 3D Accent Shape */}
+            <FloatingShape3D type="dodecahedron" className="w-28 h-28 md:w-36 md:h-36 mt-8 opacity-80" />
+          </div>
 
-        <DynamicGrid entries={entries} projects={projects} />
+          {/* Right Column Content Grid */}
+          <div className="lg:col-span-8">
+            <DynamicGrid entries={entries} projects={projects} />
+          </div>
+          
+        </div>
       </section>
     </main>
   );
