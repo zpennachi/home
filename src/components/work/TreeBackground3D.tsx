@@ -46,10 +46,10 @@ function CedarTreeModel() {
                             '#include <begin_vertex>',
                             `
                             #include <begin_vertex>
-                            // Gentle organic waving/rippling breeze based on model height (y) and elapsed time
-                            float wave = sin(position.y * 1.8 + uTime * 0.9) * 0.04;
+                            // Tighter, slower, and much more subtle organic ripples along the height of the model
+                            float wave = sin(position.y * 5.0 + uTime * 0.25) * 0.015;
                             transformed.x += wave;
-                            transformed.z += cos(position.y * 1.4 + uTime * 0.7) * 0.04;
+                            transformed.z += cos(position.y * 4.2 + uTime * 0.20) * 0.015;
                             `
                         );
                         
