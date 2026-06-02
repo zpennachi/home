@@ -9,13 +9,16 @@ import * as THREE from "three";
 function CedarTreeModel() {
     const { scene } = useGLTF('/models/two_cedar_trees.glb');
     
-    // We compute the bounding box of the tree model dynamically
-    // so it fits perfectly in world coordinates, regardless of the model's authoring scale.
     const [scale, setScale] = useState<[number, number, number]>([1, 1, 1]);
     const [position, setPosition] = useState<[number, number, number]>([0, -1.8, 0]);
 
     useEffect(() => {
         if (!scene) return;
+
+        // Reset transforms to get correct raw dimensions
+        scene.scale.set(1, 1, 1);
+        scene.position.set(0, 0, 0);
+        scene.rotation.set(0, 0, 0);
 
         // Traverse the model to make sure standard shadow casting is active
         scene.traverse((node) => {
@@ -35,6 +38,13 @@ function CedarTreeModel() {
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         
+        console.log("Tree Model Diagnostics:", {
+            rawMin: box.min.toArray(),
+            rawMax: box.max.toArray(),
+            rawSize: size.toArray(),
+            rawCenter: center.toArray()
+        });
+        
         // Target a consistent tree height of 5.5 units in our 3D world space
         const targetHeight = 5.5;
         const scaleFactor = targetHeight / (size.y || 1);
@@ -42,11 +52,18 @@ function CedarTreeModel() {
         setScale([scaleFactor, scaleFactor, scaleFactor]);
         
         // Align base to the bottom anchor (-2.4) and center horizontally
-        setPosition([
+        const nextPos: [number, number, number] = [
             -center.x * scaleFactor,
             -box.min.y * scaleFactor - 2.4,
             -center.z * scaleFactor
-        ]);
+        ];
+        
+        setPosition(nextPos);
+
+        console.log("Applied Scales and Positions:", {
+            scaleFactor,
+            nextPos
+        });
     }, [scene]);
 
     return <primitive object={scene} position={position} scale={scale} />;
@@ -57,11 +74,14 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
     const { camera } = useThree();
     
     // Target position and lookAt points
-    const targetPos = useRef(new THREE.Vector3(0, 2.5, 3.5));
-    const targetLookAt = useRef(new THREE.Vector3(0, 2.2, 0));
+    const targetPos = useRef(new THREE.Vector3(0, -1.8, 4.5));
+    const targetLookAt = useRef(new THREE.Vector3(0, -1.4, 0));
+    
+    // Smooth tracking ref for lookAt target to avoid orientation locks/flips
+    const currentLookAt = useRef(new THREE.Vector3(0, -1.4, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
-    // Progression starts at the bottom trunk/floor and spirals upward to the top canopy
+    // Starts at the bottom base trunk/floor and moves up to the top canopy
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0, // Hero: Bottom base / stump
@@ -105,7 +125,7 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
         // Smooth cubic-like interpolation curve
         const t = localPct * localPct * (3 - 2 * localPct);
 
-        // Interpolate position and look-at target
+        // Interpolate position and look-at target coordinates directly
         targetPos.current.copy(startKey.pos).lerp(endKey.pos, t);
         targetLookAt.current.copy(startKey.look).lerp(endKey.look, t);
 
@@ -114,12 +134,8 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
         camera.position.lerp(targetPos.current, lerpFactor);
 
         // Update target looking vector smoothly
-        const currentLookTarget = new THREE.Vector3(0, 0, -1)
-            .applyQuaternion(camera.quaternion)
-            .add(camera.position);
-
-        currentLookTarget.lerp(targetLookAt.current, lerpFactor);
-        camera.lookAt(currentLookTarget);
+        currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
+        camera.lookAt(currentLookAt.current);
     });
 
     return null;
@@ -156,7 +172,7 @@ export default function TreeBackground3D() {
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [0, 2.5, 3.5], fov: 45 }}
+                camera={{ position: [0, -1.8, 4.5], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
