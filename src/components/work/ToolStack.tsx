@@ -8,7 +8,7 @@ export function ToolStack() {
                         Tech Stack
                     </h2>
                     <p className="text-muted-fg/80 text-base font-normal leading-relaxed">
-                        These tools and platforms are a core part to my flexibility and confidence to take on new unknown projects. The tech stacks specifically have been proven to be incredibley flexible, scalable, and secure and I use this core structure for almost every web project I set up.
+                        These tools and platforms are a core part to my flexibility and confidence to take on new unknown projects. The tech stacks specifically have been proven to be incredibley <strong className="font-bold text-foreground">flexible</strong>, <strong className="font-bold text-foreground">scalable</strong>, and <strong className="font-bold text-foreground">secure</strong> and I use this core structure for almost every web project I set up.
                     </p>
                 </div>
 
