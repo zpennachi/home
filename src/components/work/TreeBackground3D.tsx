@@ -51,6 +51,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                     shader.uniforms.uMouseOpacities = { value: Array(64).fill(0) };
                     shader.uniforms.uRadius = { value: 1.0 };
                     shader.uniforms.uFeather = { value: 0.7 };
+                    shader.uniforms.uAmbientPoint = { value: new THREE.Vector3(-10000, -10000, -10000) };
+                    shader.uniforms.uAmbientRadius = { value: 0.6 };
+                    shader.uniforms.uAmbientFeather = { value: 0.5 };
                     
                     shader.vertexShader = `
                         uniform float uTime;
@@ -98,6 +101,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         uniform float uMouseOpacities[64];
                         uniform float uRadius;
                         uniform float uFeather;
+                        uniform vec3 uAmbientPoint;
+                        uniform float uAmbientRadius;
+                        uniform float uAmbientFeather;
                         varying vec3 vWorldPosition;
                     ` + shader.fragmentShader;
 
@@ -115,35 +121,36 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         float detailZ = cos(vWorldPosition.x * 15.0 + uTime * 2.5) * 0.04;
                         vec3 distortedPos = vWorldPosition + vec3(waveX + detailX, waveY + detailY, waveZ + detailZ);
                         
+                        // Mouse paint mask
                         float finalMask = 0.0;
                         for (int i = 0; i < 64; i++) {
                             float dist = distance(distortedPos, uMousePoints[i]);
                             float mask = 1.0 - smoothstep(uRadius - uFeather, uRadius, dist);
                             finalMask = max(finalMask, mask * uMouseOpacities[i]);
                         }
-                        // Base texture always visible at 20%, psychedelic overlay on top when painted
-                        float baseAlpha = 0.2;
-                        float paintAlpha = max(finalMask, baseAlpha);
+                        
+                        // Ambient wandering spotlight mask
+                        float ambientDist = distance(distortedPos, uAmbientPoint);
+                        float ambientMask = 1.0 - smoothstep(uAmbientRadius - uAmbientFeather, uAmbientRadius, ambientDist);
+                        
+                        // Combined mask: mouse paint OR ambient wander
+                        float totalMask = max(finalMask, ambientMask);
+                        if (totalMask < 0.01) discard;
 
                         // --- Psychedelic iridescent color overlay ---
-                        // HSL-to-RGB conversion (attempt inline for GLSL)
-                        // Hue cycles based on world position + time for a flowing rainbow
                         float hue = fract(
                             vWorldPosition.y * 0.3
                             + vWorldPosition.x * 0.15
                             + uTime * 0.12
                             + sin(vWorldPosition.z * 2.0 + uTime * 0.7) * 0.15
                         );
-                        // Secondary slower wave for depth
                         float hue2 = fract(
                             vWorldPosition.z * 0.25
                             - uTime * 0.08
                             + cos(vWorldPosition.y * 1.5 + uTime * 0.5) * 0.2
                         );
-                        // Blend two hue layers for richer iridescence
                         float h = fract(mix(hue, hue2, 0.4 + 0.1 * sin(uTime * 0.3)));
                         
-                        // Convert hue to RGB (saturation=0.55, lightness=0.58 for vivid but not neon)
                         float s = 0.55;
                         float l = 0.58;
                         float c = (1.0 - abs(2.0 * l - 1.0)) * s;
@@ -159,17 +166,13 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         else hslRgb = vec3(c, 0.0, x);
                         vec3 psychColor = hslRgb + m;
 
-                        // How much psychedelic to blend in (0 at base, full at painted)
-                        float psychAmount = smoothstep(baseAlpha, 1.0, finalMask);
-                        
                         vec3 base = gl_FragColor.rgb;
-                        vec3 blended = mix(base, mix(base, psychColor, 0.55), psychAmount);
-                        // Add subtle luminance boost at the edges for a glow
-                        float edgeGlow = smoothstep(0.0, 0.5, finalMask) * (1.0 - smoothstep(0.5, 1.0, finalMask));
-                        blended += psychColor * edgeGlow * 0.2 * psychAmount;
+                        vec3 blended = mix(base, mix(base, psychColor, 0.55), totalMask);
+                        float edgeGlow = smoothstep(0.0, 0.5, totalMask) * (1.0 - smoothstep(0.5, 1.0, totalMask));
+                        blended += psychColor * edgeGlow * 0.2;
                         
                         gl_FragColor.rgb = blended;
-                        gl_FragColor.a *= paintAlpha;
+                        gl_FragColor.a *= totalMask;
                         `
                     );
                     mat.userData.shader = shader;
@@ -320,6 +323,15 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
         const radius = 1.0;
         const feather = 0.7;
 
+        // Ambient wandering spotlight: Lissajous drift around the camera's lookAt target on the tree
+        const scrollPercent = scrollPercentRef.current ?? 0;
+        // Camera looks at Y ranging from -1.6 to 0.8 based on scroll, X = -1.5
+        const lookY = THREE.MathUtils.lerp(-1.6, 0.8, scrollPercent);
+        const ambientX = -1.5 + Math.sin(time * 0.17) * 0.8 + Math.cos(time * 0.31) * 0.3;
+        const ambientY = lookY + Math.sin(time * 0.23 + 1.0) * 0.7 + Math.cos(time * 0.13) * 0.4;
+        const ambientZ = Math.sin(time * 0.19 + 2.0) * 0.5 + Math.cos(time * 0.29) * 0.2;
+        const ambientPoint = new THREE.Vector3(ambientX, ambientY, ambientZ);
+
         // Solid meshes: update uniforms
         animatedMeshes.current.forEach((mesh) => {
             const mat = mesh.material as any;
@@ -336,6 +348,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                 }
                 if (mat.userData.shader.uniforms.uFeather) {
                     mat.userData.shader.uniforms.uFeather.value = feather;
+                }
+                if (mat.userData.shader.uniforms.uAmbientPoint) {
+                    mat.userData.shader.uniforms.uAmbientPoint.value = ambientPoint;
                 }
             }
         });
