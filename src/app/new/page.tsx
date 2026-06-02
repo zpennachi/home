@@ -43,8 +43,8 @@ export default async function Home() {
       {/* 4. THE OUTPUT - Solid */}
       <section id="work" className="relative z-10 container py-24 border-t border-muted">
         <div className="flex justify-between items-end mb-16">
-          <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-fg">Selected Works</h2>
-          <span className="text-xs text-muted-fg">2023 — Present</span>
+          <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
+          <span className="text-sm font-mono text-foreground/80">2023 — Present</span>
         </div>
 
         <DynamicGrid entries={entries} projects={projects} />

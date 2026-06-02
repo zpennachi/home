@@ -13,10 +13,38 @@ interface TokenControlsProps {
 
 export function TokenControls({ activeTab, tokens, onChange }: TokenControlsProps) {
     const [searchQuery, setSearchQuery] = React.useState('')
+    const [googleFonts, setGoogleFonts] = React.useState<{ name: string; category: string }[]>([])
+    const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
+
+    React.useEffect(() => {
+        async function loadAllFonts() {
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/fontsource/google-font-metadata/main/data/google-fonts-v1.json')
+                if (res.ok) {
+                    const data = await res.json()
+                    const parsed = Object.values(data).map((f: any) => ({
+                        name: f.family,
+                        category: f.category || 'sans-serif'
+                    }))
+                    parsed.sort((a, b) => a.name.localeCompare(b.name))
+                    setGoogleFonts(parsed)
+                }
+            } catch (err) {
+                console.error('Failed to load all Google Fonts dynamically:', err)
+            }
+        }
+        loadAllFonts()
+    }, [])
+
+    const fontCatalog = googleFonts.length > 0 ? googleFonts : GOOGLE_FONTS;
 
     const filteredFonts = React.useMemo(() => {
-        return GOOGLE_FONTS.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    }, [searchQuery])
+        return fontCatalog.filter(f => {
+            const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = selectedCategory === 'all' || f.category.toLowerCase() === selectedCategory.toLowerCase();
+            return matchesSearch && matchesCategory;
+        })
+    }, [searchQuery, fontCatalog, selectedCategory])
 
     if (activeTab === 'colors') {
         return (
@@ -112,26 +140,51 @@ export function TokenControls({ activeTab, tokens, onChange }: TokenControlsProp
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-fg" />
                             <input
                                 type="text"
-                                placeholder="Search fonts..."
+                                placeholder="Search 1,500+ Google Fonts..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-background border border-muted rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-foreground/10"
                             />
                         </div>
+
+                        {/* Category Filtering Tabs */}
+                        <div className="flex flex-wrap gap-1 py-1">
+                            {['all', 'sans-serif', 'serif', 'display', 'handwriting', 'monospace'].map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all border cursor-pointer",
+                                        selectedCategory === cat
+                                            ? "bg-foreground text-background border-foreground shadow-sm"
+                                            : "bg-background text-muted-fg border-muted hover:text-foreground"
+                                    )}
+                                >
+                                    {cat === 'all' ? 'All' : cat}
+                                </button>
+                            ))}
+                        </div>
+
                         <div className="grid grid-cols-1 gap-1 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
+                            {googleFonts.length === 0 && (
+                                <div className="text-[10px] text-muted-fg font-mono uppercase tracking-widest text-center py-4 animate-pulse">
+                                    Loading Google Font Registry...
+                                </div>
+                            )}
+
                             {filteredFonts.map((font) => (
                                 <button
                                     key={font.name}
                                     onClick={() => onChange('--font-sans', font.name)}
                                     className={cn(
-                                        "w-full text-left px-4 py-3 rounded-xl transition-all group relative overflow-hidden",
+                                        "w-full text-left px-4 py-3 rounded-xl transition-all group relative overflow-hidden cursor-pointer",
                                         tokens['--font-sans'] === font.name
                                             ? "bg-foreground text-background"
                                             : "hover:bg-muted/50 text-foreground"
                                     )}
                                 >
                                     <div className="flex flex-col gap-0.5">
-                                        <span className="text-base tracking-tight" style={{ fontFamily: `'${font.name}', sans-serif` }}>
+                                        <span className="text-base tracking-tight font-medium" style={{ fontFamily: `'${font.name}', sans-serif` }}>
                                             {font.name}
                                         </span>
                                         <span className={cn(

@@ -13,12 +13,12 @@ export function Hero() {
             <div className="relative z-10 h-full flex flex-col justify-between container pt-24 pb-8 md:pt-32 md:pb-12 pointer-events-none">
 
                 {/* Top: Headline */}
-                <div>
+                <div className="w-full">
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-4xl md:text-5xl font-light tracking-tight text-foreground"
+                        className="text-5xl md:text-7xl font-extralight tracking-tight leading-[1.1] text-foreground w-full"
                     >
                         building, learning, and having fun
                     </motion.h1>
@@ -26,9 +26,10 @@ export function Hero() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="mt-4 max-w-md text-sm md:text-base font-light leading-relaxed text-muted-fg"
+                        className="mt-6 w-full max-w-none text-base md:text-lg font-normal leading-relaxed text-foreground pointer-events-auto"
+                        style={{ maxWidth: 'none', width: '100%' }}
                     >
-                        Hi, I build interactive digital experiences at the intersection of design and engineering.
+                        hi! My name is Zack, i've been <strong className="font-bold">building</strong> digital things for 10+ years, <strong className="font-bold">learning</strong> a ton and <strong className="font-bold">having fun</strong> along the way. I love finding new problems to solve. From nitty gritty texture editing, to deploying full-stack architecture for enterprise web apps, I enjoy finding unique solutions to difficult problems. I love meeting new and interesting clients that allow me to understand just a little bit more about our wild digital world. If that sounds like you, <a href="mailto:z@zpennachi.com" className="underline hover:opacity-70 transition-opacity font-normal">hit me up!</a>
                     </motion.p>
                 </div>
 
@@ -38,7 +39,7 @@ export function Hero() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
-                        className="text-xs font-light tracking-wider uppercase text-muted-fg/80"
+                        className="text-sm font-normal tracking-[0.08em] uppercase text-foreground/80"
                     >
                         [ ZPennachi Studio ]
                         <br />
@@ -51,7 +52,7 @@ export function Hero() {
                         transition={{ delay: 0.5, duration: 0.8 }}
                         className="text-right"
                     >
-                        <a href="#manifesto" className="inline-block text-xs font-light text-foreground hover:opacity-70 transition-opacity pointer-events-auto">
+                        <a href="#manifesto" className="inline-block text-sm font-normal text-foreground hover:opacity-70 transition-opacity pointer-events-auto">
                             ( View Approach ) &darr;
                         </a>
                     </motion.div>

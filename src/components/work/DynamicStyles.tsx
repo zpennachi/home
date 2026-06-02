@@ -49,7 +49,24 @@ export function DynamicStyles() {
         loadTokens()
     }, [])
 
-    if (!css) return null
+    useEffect(() => {
+        const fontSans = getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim().replace(/['"]/g, '')
+        if (fontSans && !fontSans.startsWith('var(')) {
+            const fontId = `google-font-global-${fontSans.replace(/\s+/g, '-').toLowerCase()}`;
+            if (!document.getElementById(fontId)) {
+                const link = document.createElement('link');
+                link.id = fontId;
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${fontSans.replace(/\s+/g, '+')}:wght@300;400;500;600;700;800&display=swap`;
+                document.head.appendChild(link);
+            }
+        }
+    }, [css])
+
+    if (!css) {
+        // Render a dummy element to ensure the component stays mounted and active for global font updates
+        return <div style={{ display: 'none' }} id="dynamic-styles-loader-active" />;
+    }
 
     return <style id="runtime-design-tokens" dangerouslySetInnerHTML={{ __html: css }} />
 }

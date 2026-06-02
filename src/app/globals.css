@@ -1,27 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  /* Swiss Modern Palette - Light Mode */
-  --background: #f2f0ed;
-  --foreground: #292929;
-  --muted: #e0e0e0;
-  --muted-fg: #0040ff;
-  --accent: #d4ff00;
-
-  /* Typography */
-  --font-sans: Inter;
-  --font-display: Instrument Sans;
-  --base-size: 16px;
-
-  /* Typography Fallbacks */
-  --font-sans-fallback: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display-fallback: var(--font-sans-fallback);
-
-  /* Layout */
-  --radius: 4px;
   --gap: 5rem;
   --container-max: 1400px;
   --section-padding: 0rem;
+  --muted: #e0e0e0;
+  --accent: #ff0000;
+  --radius: 4px;
+  --muted-fg: #171717;
+  --base-size: 16px;
+  --font-sans: Inter;
+  --background: #ffffff;
+  --foreground: #000000;
+  --font-display: Instrument Sans;
+  --font-sans-fallback: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display-fallback: var(--font-sans-fallback);
 }
 
 .dark {
