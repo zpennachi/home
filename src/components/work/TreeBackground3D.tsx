@@ -121,7 +121,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                             float mask = 1.0 - smoothstep(uRadius - uFeather, uRadius, dist);
                             finalMask = max(finalMask, mask * uMouseOpacities[i]);
                         }
-                        if (finalMask < 0.01) discard;
+                        // Base texture always visible at 20%, psychedelic overlay on top when painted
+                        float baseAlpha = 0.2;
+                        float paintAlpha = max(finalMask, baseAlpha);
 
                         // --- Psychedelic iridescent color overlay ---
                         // HSL-to-RGB conversion (attempt inline for GLSL)
@@ -141,7 +143,7 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         // Blend two hue layers for richer iridescence
                         float h = fract(mix(hue, hue2, 0.4 + 0.1 * sin(uTime * 0.3)));
                         
-                        // Convert hue to RGB (saturation=0.6, lightness=0.6 for vivid but not neon)
+                        // Convert hue to RGB (saturation=0.55, lightness=0.58 for vivid but not neon)
                         float s = 0.55;
                         float l = 0.58;
                         float c = (1.0 - abs(2.0 * l - 1.0)) * s;
@@ -157,16 +159,17 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         else hslRgb = vec3(c, 0.0, x);
                         vec3 psychColor = hslRgb + m;
 
-                        // Blend: overlay the psychedelic color onto the original texture
-                        // Use soft-light style blend for a dreamy, non-destructive overlay
+                        // How much psychedelic to blend in (0 at base, full at painted)
+                        float psychAmount = smoothstep(baseAlpha, 1.0, finalMask);
+                        
                         vec3 base = gl_FragColor.rgb;
-                        vec3 blended = base * (1.0 - 0.55) + psychColor * 0.55;
+                        vec3 blended = mix(base, mix(base, psychColor, 0.55), psychAmount);
                         // Add subtle luminance boost at the edges for a glow
                         float edgeGlow = smoothstep(0.0, 0.5, finalMask) * (1.0 - smoothstep(0.5, 1.0, finalMask));
-                        blended += psychColor * edgeGlow * 0.2;
+                        blended += psychColor * edgeGlow * 0.2 * psychAmount;
                         
                         gl_FragColor.rgb = blended;
-                        gl_FragColor.a *= finalMask;
+                        gl_FragColor.a *= paintAlpha;
                         `
                     );
                     mat.userData.shader = shader;
