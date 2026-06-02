@@ -46,10 +46,10 @@ function CedarTreeModel() {
                             '#include <begin_vertex>',
                             `
                             #include <begin_vertex>
-                            // Tighter, slower, and much more subtle organic ripples along the height of the model
-                            float wave = sin(position.y * 5.0 + uTime * 0.25) * 0.015;
+                            // Extremely tight, slow, and microscopic organic ripples affecting only local details
+                            float wave = sin(position.y * 12.0 + uTime * 0.20) * 0.005;
                             transformed.x += wave;
-                            transformed.z += cos(position.y * 4.2 + uTime * 0.20) * 0.015;
+                            transformed.z += cos(position.y * 10.0 + uTime * 0.16) * 0.005;
                             `
                         );
                         
