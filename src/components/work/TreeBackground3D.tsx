@@ -122,6 +122,50 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                             finalMask = max(finalMask, mask * uMouseOpacities[i]);
                         }
                         if (finalMask < 0.01) discard;
+
+                        // --- Psychedelic iridescent color overlay ---
+                        // HSL-to-RGB conversion (attempt inline for GLSL)
+                        // Hue cycles based on world position + time for a flowing rainbow
+                        float hue = fract(
+                            vWorldPosition.y * 0.3
+                            + vWorldPosition.x * 0.15
+                            + uTime * 0.12
+                            + sin(vWorldPosition.z * 2.0 + uTime * 0.7) * 0.15
+                        );
+                        // Secondary slower wave for depth
+                        float hue2 = fract(
+                            vWorldPosition.z * 0.25
+                            - uTime * 0.08
+                            + cos(vWorldPosition.y * 1.5 + uTime * 0.5) * 0.2
+                        );
+                        // Blend two hue layers for richer iridescence
+                        float h = fract(mix(hue, hue2, 0.4 + 0.1 * sin(uTime * 0.3)));
+                        
+                        // Convert hue to RGB (saturation=0.6, lightness=0.6 for vivid but not neon)
+                        float s = 0.55;
+                        float l = 0.58;
+                        float c = (1.0 - abs(2.0 * l - 1.0)) * s;
+                        float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+                        float m = l - c * 0.5;
+                        vec3 hslRgb;
+                        float hSector = h * 6.0;
+                        if (hSector < 1.0) hslRgb = vec3(c, x, 0.0);
+                        else if (hSector < 2.0) hslRgb = vec3(x, c, 0.0);
+                        else if (hSector < 3.0) hslRgb = vec3(0.0, c, x);
+                        else if (hSector < 4.0) hslRgb = vec3(0.0, x, c);
+                        else if (hSector < 5.0) hslRgb = vec3(x, 0.0, c);
+                        else hslRgb = vec3(c, 0.0, x);
+                        vec3 psychColor = hslRgb + m;
+
+                        // Blend: overlay the psychedelic color onto the original texture
+                        // Use soft-light style blend for a dreamy, non-destructive overlay
+                        vec3 base = gl_FragColor.rgb;
+                        vec3 blended = base * (1.0 - 0.55) + psychColor * 0.55;
+                        // Add subtle luminance boost at the edges for a glow
+                        float edgeGlow = smoothstep(0.0, 0.5, finalMask) * (1.0 - smoothstep(0.5, 1.0, finalMask));
+                        blended += psychColor * edgeGlow * 0.2;
+                        
+                        gl_FragColor.rgb = blended;
                         gl_FragColor.a *= finalMask;
                         `
                     );
