@@ -5,10 +5,10 @@ export function ToolStack() {
 
                 <div className="lg:col-span-4 space-y-6">
                     <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                        Technical Stack
+                        Tech Stack
                     </h2>
-                    <p className="text-muted-fg/80 text-base font-normal leading-relaxed max-w-sm">
-                        A curated selection of tools and technologies used to build immersive digital products at the intersection of design and engineering.
+                    <p className="text-muted-fg/80 text-base font-normal leading-relaxed">
+                        These tools and platforms are a core part to my flexibility and confidence to take on new unknown projects. The tech stacks specifically have been proven to be incredibley flexible, scalable, and secure and I use this core structure for almost every web project I set up.
                     </p>
                 </div>
 
