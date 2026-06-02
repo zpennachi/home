@@ -46,18 +46,14 @@ export default async function Home() {
 
       {/* 4. THE OUTPUT - Solid */}
       <section id="work" className="relative z-10 container py-24 border-t border-muted">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
+        <div className="max-w-3xl space-y-8">
           
-          {/* Left Column Label */}
-          <div className="lg:col-span-4 flex flex-col justify-start">
-            <div className="space-y-2">
-              <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
-              <p className="text-xs font-mono text-muted-fg/60">2023 — Present</p>
-            </div>
+          <div className="space-y-2">
+            <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
+            <p className="text-xs font-mono text-muted-fg/60">2023 — Present</p>
           </div>
 
-          {/* Right Column Content Grid */}
-          <div className="lg:col-span-8">
+          <div>
             <DynamicGrid entries={entries} projects={projects} />
           </div>
           

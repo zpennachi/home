@@ -1,9 +1,9 @@
 export function ToolStack() {
     return (
         <section className="container py-24 md:py-48 border-t border-muted" >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
+            <div className="max-w-3xl space-y-12">
 
-                <div className="lg:col-span-4 space-y-6">
+                <div className="space-y-6">
                     <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
                         Tech Stack
                     </h2>
@@ -12,7 +12,7 @@ export function ToolStack() {
                     </p>
                 </div>
 
-                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16 pt-12 border-t border-muted">
                     {/* Category 1 */}
                     <div className="space-y-4">
                         <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground border-b border-muted pb-2 flex items-center gap-2.5">

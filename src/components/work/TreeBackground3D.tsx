@@ -5,18 +5,12 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-interface CedarTreeProps {
-    onPointClick: (point: THREE.Vector3 | null) => void;
-}
-
-// Load, position, and handle interactivity on the user's custom tree GLB model
-function CedarTreeModel({ onPointClick }: CedarTreeProps) {
+// Load, position, and handle the user's custom tree GLB model
+const CedarTreeModel = React.memo(function CedarTreeModel() {
     const { scene } = useGLTF('/models/two_cedar_trees.glb');
     
     const [scale, setScale] = useState<[number, number, number]>([1, 1, 1]);
     const [position, setPosition] = useState<[number, number, number]>([0, 0, 0]);
-    
-    // Store animated meshes to update their shader uniforms efficiently
     const animatedMeshes = useRef<THREE.Mesh[]>([]);
 
     useEffect(() => {
@@ -24,48 +18,55 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
 
         const meshes: THREE.Mesh[] = [];
 
-        // Traverse the model to make sure standard shadow casting is active
+        // Traverse the model to clone materials and inject wind waving
         scene.traverse((node) => {
             if (node instanceof THREE.Mesh) {
-                node.castShadow = true;
-                node.receiveShadow = true;
+                const originalMat = node.material as THREE.MeshStandardMaterial;
+                const mat = originalMat.clone();
+                mat.roughness = 0.95;
+                mat.metalness = 0.05;
                 
-                // Set high roughness for a premium, non-shiny, matte clay look
-                if (node.material) {
-                    const originalMat = node.material as THREE.MeshStandardMaterial;
-                    
-                    // Clone material to avoid mutating shared cache assets
-                    const mat = originalMat.clone();
-                    mat.roughness = 0.95;
-                    mat.metalness = 0.05;
-                    
-                    // Inject vertex displacement shader modification for organic GPU ripples
-                    mat.onBeforeCompile = (shader) => {
-                        shader.uniforms.uTime = { value: 0 };
-                        shader.vertexShader = `
-                            uniform float uTime;
-                        ` + shader.vertexShader;
+                mat.onBeforeCompile = (shader) => {
+                    shader.uniforms.uTime = { value: 0 };
+                    shader.vertexShader = `
+                        uniform float uTime;
+                    ` + shader.vertexShader;
+                    shader.vertexShader = shader.vertexShader.replace(
+                        '#include <begin_vertex>',
+                        `
+                        #include <begin_vertex>
                         
-                        shader.vertexShader = shader.vertexShader.replace(
-                            '#include <begin_vertex>',
-                            `
-                            #include <begin_vertex>
-                            // Microscopic, organic flowing ripples moving through details at a natural, smooth speed
-                            float wave = sin(position.y * 10.0 + uTime * 0.7) * 0.006;
-                            transformed.x += wave;
-                            transformed.z += cos(position.y * 8.5 + uTime * 0.55) * 0.006;
-                            `
-                        );
+                        // Low frequency slow sway (main trunk and general movement)
+                        float slowSwayX = sin(uTime * 0.5 + position.y * 0.4) * 0.08;
+                        float slowSwayZ = cos(uTime * 0.4 + position.y * 0.3) * 0.08;
                         
-                        mat.userData.shader = shader;
-                    };
-                    
-                    node.material = mat;
-                    meshes.push(node);
-                }
+                        // Medium frequency branch motion (gusts)
+                        float midSwayX = cos(uTime * 1.3 + position.y * 1.1 + position.z * 1.5) * 0.03;
+                        float midSwayZ = sin(uTime * 1.5 + position.y * 1.3 + position.x * 1.7) * 0.03;
+                        
+                        // High frequency leaf/twig rustling (jitter)
+                        float fastRustleX = sin(uTime * 3.1 + position.x * 2.8 + position.y * 2.1) * 0.009;
+                        float fastRustleZ = cos(uTime * 2.7 + position.z * 3.2 + position.y * 2.5) * 0.009;
+                        
+                        // Height mask: lock trunk roots to ground (base y is around -2.4, range is ~5.2)
+                        float trunkMask = clamp((position.y + 2.3) / 5.2, 0.0, 1.0);
+                        
+                        // Branch flexibility: outer leaves/branches sway more than the central trunk
+                        float branchFlex = trunkMask * (0.2 + length(position.xz) * 0.8);
+                        
+                        // Apply wave displacement
+                        transformed.x += (slowSwayX + midSwayX + fastRustleX) * branchFlex;
+                        transformed.z += (slowSwayZ + midSwayZ + fastRustleZ) * branchFlex;
+                        `
+                    );
+                    mat.userData.shader = shader;
+                };
+                
+                node.material = mat;
+                meshes.push(node);
             }
         });
-        
+
         animatedMeshes.current = meshes;
 
         // Compute original bounding box of the un-transformed scene
@@ -79,9 +80,9 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
         
         setScale([scaleFactor, scaleFactor, scaleFactor]);
         
-        // Align base to the bottom anchor (-2.4) and position it slightly to the right of center
+        // Align base to the bottom anchor (-2.4) and position it to the left of center (X = -1.5)
         const nextPos: [number, number, number] = [
-            -center.x * scaleFactor + 0.2, // Offset of +0.2 (shifted left from +1.3)
+            -center.x * scaleFactor - 1.5,
             -box.min.y * scaleFactor - 2.4,
             -center.z * scaleFactor
         ];
@@ -89,14 +90,7 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
         setPosition(nextPos);
     }, [scene]);
 
-    // Cleanup custom pointer styling on unmount
-    useEffect(() => {
-        return () => {
-            document.body.style.cursor = 'default';
-        };
-    }, []);
-
-    // Animate the custom shader time uniform on every frame loop
+    // Animate the solid mesh materials' uTime values
     useFrame((state) => {
         const time = state.clock.getElapsedTime();
         animatedMeshes.current.forEach((mesh) => {
@@ -107,114 +101,112 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
         });
     });
 
-    // Use a parent group for scaling, translation, tilt rotation, pointer events and raycasting clicks
+    // Use a parent group for scaling, translation, and tilt rotation
     return (
         <group 
             position={position} 
             scale={scale}
-            rotation={[0.12, 0, -0.22]} // Leaning right growing away from left-side text layout
-            onClick={(e) => {
-                e.stopPropagation();
-                if (e.point) {
-                    onPointClick(e.point.clone());
-                }
-            }}
-            onPointerOver={(e) => {
-                e.stopPropagation();
-                document.body.style.cursor = 'pointer';
-            }}
-            onPointerOut={(e) => {
-                e.stopPropagation();
-                document.body.style.cursor = 'default';
-            }}
+            rotation={[0.12, 0, -0.08]} // Subtle rightward tilt
         >
             <primitive object={scene} />
         </group>
     );
-}
+});
 
 interface ControllerProps {
-    scrollPercent: number;
-    focusPoint: THREE.Vector3 | null;
+    scrollPercentRef: React.RefObject<number>;
 }
 
-// Camera framing, scroll control, and focus-orbit orchestrator
-function CameraScrollController({ scrollPercent, focusPoint }: ControllerProps) {
-    const { camera } = useThree();
+// Camera framing, scroll control orchestrator
+function CameraScrollController({ scrollPercentRef }: ControllerProps) {
+    const { camera, size } = useThree();
     
-    // Smooth targets for camera tracking
-    const targetPos = useRef(new THREE.Vector3(0.5, -0.6, 4.0));
-    const targetLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
+    // Smooth targets for camera tracking (starts on lower trunk at fixed distance)
+    const targetPos = useRef(new THREE.Vector3(-1.08, -1.2, 3.47));
+    const targetLookAt = useRef(new THREE.Vector3(-1.5, -1.6, 0));
     
     // Smooth tracking ref for lookAt target to avoid sudden orientation flips
-    const currentLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
+    const currentLookAt = useRef(new THREE.Vector3(-1.5, -1.6, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
     // Starts at the bottom base trunk/floor and moves up to the top canopy
     const cameraKeyframes = useMemo(() => [
         {
-            pct: 0.0, // Hero: Bottom base / stump fully visible
-            pos: new THREE.Vector3(0.5, -0.6, 4.0),
-            look: new THREE.Vector3(0, -0.8, 0)
+            pct: 0.0,
+            angle: 0.12, // Starting angle (front-right)
+            radius: 3.3, // Zoomed in a bit more at the start (from 3.8)
+            y: -1.4,     // Balanced camera height focused on bottom third
+            look: new THREE.Vector3(-1.5, -1.6, 0) // Look target centered at lower trunk (X = -1.5)
         },
         {
-            pct: 0.33, // Manifesto: Mid-trunk, rotated to left side
-            pos: new THREE.Vector3(-2.2, 0.4, 3.5),
-            look: new THREE.Vector3(-0.2, 0.4, 0)
+            pct: 0.33,
+            angle: 2.21, // Rotated to right-back
+            radius: 4.1, // Zooming out
+            y: -1.2,
+            look: new THREE.Vector3(-1.5, -1.4, 0)  // Keep focused on trunk
         },
         {
-            pct: 0.66, // Tech Stack: Branch split, rotated to right-front
-            pos: new THREE.Vector3(2.0, 1.6, 3.2),
-            look: new THREE.Vector3(0.2, 1.4, 0)
+            pct: 0.66,
+            angle: 4.28, // Rotated to left-back
+            radius: 4.4, // Zooming out more
+            y: -0.2,
+            look: new THREE.Vector3(-1.5, -0.4, 0)  // Slowly shift to lower-middle foliage
         },
         {
-            pct: 1.0, // Selected Works: Top Canopy close-up looking down
-            pos: new THREE.Vector3(-0.5, 3.2, 2.5),
-            look: new THREE.Vector3(0, 2.3, 0)
+            pct: 1.0,
+            angle: 6.40, // Full clean 360-degree rotation back to front-right
+            radius: 4.8, // Zoomed out further to fully frame the canopy with breathing room
+            y: 1.0,
+            look: new THREE.Vector3(-1.5, 0.8, 0)  // Reach upper canopy
         }
     ], []);
 
     useFrame((state, delta) => {
         const time = state.clock.getElapsedTime();
         const lerpFactor = 1 - Math.exp(-5 * delta); // smooth, frame-rate independent easing
+        const scrollPercent = scrollPercentRef.current ?? 0;
 
-        if (focusPoint) {
-            // FOCUS & ORBIT MODE:
-            // Calculate a slow, circular orbital position centered at the clicked coordinates
-            const orbitSpeed = 0.35;
-            const zoomDistance = 1.3;
-            const angle = time * orbitSpeed;
+        // SCROLL-LINKED MODE:
+        // Linearly interpolate between the nearest scroll keyframes
+        let startKey = cameraKeyframes[0];
+        let endKey = cameraKeyframes[cameraKeyframes.length - 1];
 
-            // Offset the camera position in a slow circular path around the target point
-            targetPos.current.set(
-                focusPoint.x + Math.sin(angle) * zoomDistance,
-                focusPoint.y + 0.3,
-                focusPoint.z + Math.cos(angle) * zoomDistance
-            );
-            targetLookAt.current.copy(focusPoint);
-        } else {
-            // SCROLL-LINKED MODE:
-            // Linearly interpolate between the nearest scroll keyframes
-            let startKey = cameraKeyframes[0];
-            let endKey = cameraKeyframes[cameraKeyframes.length - 1];
-
-            for (let i = 0; i < cameraKeyframes.length - 1; i++) {
-                if (scrollPercent >= cameraKeyframes[i].pct && scrollPercent <= cameraKeyframes[i + 1].pct) {
-                    startKey = cameraKeyframes[i];
-                    endKey = cameraKeyframes[i + 1];
-                    break;
-                }
+        for (let i = 0; i < cameraKeyframes.length - 1; i++) {
+            if (scrollPercent >= cameraKeyframes[i].pct && scrollPercent <= cameraKeyframes[i + 1].pct) {
+                startKey = cameraKeyframes[i];
+                endKey = cameraKeyframes[i + 1];
+                break;
             }
-
-            const range = endKey.pct - startKey.pct;
-            const localPct = range > 0 ? (scrollPercent - startKey.pct) / range : 0;
-
-            // Smooth Hermite cubic interpolation
-            const t = localPct * localPct * (3 - 2 * localPct);
-
-            targetPos.current.copy(startKey.pos).lerp(endKey.pos, t);
-            targetLookAt.current.copy(startKey.look).lerp(endKey.look, t);
         }
+
+        const range = endKey.pct - startKey.pct;
+        const localPct = range > 0 ? (scrollPercent - startKey.pct) / range : 0;
+
+        // Smooth Hermite cubic interpolation
+        const t = localPct * localPct * (3 - 2 * localPct);
+
+        // Interpolate polar/cylindrical coordinates for a perfect spiral orbit path
+        const angle = THREE.MathUtils.lerp(startKey.angle, endKey.angle, t);
+        const radius = THREE.MathUtils.lerp(startKey.radius, endKey.radius, t);
+        const y = THREE.MathUtils.lerp(startKey.y, endKey.y, t);
+
+        // Reconstruct camera Cartesian target coordinates orbiting around the tree center (X = -1.5)
+        targetPos.current.set(
+            -1.5 + radius * Math.sin(angle),
+            y,
+            radius * Math.cos(angle)
+        );
+        const baseLook = new THREE.Vector3().copy(startKey.look).lerp(endKey.look, t);
+        
+        // Responsive offset: shift the tree right on desktop (size.width >= 1024), center on mobile
+        const isDesktop = size.width >= 1024;
+        const offsetX = isDesktop ? -1.3 : 0.0;
+        
+        targetLookAt.current.set(
+            baseLook.x + offsetX * Math.cos(angle),
+            baseLook.y,
+            baseLook.z - offsetX * Math.sin(angle)
+        );
 
         // Interpolate camera coordinates and gaze point towards target values
         camera.position.lerp(targetPos.current, lerpFactor);
@@ -226,8 +218,7 @@ function CameraScrollController({ scrollPercent, focusPoint }: ControllerProps) 
 }
 
 export default function TreeBackground3D() {
-    const [scrollPercent, setScrollPercent] = useState(0);
-    const [focusPoint, setFocusPoint] = useState<THREE.Vector3 | null>(null);
+    const scrollPercentRef = useRef(0);
     const [mounted, setMounted] = useState(false);
 
     // Track scroll positions and handle scroll boundaries
@@ -238,15 +229,7 @@ export default function TreeBackground3D() {
             const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
             if (totalHeight > 0) {
                 const currentPct = window.scrollY / totalHeight;
-                setScrollPercent(currentPct);
-
-                // Exit focus mode if the user scrolls significantly (signaling intent to navigate)
-                setFocusPoint((prev) => {
-                    if (prev) {
-                        return null; // break focus lock
-                    }
-                    return prev;
-                });
+                scrollPercentRef.current = currentPct;
             }
         };
 
@@ -260,7 +243,6 @@ export default function TreeBackground3D() {
         <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
             <Canvas
                 dpr={[1, 1.5]}
-                style={{ pointerEvents: 'auto' }} // Allow clicks to hit the 3D model through empty overlay layers
                 gl={{
                     powerPreference: 'high-performance',
                     stencil: false,
@@ -268,14 +250,7 @@ export default function TreeBackground3D() {
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [0.5, -0.6, 4.0], fov: 45 }}
-                onPointerDown={(e) => {
-                    // Click the background canvas empty space to clear current focal lock
-                    if (e.target === e.currentTarget) {
-                        setFocusPoint(null);
-                        document.body.style.cursor = 'default';
-                    }
-                }}
+                camera={{ position: [-1.08, -1.2, 3.47], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
@@ -284,10 +259,10 @@ export default function TreeBackground3D() {
 
                 {/* Wrap in Suspense to support loading GLB tree model */}
                 <Suspense fallback={null}>
-                    <CedarTreeModel onPointClick={setFocusPoint} />
+                    <CedarTreeModel />
                 </Suspense>
                 
-                <CameraScrollController scrollPercent={scrollPercent} focusPoint={focusPoint} />
+                <CameraScrollController scrollPercentRef={scrollPercentRef} />
             </Canvas>
         </div>
     );
