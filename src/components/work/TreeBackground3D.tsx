@@ -10,15 +10,15 @@ function CedarTreeModel() {
     const { scene } = useGLTF('/models/two_cedar_trees.glb');
     
     const [scale, setScale] = useState<[number, number, number]>([1, 1, 1]);
-    const [position, setPosition] = useState<[number, number, number]>([0, -1.8, 0]);
+    const [position, setPosition] = useState<[number, number, number]>([0, 0, 0]);
+    
+    // Store animated meshes to update their shader uniforms efficiently
+    const animatedMeshes = useRef<THREE.Mesh[]>([]);
 
     useEffect(() => {
         if (!scene) return;
 
-        // Reset transforms to get correct raw dimensions
-        scene.scale.set(1, 1, 1);
-        scene.position.set(0, 0, 0);
-        scene.rotation.set(0, 0, 0);
+        const meshes: THREE.Mesh[] = [];
 
         // Traverse the model to make sure standard shadow casting is active
         scene.traverse((node) => {
@@ -28,12 +28,43 @@ function CedarTreeModel() {
                 
                 // Set high roughness for a premium, non-shiny, matte clay look
                 if (node.material) {
-                    node.material.roughness = 0.95;
-                    node.material.metalness = 0.05;
+                    const originalMat = node.material as THREE.MeshStandardMaterial;
+                    
+                    // Clone material to avoid mutating shared cache assets
+                    const mat = originalMat.clone();
+                    mat.roughness = 0.95;
+                    mat.metalness = 0.05;
+                    
+                    // Inject vertex displacement shader modification for organic GPU ripples
+                    mat.onBeforeCompile = (shader) => {
+                        shader.uniforms.uTime = { value: 0 };
+                        shader.vertexShader = `
+                            uniform float uTime;
+                        ` + shader.vertexShader;
+                        
+                        shader.vertexShader = shader.vertexShader.replace(
+                            '#include <begin_vertex>',
+                            `
+                            #include <begin_vertex>
+                            // Gentle organic waving/rippling breeze based on model height (y) and elapsed time
+                            float wave = sin(position.y * 1.8 + uTime * 0.9) * 0.04;
+                            transformed.x += wave;
+                            transformed.z += cos(position.y * 1.4 + uTime * 0.7) * 0.04;
+                            `
+                        );
+                        
+                        mat.userData.shader = shader;
+                    };
+                    
+                    node.material = mat;
+                    meshes.push(node);
                 }
             }
         });
+        
+        animatedMeshes.current = meshes;
 
+        // Compute original bounding box of the un-transformed scene
         const box = new THREE.Box3().setFromObject(scene);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -66,42 +97,58 @@ function CedarTreeModel() {
         });
     }, [scene]);
 
-    return <primitive object={scene} position={position} scale={scale} />;
+    // Animate the custom shader time uniform on every frame loop
+    useFrame((state) => {
+        const time = state.clock.getElapsedTime();
+        animatedMeshes.current.forEach((mesh) => {
+            const mat = mesh.material as any;
+            if (mat && mat.userData?.shader) {
+                mat.userData.shader.uniforms.uTime.value = time;
+            }
+        });
+    });
+
+    // Use a parent group for scaling and translation to protect scene object from mutations
+    return (
+        <group position={position} scale={scale}>
+            <primitive object={scene} />
+        </group>
+    );
 }
 
 // Camera framing and scroll control orchestrator
 function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
     const { camera } = useThree();
     
-    // Target position and lookAt points
-    const targetPos = useRef(new THREE.Vector3(0, -1.8, 4.5));
-    const targetLookAt = useRef(new THREE.Vector3(0, -1.4, 0));
+    // Target position and lookAt points (aligned with scroll = 0 values)
+    const targetPos = useRef(new THREE.Vector3(0.5, -0.6, 4.0));
+    const targetLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
     
     // Smooth tracking ref for lookAt target to avoid orientation locks/flips
-    const currentLookAt = useRef(new THREE.Vector3(0, -1.4, 0));
+    const currentLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
     // Starts at the bottom base trunk/floor and moves up to the top canopy
     const cameraKeyframes = useMemo(() => [
         {
-            pct: 0.0, // Hero: Bottom base / stump
-            pos: new THREE.Vector3(0.0, -1.8, 4.5),
-            look: new THREE.Vector3(0, -1.4, 0)
+            pct: 0.0, // Hero: Bottom base / stump fully visible
+            pos: new THREE.Vector3(0.5, -0.6, 4.0),
+            look: new THREE.Vector3(0, -0.8, 0)
         },
         {
             pct: 0.33, // Manifesto: Mid-trunk, rotated to left side
-            pos: new THREE.Vector3(-2.2, -0.6, 3.8),
-            look: new THREE.Vector3(-0.2, -0.3, 0)
+            pos: new THREE.Vector3(-2.2, 0.4, 3.5),
+            look: new THREE.Vector3(-0.2, 0.4, 0)
         },
         {
             pct: 0.66, // Tech Stack: Branch split, rotated to right-front
-            pos: new THREE.Vector3(2.0, 0.6, 3.2),
-            look: new THREE.Vector3(0.2, 0.8, 0)
+            pos: new THREE.Vector3(2.0, 1.6, 3.2),
+            look: new THREE.Vector3(0.2, 1.4, 0)
         },
         {
             pct: 1.0, // Selected Works: Top Canopy close-up looking down
-            pos: new THREE.Vector3(-0.4, 2.4, 2.8),
-            look: new THREE.Vector3(0, 1.9, 0)
+            pos: new THREE.Vector3(-0.5, 3.2, 2.5),
+            look: new THREE.Vector3(0, 2.3, 0)
         }
     ], []);
 
@@ -172,7 +219,7 @@ export default function TreeBackground3D() {
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [0, -1.8, 4.5], fov: 45 }}
+                camera={{ position: [0.5, -0.6, 4.0], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
