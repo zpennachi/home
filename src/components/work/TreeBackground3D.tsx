@@ -1,148 +1,55 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-// Class/Type representing a generated branch
-interface BranchNode {
-    id: string;
-    start: THREE.Vector3;
-    end: THREE.Vector3;
-    rotation: THREE.Euler;
-    length: number;
-    radius: number;
-    depth: number;
-}
-
-// Generate the tree structure procedurally once on load
-function generateProceduralTree(
-    start: THREE.Vector3,
-    direction: THREE.Vector3,
-    length: number,
-    radius: number,
-    depth: number,
-    maxDepth: number,
-    nodes: BranchNode[] = []
-): BranchNode[] {
-    const end = start.clone().add(direction.clone().multiplyScalar(length));
+// Load and position the user's custom tree GLB model
+function CedarTreeModel() {
+    const { scene } = useGLTF('/models/two_cedar_trees.glb');
     
-    // Euler rotation representing the direction
-    const rotation = new THREE.Euler().setFromQuaternion(
-        new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize())
-    );
-
-    nodes.push({
-        id: `branch-${depth}-${nodes.length}`,
-        start,
-        end,
-        rotation,
-        length,
-        radius,
-        depth
-    });
-
-    if (depth < maxDepth) {
-        const childBranches = depth === 0 ? 3 : 2; // Split trunk into 3, sub-branches into 2
-        for (let i = 0; i < childBranches; i++) {
-            // Diverge branches outward with some organic noise
-            const angle = 0.35 + Math.random() * 0.15; // Dilation angle
-            const rotAngle = (i * (Math.PI * 2)) / childBranches + (Math.random() - 0.5) * 0.5;
-
-            const childDir = new THREE.Vector3(0, 1, 0)
-                .applyAxisAngle(new THREE.Vector3(1, 0, 0), angle)
-                .applyAxisAngle(new THREE.Vector3(0, 1, 0), rotAngle)
-                .applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize()))
-                .normalize();
-
-            // Decay length and thickness
-            generateProceduralTree(
-                end,
-                childDir,
-                length * 0.72,
-                radius * 0.65,
-                depth + 1,
-                maxDepth,
-                nodes
-            );
-        }
-    }
-    return nodes;
-}
-
-function MatteTree({ accentColor }: { accentColor: string }) {
-    const maxDepth = 4;
-    const treeData = useMemo(() => {
-        return generateProceduralTree(
-            new THREE.Vector3(0, 0, 0), // Base position
-            new THREE.Vector3(0, 1, 0), // Grow straight up
-            2.5,                        // Trunk length
-            0.15,                       // Trunk radius
-            0,                          // Initial depth
-            maxDepth
-        );
-    }, []);
-
-    // Theme responsive material colors
-    const [foregroundHex, setForegroundHex] = useState("#000000");
+    // We compute the bounding box of the tree model dynamically
+    // so it fits perfectly in world coordinates, regardless of the model's authoring scale.
+    const [scale, setScale] = useState<[number, number, number]>([1, 1, 1]);
+    const [position, setPosition] = useState<[number, number, number]>([0, -1.8, 0]);
 
     useEffect(() => {
-        const getColors = () => {
-            const style = getComputedStyle(document.documentElement);
-            const fg = style.getPropertyValue('--foreground').trim();
-            if (fg) setForegroundHex(fg);
-        };
-        getColors();
-        const obs = new MutationObserver(getColors);
-        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
-        return () => obs.disconnect();
-    }, []);
+        if (!scene) return;
 
-    return (
-        <group position={[0, -1.8, 0]}>
-            {treeData.map((node) => {
-                // Calculate midpoint position for cylinder placement
-                const midpoint = node.start.clone().add(node.end).multiplyScalar(0.5);
+        // Traverse the model to make sure standard shadow casting is active
+        scene.traverse((node) => {
+            if (node instanceof THREE.Mesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+                
+                // Set high roughness for a premium, non-shiny, matte clay look
+                if (node.material) {
+                    node.material.roughness = 0.95;
+                    node.material.metalness = 0.05;
+                }
+            }
+        });
 
-                return (
-                    <group key={node.id}>
-                        {/* Render the Branch Cylinder */}
-                        <mesh position={midpoint} rotation={node.rotation}>
-                            <cylinderGeometry args={[node.radius * 0.7, node.radius, node.length, 12]} />
-                            <meshStandardMaterial
-                                color={foregroundHex}
-                                roughness={0.9}
-                                metalness={0.05}
-                            />
-                        </mesh>
+        const box = new THREE.Box3().setFromObject(scene);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        
+        // Target a consistent tree height of 5.5 units in our 3D world space
+        const targetHeight = 5.5;
+        const scaleFactor = targetHeight / (size.y || 1);
+        
+        setScale([scaleFactor, scaleFactor, scaleFactor]);
+        
+        // Align base to the bottom anchor (-2.4) and center horizontally
+        setPosition([
+            -center.x * scaleFactor,
+            -box.min.y * scaleFactor - 2.4,
+            -center.z * scaleFactor
+        ]);
+    }, [scene]);
 
-                        {/* If it's a leaf node, render a cluster of organic matte accent leaf balls */}
-                        {node.depth === maxDepth && (
-                            <group position={node.end}>
-                                <mesh scale={node.radius * 16}>
-                                    <dodecahedronGeometry args={[1]} />
-                                    <meshStandardMaterial
-                                        color={accentColor}
-                                        roughness={0.9}
-                                        metalness={0.05}
-                                    />
-                                </mesh>
-                                {/* Secondary offset leaf cluster */}
-                                <mesh position={[0.15, 0.1, -0.1]} scale={node.radius * 11}>
-                                    <dodecahedronGeometry args={[1]} />
-                                    <meshStandardMaterial
-                                        color={accentColor}
-                                        roughness={0.9}
-                                        metalness={0.05}
-                                    />
-                                </mesh>
-                            </group>
-                        )}
-                    </group>
-                );
-            })}
-        </group>
-    );
+    return <primitive object={scene} position={position} scale={scale} />;
 }
 
 // Camera framing and scroll control orchestrator
@@ -157,8 +64,8 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0, // Hero: Top Canopy close-up
-            pos: new THREE.Vector3(0.4, 2.2, 3.2),
-            look: new THREE.Vector3(0, 1.8, 0)
+            pos: new THREE.Vector3(0.6, 2.3, 3.0),
+            look: new THREE.Vector3(0, 1.9, 0)
         },
         {
             pct: 0.33, // Manifesto: Upper branches / side profile
@@ -219,7 +126,6 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
 
 export default function TreeBackground3D() {
     const [scrollPercent, setScrollPercent] = useState(0);
-    const [accentColor, setAccentColor] = useState("#ff0000");
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -232,21 +138,8 @@ export default function TreeBackground3D() {
             }
         };
 
-        const getAccent = () => {
-            const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-            if (accent) setAccentColor(accent);
-        };
-
         window.addEventListener('scroll', handleScroll, { passive: true });
-        getAccent();
-
-        const observer = new MutationObserver(getAccent);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            observer.disconnect();
-        };
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     if (!mounted) return null;
@@ -269,9 +162,16 @@ export default function TreeBackground3D() {
                 <directionalLight position={[-6, -6, -2]} intensity={0.4} />
                 <pointLight position={[0, 2, 4]} intensity={0.6} />
 
-                <MatteTree accentColor={accentColor} />
+                {/* Wrap in Suspense to support loading GLB tree model */}
+                <Suspense fallback={null}>
+                    <CedarTreeModel />
+                </Suspense>
+                
                 <CameraScrollController scrollPercent={scrollPercent} />
             </Canvas>
         </div>
     );
 }
+
+// Preload model asset for immediate loading
+useGLTF.preload('/models/two_cedar_trees.glb');
