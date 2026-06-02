@@ -5,8 +5,12 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-// Load and position the user's custom tree GLB model
-function CedarTreeModel() {
+interface CedarTreeProps {
+    onPointClick: (point: THREE.Vector3 | null) => void;
+}
+
+// Load, position, and handle interactivity on the user's custom tree GLB model
+function CedarTreeModel({ onPointClick }: CedarTreeProps) {
     const { scene } = useGLTF('/models/two_cedar_trees.glb');
     
     const [scale, setScale] = useState<[number, number, number]>([1, 1, 1]);
@@ -69,13 +73,6 @@ function CedarTreeModel() {
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         
-        console.log("Tree Model Diagnostics:", {
-            rawMin: box.min.toArray(),
-            rawMax: box.max.toArray(),
-            rawSize: size.toArray(),
-            rawCenter: center.toArray()
-        });
-        
         // Target a consistent tree height of 5.5 units in our 3D world space
         const targetHeight = 5.5;
         const scaleFactor = targetHeight / (size.y || 1);
@@ -90,12 +87,14 @@ function CedarTreeModel() {
         ];
         
         setPosition(nextPos);
-
-        console.log("Applied Scales and Positions:", {
-            scaleFactor,
-            nextPos
-        });
     }, [scene]);
+
+    // Cleanup custom pointer styling on unmount
+    useEffect(() => {
+        return () => {
+            document.body.style.cursor = 'default';
+        };
+    }, []);
 
     // Animate the custom shader time uniform on every frame loop
     useFrame((state) => {
@@ -108,23 +107,45 @@ function CedarTreeModel() {
         });
     });
 
-    // Use a parent group for scaling and translation to protect scene object from mutations
+    // Use a parent group for scaling, translation, pointer events and raycasting clicks
     return (
-        <group position={position} scale={scale}>
+        <group 
+            position={position} 
+            scale={scale}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (e.point) {
+                    onPointClick(e.point.clone());
+                }
+            }}
+            onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'pointer';
+            }}
+            onPointerOut={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'default';
+            }}
+        >
             <primitive object={scene} />
         </group>
     );
 }
 
-// Camera framing and scroll control orchestrator
-function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
+interface ControllerProps {
+    scrollPercent: number;
+    focusPoint: THREE.Vector3 | null;
+}
+
+// Camera framing, scroll control, and focus-orbit orchestrator
+function CameraScrollController({ scrollPercent, focusPoint }: ControllerProps) {
     const { camera } = useThree();
     
-    // Target position and lookAt points (aligned with scroll = 0 values)
+    // Smooth targets for camera tracking
     const targetPos = useRef(new THREE.Vector3(0.5, -0.6, 4.0));
     const targetLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
     
-    // Smooth tracking ref for lookAt target to avoid orientation locks/flips
+    // Smooth tracking ref for lookAt target to avoid sudden orientation flips
     const currentLookAt = useRef(new THREE.Vector3(0, -0.8, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
@@ -153,34 +174,49 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
     ], []);
 
     useFrame((state, delta) => {
-        // Find the bounding keyframes for the current scroll percentage
-        let startKey = cameraKeyframes[0];
-        let endKey = cameraKeyframes[cameraKeyframes.length - 1];
+        const time = state.clock.getElapsedTime();
+        const lerpFactor = 1 - Math.exp(-5 * delta); // smooth, frame-rate independent easing
 
-        for (let i = 0; i < cameraKeyframes.length - 1; i++) {
-            if (scrollPercent >= cameraKeyframes[i].pct && scrollPercent <= cameraKeyframes[i + 1].pct) {
-                startKey = cameraKeyframes[i];
-                endKey = cameraKeyframes[i + 1];
-                break;
+        if (focusPoint) {
+            // FOCUS & ORBIT MODE:
+            // Calculate a slow, circular orbital position centered at the clicked coordinates
+            const orbitSpeed = 0.35;
+            const zoomDistance = 1.3;
+            const angle = time * orbitSpeed;
+
+            // Offset the camera position in a slow circular path around the target point
+            targetPos.current.set(
+                focusPoint.x + Math.sin(angle) * zoomDistance,
+                focusPoint.y + 0.3,
+                focusPoint.z + Math.cos(angle) * zoomDistance
+            );
+            targetLookAt.current.copy(focusPoint);
+        } else {
+            // SCROLL-LINKED MODE:
+            // Linearly interpolate between the nearest scroll keyframes
+            let startKey = cameraKeyframes[0];
+            let endKey = cameraKeyframes[cameraKeyframes.length - 1];
+
+            for (let i = 0; i < cameraKeyframes.length - 1; i++) {
+                if (scrollPercent >= cameraKeyframes[i].pct && scrollPercent <= cameraKeyframes[i + 1].pct) {
+                    startKey = cameraKeyframes[i];
+                    endKey = cameraKeyframes[i + 1];
+                    break;
+                }
             }
+
+            const range = endKey.pct - startKey.pct;
+            const localPct = range > 0 ? (scrollPercent - startKey.pct) / range : 0;
+
+            // Smooth Hermite cubic interpolation
+            const t = localPct * localPct * (3 - 2 * localPct);
+
+            targetPos.current.copy(startKey.pos).lerp(endKey.pos, t);
+            targetLookAt.current.copy(startKey.look).lerp(endKey.look, t);
         }
 
-        // Percentage interpolation between the two active keyframes
-        const range = endKey.pct - startKey.pct;
-        const localPct = range > 0 ? (scrollPercent - startKey.pct) / range : 0;
-
-        // Smooth cubic-like interpolation curve
-        const t = localPct * localPct * (3 - 2 * localPct);
-
-        // Interpolate position and look-at target coordinates directly
-        targetPos.current.copy(startKey.pos).lerp(endKey.pos, t);
-        targetLookAt.current.copy(startKey.look).lerp(endKey.look, t);
-
-        // Frame-rate independent smooth camera tracking (lerp damping)
-        const lerpFactor = 1 - Math.exp(-6 * delta); // smooth follow speed
+        // Interpolate camera coordinates and gaze point towards target values
         camera.position.lerp(targetPos.current, lerpFactor);
-
-        // Update target looking vector smoothly
         currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
         camera.lookAt(currentLookAt.current);
     });
@@ -190,15 +226,26 @@ function CameraScrollController({ scrollPercent }: { scrollPercent: number }) {
 
 export default function TreeBackground3D() {
     const [scrollPercent, setScrollPercent] = useState(0);
+    const [focusPoint, setFocusPoint] = useState<THREE.Vector3 | null>(null);
     const [mounted, setMounted] = useState(false);
 
+    // Track scroll positions and handle scroll boundaries
     useEffect(() => {
         setMounted(true);
 
         const handleScroll = () => {
             const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
             if (totalHeight > 0) {
-                setScrollPercent(window.scrollY / totalHeight);
+                const currentPct = window.scrollY / totalHeight;
+                setScrollPercent(currentPct);
+
+                // Exit focus mode if the user scrolls significantly (signaling intent to navigate)
+                setFocusPoint((prev) => {
+                    if (prev) {
+                        return null; // break focus lock
+                    }
+                    return prev;
+                });
             }
         };
 
@@ -212,6 +259,7 @@ export default function TreeBackground3D() {
         <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
             <Canvas
                 dpr={[1, 1.5]}
+                style={{ pointerEvents: 'auto' }} // Allow clicks to hit the 3D model through empty overlay layers
                 gl={{
                     powerPreference: 'high-performance',
                     stencil: false,
@@ -220,6 +268,13 @@ export default function TreeBackground3D() {
                     antialias: true
                 }}
                 camera={{ position: [0.5, -0.6, 4.0], fov: 45 }}
+                onPointerDown={(e) => {
+                    // Click the background canvas empty space to clear current focal lock
+                    if (e.target === e.currentTarget) {
+                        setFocusPoint(null);
+                        document.body.style.cursor = 'default';
+                    }
+                }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
@@ -228,10 +283,10 @@ export default function TreeBackground3D() {
 
                 {/* Wrap in Suspense to support loading GLB tree model */}
                 <Suspense fallback={null}>
-                    <CedarTreeModel />
+                    <CedarTreeModel onPointClick={setFocusPoint} />
                 </Suspense>
                 
-                <CameraScrollController scrollPercent={scrollPercent} />
+                <CameraScrollController scrollPercent={scrollPercent} focusPoint={focusPoint} />
             </Canvas>
         </div>
     );
