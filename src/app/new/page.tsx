@@ -4,8 +4,7 @@ import { Manifesto } from "@/components/work/Manifesto";
 import { ToolStack } from "@/components/work/ToolStack";
 import { DynamicGrid } from "@/components/work/DynamicGrid";
 import { ParticleBackground } from "@/components/work/ParticleBackground";
-
-import { FloatingShape3D } from "@/components/work/FloatingShape3D";
+import TreeBackground3D from "@/components/work/TreeBackground3D";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -33,6 +32,9 @@ export default async function Home() {
         <ParticleBackground />
       </div>
 
+      {/* Global 3D Procedural Tree Background (Scroll-Linked) */}
+      <TreeBackground3D />
+
       {/* 1. THE HOOK - Contains Hero Content Layer */}
       <Hero />
 
@@ -46,14 +48,12 @@ export default async function Home() {
       <section id="work" className="relative z-10 container py-24 border-t border-muted">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
           
-          {/* Left Column Label & Floating Shape */}
-          <div className="lg:col-span-4 flex flex-col justify-between h-full min-h-[220px]">
+          {/* Left Column Label */}
+          <div className="lg:col-span-4 flex flex-col justify-start">
             <div className="space-y-2">
               <h2 className="text-sm font-normal uppercase tracking-[0.2em] text-foreground">Selected Works</h2>
               <p className="text-xs font-mono text-muted-fg/60">2023 — Present</p>
             </div>
-            {/* Floating 3D Accent Shape */}
-            <FloatingShape3D type="dodecahedron" className="w-28 h-28 md:w-36 md:h-36 mt-8 opacity-80" />
           </div>
 
           {/* Right Column Content Grid */}

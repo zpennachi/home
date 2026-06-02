@@ -1,19 +1,13 @@
-import { FloatingShape3D } from './FloatingShape3D';
-
 export function Manifesto() {
     return (
         <section id="manifesto" className="container py-24 md:py-48 border-t border-muted">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
 
                 {/* Label */}
-                <div className="lg:col-span-4 flex flex-col justify-between h-full min-h-[220px]">
-                    <div className="space-y-6">
-                        <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                            Creative Technology
-                        </h2>
-                    </div>
-                    {/* Floating 3D Accent Shape */}
-                    <FloatingShape3D type="cube" className="w-28 h-28 md:w-36 md:h-36 mt-8 opacity-80" />
+                <div className="lg:col-span-4 space-y-6">
+                    <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
+                        Creative Technology
+                    </h2>
                 </div>
 
                 <div className="lg:col-span-8 space-y-12">
