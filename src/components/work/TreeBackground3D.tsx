@@ -391,42 +391,49 @@ interface ControllerProps {
 function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const { camera, size } = useThree();
     
-    // Smooth targets for camera tracking (starts on lower trunk at fixed distance)
-    const targetPos = useRef(new THREE.Vector3(-1.08, -1.2, 3.47));
-    const targetLookAt = useRef(new THREE.Vector3(-1.5, -1.6, 0));
+    // Smooth targets for camera tracking (starts looking down at ground/grass)
+    const targetPos = useRef(new THREE.Vector3(-1.08, 0.2, 3.47));
+    const targetLookAt = useRef(new THREE.Vector3(-1.5, -2.8, 0));
     
     // Smooth tracking ref for lookAt target to avoid sudden orientation flips
-    const currentLookAt = useRef(new THREE.Vector3(-1.5, -1.6, 0));
+    const currentLookAt = useRef(new THREE.Vector3(-1.5, -2.8, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
-    // Starts at the bottom base trunk/floor and moves up to the top canopy
+    // Starts angled down at the grass/trunk base, levels out, then climbs up to the canopy
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0,
-            angle: 0.12, // Starting angle
-            radius: 3.6, // Constant zoom level
-            y: -1.4,     // Base height
-            look: new THREE.Vector3(-1.5, -1.6, 0)
+            angle: 0.08,  // Starting angle
+            radius: 3.6,  // Same zoom level
+            y: 0.2,       // Camera positioned higher
+            look: new THREE.Vector3(-1.5, -2.8, 0) // Looking down at grass/ground
         },
         {
-            pct: 0.33,
-            angle: 0.18, // Extremely subtle rotation
+            pct: 0.12,
+            angle: 0.12,  // Leveling out
             radius: 3.6,
-            y: -0.6,     // Floating up the trunk
+            y: -1.4,      // Camera drops to old base height
+            look: new THREE.Vector3(-1.5, -1.6, 0) // Looking straight at trunk base
+        },
+        {
+            pct: 0.4,
+            angle: 0.18,  // Subtle rotation
+            radius: 3.6,
+            y: -0.6,      // Floating up the trunk
             look: new THREE.Vector3(-1.5, -0.8, 0)
         },
         {
-            pct: 0.66,
-            angle: 0.24, // Continuing subtle rotation
+            pct: 0.7,
+            angle: 0.24,  // Continuing subtle rotation
             radius: 3.6,
-            y: 0.2,      // Approaching foliage
+            y: 0.2,       // Approaching foliage
             look: new THREE.Vector3(-1.5, 0.0, 0)
         },
         {
             pct: 1.0,
-            angle: 0.30, // Max subtle rotation (about 10 degrees total)
+            angle: 0.30,  // Max subtle rotation (about 10 degrees total)
             radius: 3.6,
-            y: 1.0,      // Reached upper canopy
+            y: 1.0,       // Reached upper canopy
             look: new THREE.Vector3(-1.5, 0.8, 0)
         }
     ], []);
@@ -548,7 +555,7 @@ export default function TreeBackground3D() {
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [-1.08, -1.2, 3.47], fov: 45 }}
+                camera={{ position: [-1.08, 0.2, 3.47], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
