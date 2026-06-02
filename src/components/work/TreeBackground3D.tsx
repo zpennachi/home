@@ -29,6 +29,7 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
     );
     const trailOpacities = useRef<number[]>(Array(64).fill(0));
     const lastDroppedPos = useRef(new THREE.Vector3(-10000, -10000, -10000));
+    const ambientOpacity = useRef(1.0);
 
     useEffect(() => {
         if (!scene) return;
@@ -52,8 +53,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                     shader.uniforms.uRadius = { value: 1.0 };
                     shader.uniforms.uFeather = { value: 0.7 };
                     shader.uniforms.uAmbientPoint = { value: new THREE.Vector3(-10000, -10000, -10000) };
-                    shader.uniforms.uAmbientRadius = { value: 0.6 };
-                    shader.uniforms.uAmbientFeather = { value: 0.5 };
+                    shader.uniforms.uAmbientRadius = { value: 1.4 };
+                    shader.uniforms.uAmbientFeather = { value: 1.0 };
+                    shader.uniforms.uAmbientOpacity = { value: 1.0 };
                     
                     shader.vertexShader = `
                         uniform float uTime;
@@ -104,6 +106,7 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         uniform vec3 uAmbientPoint;
                         uniform float uAmbientRadius;
                         uniform float uAmbientFeather;
+                        uniform float uAmbientOpacity;
                         varying vec3 vWorldPosition;
                     ` + shader.fragmentShader;
 
@@ -131,7 +134,7 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         
                         // Ambient wandering spotlight mask
                         float ambientDist = distance(distortedPos, uAmbientPoint);
-                        float ambientMask = 1.0 - smoothstep(uAmbientRadius - uAmbientFeather, uAmbientRadius, ambientDist);
+                        float ambientMask = (1.0 - smoothstep(uAmbientRadius - uAmbientFeather, uAmbientRadius, ambientDist)) * uAmbientOpacity;
                         
                         // Combined mask: mouse paint OR ambient wander
                         float totalMask = max(finalMask, ambientMask);
@@ -323,6 +326,12 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
         const radius = 1.0;
         const feather = 0.7;
 
+        // Fade ambient out when user is actively painting, fade back in when idle
+        const anyTrailActive = trailOpacities.current.some(o => o > 0.05);
+        const targetAmbientOpacity = anyTrailActive ? 0.0 : 1.0;
+        const ambientLerpSpeed = anyTrailActive ? 3.0 : 0.5; // fade out fast, fade in slowly
+        ambientOpacity.current = THREE.MathUtils.lerp(ambientOpacity.current, targetAmbientOpacity, 1 - Math.exp(-ambientLerpSpeed * delta));
+
         // Ambient wandering spotlight: Lissajous drift around the camera's lookAt target on the tree
         const scrollPercent = scrollPercentRef.current ?? 0;
         // Camera looks at Y ranging from -1.6 to 0.8 based on scroll, X = -1.5
@@ -351,6 +360,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                 }
                 if (mat.userData.shader.uniforms.uAmbientPoint) {
                     mat.userData.shader.uniforms.uAmbientPoint.value = ambientPoint;
+                }
+                if (mat.userData.shader.uniforms.uAmbientOpacity) {
+                    mat.userData.shader.uniforms.uAmbientOpacity.value = ambientOpacity.current;
                 }
             }
         });
