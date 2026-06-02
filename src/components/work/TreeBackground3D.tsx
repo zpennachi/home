@@ -79,9 +79,9 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
         
         setScale([scaleFactor, scaleFactor, scaleFactor]);
         
-        // Align base to the bottom anchor (-2.4) and center horizontally
+        // Align base to the bottom anchor (-2.4) and shift slightly to the right
         const nextPos: [number, number, number] = [
-            -center.x * scaleFactor,
+            -center.x * scaleFactor + 0.8, // Shifting tree horizontally to the right
             -box.min.y * scaleFactor - 2.4,
             -center.z * scaleFactor
         ];
@@ -107,11 +107,12 @@ function CedarTreeModel({ onPointClick }: CedarTreeProps) {
         });
     });
 
-    // Use a parent group for scaling, translation, pointer events and raycasting clicks
+    // Use a parent group for scaling, translation, tilt rotation, pointer events and raycasting clicks
     return (
         <group 
             position={position} 
             scale={scale}
+            rotation={[0.08, 0, -0.12]} // Subtle artistic windswept tilt to clear left-side text layout
             onClick={(e) => {
                 e.stopPropagation();
                 if (e.point) {
