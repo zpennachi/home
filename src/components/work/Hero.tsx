@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 
 export function Hero() {
     return (
-        <section className="h-[calc(100dvh-9rem)] w-full relative flex flex-col justify-center overflow-hidden">
+        <section className="h-[calc(100dvh-9rem)] w-full relative flex flex-col justify-start overflow-hidden">
 
 
             {/* Content Layer */}
-            <div className="relative z-10 h-full flex flex-col justify-center container pt-24 pb-8 md:pt-32 md:pb-12 pointer-events-none">
+            <div className="relative z-10 h-full flex flex-col justify-start container pt-24 pb-8 md:pt-32 md:pb-12 pointer-events-none">
 
                 {/* Top: Headline */}
                 <div className="w-full">
