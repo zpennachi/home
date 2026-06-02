@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 
 export function Hero() {
     return (
-        <section className="h-[calc(100dvh-9rem)] w-full relative flex flex-col justify-between overflow-hidden">
+        <section className="h-[calc(100dvh-9rem)] w-full relative flex flex-col justify-center overflow-hidden">
 
 
             {/* Content Layer */}
-            <div className="relative z-10 h-full flex flex-col justify-between container pt-24 pb-8 md:pt-32 md:pb-12 pointer-events-none">
+            <div className="relative z-10 h-full flex flex-col justify-center container pt-24 pb-8 md:pt-32 md:pb-12 pointer-events-none">
 
                 {/* Top: Headline */}
                 <div className="w-full">
@@ -31,31 +31,6 @@ export function Hero() {
                     >
                         hi! My name is Zack, i've been <strong className="font-bold">building</strong> digital things for 10+ years, <strong className="font-bold">learning</strong> a ton and <strong className="font-bold">having fun</strong> along the way. I love finding new problems to solve. From nitty gritty texture editing, to deploying full-stack architecture for enterprise web apps, I enjoy finding unique solutions to difficult problems. I love meeting new and interesting clients that allow me to understand just a little bit more about our wild digital world. If that sounds like you, <a href="mailto:z@zpennachi.com" className="underline hover:opacity-70 transition-opacity font-normal">hit me up!</a>
                     </motion.p>
-                </div>
-
-                {/* Bottom: Meta Data */}
-                <div className="flex justify-between items-end">
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.8 }}
-                        className="text-sm font-normal tracking-[0.08em] uppercase text-foreground/80"
-                    >
-                        [ ZPennachi Studio ]
-                        <br />
-                        Est. 2023
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
-                        className="text-right"
-                    >
-                        <a href="#manifesto" className="inline-block text-sm font-normal text-foreground hover:opacity-70 transition-opacity pointer-events-auto">
-                            ( View Approach ) &darr;
-                        </a>
-                    </motion.div>
                 </div>
 
             </div>
