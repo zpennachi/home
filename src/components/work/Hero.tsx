@@ -1,21 +1,62 @@
 "use client";
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-function FloatingSphere() {
-    const meshRef = React.useRef<THREE.Mesh>(null);
+interface ShapeProps {
+    type: 'sphere' | 'cube' | 'torus' | 'dodecahedron';
+    position: [number, number, number];
+    speedMultiplier: number;
+    driftRadius: number;
+    delay: number;
+    color: string;
+}
+
+function FloatingShape({ type, position, speedMultiplier, driftRadius, delay, color }: ShapeProps) {
+    const meshRef = useRef<THREE.Mesh>(null);
     const { viewport } = useThree();
     
-    // Much smaller scale to serve as a subtle accent
-    const scale = Math.min(viewport.width * 0.08, 0.9);
+    // Scale responds to section width
+    const scale = Math.min(viewport.width * 0.055, 0.65);
 
-    // Get the accent color dynamically from document styles
-    const [accentColor, setAccentColor] = React.useState("#ff0000");
+    useFrame((state) => {
+        if (!meshRef.current) return;
+        const time = state.clock.getElapsedTime() + delay;
+        
+        // Responsive floating and undulating around its initial position
+        meshRef.current.position.x = position[0] * (viewport.width / 8) + Math.cos(time * 0.15 * speedMultiplier) * driftRadius * (viewport.width * 0.04);
+        meshRef.current.position.y = position[1] * (viewport.height / 5) + Math.sin(time * 0.18 * speedMultiplier) * driftRadius * (viewport.height * 0.05);
+        meshRef.current.position.z = position[2];
+        
+        // Very slow organic rotation
+        meshRef.current.rotation.x = time * 0.015 * speedMultiplier;
+        meshRef.current.rotation.y = time * 0.02 * speedMultiplier;
+    });
 
-    React.useEffect(() => {
+    return (
+        <mesh ref={meshRef} scale={scale}>
+            {type === 'sphere' && <sphereGeometry args={[1, 64, 64]} />}
+            {type === 'cube' && <boxGeometry args={[1.5, 1.5, 1.5]} />}
+            {type === 'torus' && <torusGeometry args={[0.9, 0.35, 16, 100]} />}
+            {type === 'dodecahedron' && <dodecahedronGeometry args={[1.1]} />}
+            
+            <meshStandardMaterial
+                color={color}
+                roughness={0.9}     // High roughness for clay-matte look
+                metalness={0.05}    // Low metalness
+            />
+        </mesh>
+    );
+}
+
+function HeroCanvas() {
+    const [mounted, setMounted] = useState(false);
+    const [accentColor, setAccentColor] = useState("#ff0000");
+
+    useEffect(() => {
+        setMounted(true);
         const getAccent = () => {
             const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
             if (accent) {
@@ -25,43 +66,10 @@ function FloatingSphere() {
 
         getAccent();
         
-        // Listen for token updates if customized dynamically in admin dashboard
         const observer = new MutationObserver(getAccent);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
         
         return () => observer.disconnect();
-    }, []);
-
-    useFrame((state) => {
-        if (!meshRef.current) return;
-        const time = state.clock.getElapsedTime();
-        
-        // Significantly slower and tighter organic drifting animation
-        meshRef.current.position.y = Math.sin(time * 0.1) * (viewport.height * 0.08);
-        meshRef.current.position.x = Math.cos(time * 0.08) * (viewport.width * 0.10);
-        
-        // Very slow continuous rotation
-        meshRef.current.rotation.x = time * 0.015;
-        meshRef.current.rotation.y = time * 0.02;
-    });
-
-    return (
-        <mesh ref={meshRef} scale={scale}>
-            <sphereGeometry args={[1, 64, 64]} />
-            <meshStandardMaterial
-                color={accentColor}
-                roughness={0.9} // high roughness for a very matte, clay-like, non-shiny surface
-                metalness={0.05} // low metalness to keep it soft and organic
-            />
-        </mesh>
-    );
-}
-
-function HeroCanvas() {
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
     }, []);
 
     if (!mounted) return null;
@@ -83,7 +91,46 @@ function HeroCanvas() {
                 <directionalLight position={[5, 8, 5]} intensity={1.8} />
                 <directionalLight position={[-5, -5, -2]} intensity={0.5} />
                 <pointLight position={[0, 0, 4]} intensity={0.8} />
-                <FloatingSphere />
+                
+                {/* 1. Sphere - Center-left drift */}
+                <FloatingShape 
+                    type="sphere" 
+                    position={[-1.2, 0.4, 0]} 
+                    speedMultiplier={0.8} 
+                    driftRadius={0.7} 
+                    delay={0}
+                    color={accentColor}
+                />
+
+                {/* 2. Cube - Upper-right drift */}
+                <FloatingShape 
+                    type="cube" 
+                    position={[1.6, 1.2, 0]} 
+                    speedMultiplier={0.9} 
+                    driftRadius={0.6} 
+                    delay={10}
+                    color={accentColor}
+                />
+
+                {/* 3. Torus - Mid-left drift */}
+                <FloatingShape 
+                    type="torus" 
+                    position={[-1.8, -1.0, 0]} 
+                    speedMultiplier={0.75} 
+                    driftRadius={0.8} 
+                    delay={25}
+                    color={accentColor}
+                />
+
+                {/* 4. Dodecahedron - Center-right drift */}
+                <FloatingShape 
+                    type="dodecahedron" 
+                    position={[1.2, -0.8, 0]} 
+                    speedMultiplier={0.85} 
+                    driftRadius={0.75} 
+                    delay={40}
+                    color={accentColor}
+                />
             </Canvas>
         </div>
     );
