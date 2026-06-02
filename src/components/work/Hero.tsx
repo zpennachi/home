@@ -9,8 +9,8 @@ function FloatingSphere() {
     const meshRef = React.useRef<THREE.Mesh>(null);
     const { viewport } = useThree();
     
-    // Dynamically calculate scale based on viewport size (responsive layout)
-    const scale = Math.min(viewport.width * 0.22, 2.6);
+    // Much smaller scale to serve as a subtle accent
+    const scale = Math.min(viewport.width * 0.08, 0.9);
 
     // Get the accent color dynamically from document styles
     const [accentColor, setAccentColor] = React.useState("#ff0000");
@@ -36,26 +36,22 @@ function FloatingSphere() {
         if (!meshRef.current) return;
         const time = state.clock.getElapsedTime();
         
-        // Slow organic undulating/drifting animation bounded by viewport size
-        meshRef.current.position.y = Math.sin(time * 0.4) * (viewport.height * 0.14);
-        meshRef.current.position.x = Math.cos(time * 0.35) * (viewport.width * 0.16);
+        // Significantly slower and tighter organic drifting animation
+        meshRef.current.position.y = Math.sin(time * 0.1) * (viewport.height * 0.08);
+        meshRef.current.position.x = Math.cos(time * 0.08) * (viewport.width * 0.10);
         
-        // Slow continuous rotation
-        meshRef.current.rotation.x = time * 0.08;
-        meshRef.current.rotation.y = time * 0.12;
+        // Very slow continuous rotation
+        meshRef.current.rotation.x = time * 0.015;
+        meshRef.current.rotation.y = time * 0.02;
     });
 
     return (
         <mesh ref={meshRef} scale={scale}>
             <sphereGeometry args={[1, 64, 64]} />
-            <meshPhysicalMaterial
+            <meshStandardMaterial
                 color={accentColor}
-                roughness={0.15}
-                metalness={0.1}
-                clearcoat={1.0}
-                clearcoatRoughness={0.1}
-                transmission={0.4}
-                thickness={1.2}
+                roughness={0.9} // high roughness for a very matte, clay-like, non-shiny surface
+                metalness={0.05} // low metalness to keep it soft and organic
             />
         </mesh>
     );
