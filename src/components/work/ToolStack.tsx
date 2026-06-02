@@ -4,10 +4,6 @@ export function ToolStack() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-32">
 
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-muted-fg font-normal">
-                        <span className="text-accent font-normal">/</span>
-                        <span>The Arsenal</span>
-                    </div>
                     <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
                         Technical Stack
                     </h2>

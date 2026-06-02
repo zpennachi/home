@@ -5,10 +5,6 @@ export function Manifesto() {
 
                 {/* Label */}
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-muted-fg font-normal">
-                        <span className="text-accent font-normal">/</span>
-                        <span>Approach</span>
-                    </div>
                     <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
                         How I Work
                     </h2>
