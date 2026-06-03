@@ -404,12 +404,12 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         {
             pct: 0.0,
             angle: 0.08,  // Starting angle
-            radius: 3.6,
+            radius: 4.5,  // Zoomed out more to start
             y: 0.2,       // Camera positioned higher looking down
             look: new THREE.Vector3(-1.5, -2.8, 0) // Looking down at grass
         },
         {
-            pct: 0.5,     // Keep looking down at grass until tech stack section starts
+            pct: 0.5,     // Zoomed in by the time tech stack section starts
             angle: 0.08,
             radius: 3.6,
             y: 0.2,
