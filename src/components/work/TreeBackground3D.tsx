@@ -68,9 +68,22 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         `
                         #include <begin_vertex>
                         
-                        // Keep vertices physically static to prevent model from moving as if in a current
-                        transformed.x += 0.0;
-                        transformed.z += 0.0;
+                        // Localized shifting physical pockets of turbulence
+                        float pocketX = sin(position.x * 2.0 + uTime * 0.3) * cos(position.y * 1.5 - uTime * 0.2);
+                        float pocketY = sin(position.y * 1.8 - uTime * 0.4) * cos(position.z * 1.6 + uTime * 0.3);
+                        float pocketZ = sin(position.z * 1.4 + uTime * 0.5) * cos(position.x * 2.2 - uTime * 0.4);
+                        float turbulenceMask = smoothstep(0.02, 0.45, abs(pocketX * pocketY * pocketZ));
+                        
+                        // Much smaller, high-frequency physical sways (fine branch/leaf rustle)
+                        float swayX = sin(uTime * 3.5 + position.y * 12.0 + position.z * 10.0) * 0.02;
+                        float swayZ = cos(uTime * 3.2 + position.y * 11.0 + position.x * 13.0) * 0.02;
+                        
+                        // Height mask to lock the base trunk roots to the ground
+                        float trunkMask = clamp((position.y + 2.3) / 5.2, 0.0, 1.0);
+                        
+                        // Apply displacement only in the slow-moving wandering turbulent areas
+                        transformed.x += swayX * trunkMask * (0.02 + 0.98 * turbulenceMask);
+                        transformed.z += swayZ * trunkMask * (0.02 + 0.98 * turbulenceMask);
                         `
                     );
                     shader.vertexShader = shader.vertexShader.replace(
@@ -124,51 +137,31 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         float totalMask = max(finalMask, ambientMask);
                         if (totalMask < 0.01) discard;
 
-                        // --- Psychedelic iridescent color overlay (expanding surface ripple fields) ---
+                        // --- Psychedelic iridescent color overlay (intricate domain-warped coordinates) ---
                         vec3 p = vWorldPosition;
                         
-                        float rippleField = 0.0;
+                        // Layer 1: Slow, large-scale organic fluid currents
+                        float warpX = sin(p.y * 1.8 + uTime * 0.4) * 0.4 + cos(p.z * 1.5 - uTime * 0.3) * 0.3;
+                        float warpY = cos(p.x * 2.0 + uTime * 0.3) * 0.4 + sin(p.z * 1.8 + uTime * 0.5) * 0.3;
+                        float warpZ = sin(p.y * 2.2 - uTime * 0.5) * 0.4 + cos(p.x * 1.6 + uTime * 0.4) * 0.3;
+                        vec3 warpedPos = p + vec3(warpX, warpY, warpZ) * 0.6;
                         
-                        // Generate 4 separate periodic surface ripple sources
-                        for (int i = 0; i < 4; i++) {
-                            float id = float(i);
-                            
-                            // Center of ripples slowly moves around the trunk/branch height layers
-                            vec3 center = vec3(
-                                sin(id * 2.5 + uTime * 0.1) * 1.2,
-                                -2.0 + id * 1.4 + cos(id * 1.8 + uTime * 0.08) * 0.5,
-                                cos(id * 3.1 + uTime * 0.12) * 1.2
-                            );
-                            
-                            float dist = distance(p, center);
-                            
-                            // Life cycle parameters
-                            float period = 4.0;
-                            float localTime = mod(uTime + id * 1.33, period);
-                            
-                            // Concentric wave expansion
-                            float waveRadius = localTime * 1.5; 
-                            float ringWidth = 0.8;
-                            
-                            float ringMask = smoothstep(ringWidth, 0.0, abs(dist - waveRadius));
-                            float ageFade = smoothstep(period, 0.0, localTime);
-                            
-                            // Concentric ripple frequencies
-                            float ripple = sin((dist - waveRadius) * 25.0) * ringMask * ageFade;
-                            
-                            rippleField = max(rippleField, ripple * 0.7);
-                        }
+                        // Layer 2: High-frequency intricate ripples (adds detailed texture)
+                        float detailWarp = sin(warpedPos.x * 4.5 + uTime * 0.8) * 0.15 
+                                         + cos(warpedPos.y * 5.0 - uTime * 0.7) * 0.15
+                                         + sin(warpedPos.z * 4.8 + uTime * 0.9) * 0.15;
+                                         
+                        // Combine frequencies for organic flow direction
+                        float flow = warpedPos.y * 0.25 - uTime * 0.08 + detailWarp * 0.4;
                         
-                        // Static base color flow with very slow time drift
-                        float staticFlow = p.y * 0.35 + sin(p.x * 0.8 + p.z * 0.8) * 0.3 + uTime * 0.02;
+                        // Multi-axis evolving waves
+                        float h1 = fract(flow + sin(warpedPos.x * 1.2 + uTime * 0.15) * 0.3);
+                        float h2 = fract(warpedPos.z * 0.2 + uTime * 0.05 + cos(warpedPos.y * 0.8 - uTime * 0.1) * 0.2);
                         
-                        // Distort base flow locally with the ripple field
-                        float flow = staticFlow + rippleField * 0.6;
-                        
-                        float h1 = fract(flow);
-                        float h2 = fract(p.z * 0.25 - p.y * 0.1 + uTime * 0.01);
-                        
-                        float h = fract(mix(h1, h2, 0.5) * 3.5);
+                        // Time-evolving blending factor that shifts with height
+                        float mixFactor = 0.5 + 0.3 * sin(uTime * 0.22 + warpedPos.y * 0.5);
+                        // Multiply by 3.5 to create more frequent wrapping boundaries (harsh color change lines)
+                        float h = fract(mix(h1, h2, mixFactor) * 3.5);
                         
                         // Smooth cosine palette: no branching, perfectly continuous gradients
                         // rgb = a + b * cos(2π * (c * t + d))
@@ -219,9 +212,22 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         `
                         #include <begin_vertex>
                         
-                        // Keep wireframe vertices physically static to align with the solid meshes
-                        transformed.x += 0.0;
-                        transformed.z += 0.0;
+                        // Localized shifting physical pockets of turbulence
+                        float pocketX = sin(position.x * 2.0 + uTime * 0.3) * cos(position.y * 1.5 - uTime * 0.2);
+                        float pocketY = sin(position.y * 1.8 - uTime * 0.4) * cos(position.z * 1.6 + uTime * 0.3);
+                        float pocketZ = sin(position.z * 1.4 + uTime * 0.5) * cos(position.x * 2.2 - uTime * 0.4);
+                        float turbulenceMask = smoothstep(0.02, 0.45, abs(pocketX * pocketY * pocketZ));
+                        
+                        // Much smaller, high-frequency physical sways (fine branch/leaf rustle)
+                        float swayX = sin(uTime * 3.5 + position.y * 12.0 + position.z * 10.0) * 0.02;
+                        float swayZ = cos(uTime * 3.2 + position.y * 11.0 + position.x * 13.0) * 0.02;
+                        
+                        // Height mask to lock the base trunk roots to the ground
+                        float trunkMask = clamp((position.y + 2.3) / 5.2, 0.0, 1.0);
+                        
+                        // Apply displacement only in the slow-moving wandering turbulent areas
+                        transformed.x += swayX * trunkMask * (0.02 + 0.98 * turbulenceMask);
+                        transformed.z += swayZ * trunkMask * (0.02 + 0.98 * turbulenceMask);
                         `
                     );
                     mat.userData.shader = shader;
