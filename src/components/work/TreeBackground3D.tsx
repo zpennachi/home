@@ -394,11 +394,11 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const { camera, size } = useThree();
     
     // Smooth targets for camera tracking (starts looking down at ground/grass)
-    const targetPos = useRef(new THREE.Vector3(-1.24, 0.2, 3.47));
-    const targetLookAt = useRef(new THREE.Vector3(TREE_X, -2.8, 0));
+    const targetPos = useRef(new THREE.Vector3(-1.36, -0.4, 3.0));
+    const targetLookAt = useRef(new THREE.Vector3(TREE_X, -1.6, 0));
     
     // Smooth tracking ref for lookAt target to avoid sudden orientation flips
-    const currentLookAt = useRef(new THREE.Vector3(TREE_X, -2.8, 0));
+    const currentLookAt = useRef(new THREE.Vector3(TREE_X, -1.6, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
     // Starts angled down at the grass/trunk base, levels out, then climbs up to the canopy
@@ -406,35 +406,35 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         {
             pct: 0.0,
             angle: 0.08,  // Starting angle
-            radius: 4.5,  // Zoomed out more to start
-            y: 0.2,       // Camera positioned higher looking down
-            look: new THREE.Vector3(TREE_X, -2.8, 0) // Looking down at grass
+            radius: 3.0,  // Zoomed in close to trunk
+            y: -0.4,       // Positioned lower
+            look: new THREE.Vector3(TREE_X, -1.6, 0) // Look at the middle of the trunk
         },
         {
-            pct: 0.5,     // Zoomed in by the time tech stack section starts
+            pct: 0.5,     // Hold framing through the first half of page
             angle: 0.08,
-            radius: 3.6,
-            y: 0.2,
-            look: new THREE.Vector3(TREE_X, -2.8, 0)
+            radius: 3.0,
+            y: -0.4,
+            look: new THREE.Vector3(TREE_X, -1.6, 0)
         },
         {
-            pct: 0.65,    // Level out and begin climbing
+            pct: 0.65,    // Smoothly transition into the climb
             angle: 0.08,
-            radius: 3.6,
+            radius: 3.2,
             y: -1.0,
             look: new THREE.Vector3(TREE_X, -1.2, 0)
         },
         {
-            pct: 0.8,     // Floats up the trunk, starts rotating
+            pct: 0.8,
             angle: 0.18,
-            radius: 3.6,
+            radius: 3.4,
             y: -0.2,
             look: new THREE.Vector3(TREE_X, -0.4, 0)
         },
         {
-            pct: 1.0,     // Canopy climb complete
+            pct: 1.0,
             angle: 0.30,
-            radius: 3.6,
+            radius: 3.4,
             y: 0.8,
             look: new THREE.Vector3(TREE_X, 0.6, 0)
         }
@@ -586,7 +586,7 @@ export default function TreeBackground3D({ mode = 'scroll', scrollPercent, inter
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [-1.24, 0.2, 3.47], fov: 45 }}
+                camera={{ position: [-1.36, -0.4, 3.0], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
