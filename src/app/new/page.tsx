@@ -41,7 +41,7 @@ export default async function Home() {
       <ToolStack />
 
       {/* 4. THE OUTPUT - Solid */}
-      <section id="work" className="relative z-10 container py-24 border-t border-muted">
+      <section id="work" className="relative z-10 container py-24">
         <div className="max-w-3xl space-y-8">
           
           <div className="space-y-2">

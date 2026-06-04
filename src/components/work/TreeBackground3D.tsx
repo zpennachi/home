@@ -244,8 +244,8 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         
-        // Target a consistent tree height of 5.2 units in our 3D world space (zoomed in a bit)
-        const targetHeight = 5.2;
+        // Target a consistent tree height of 5.6 units in our 3D world space (zoomed in a bit)
+        const targetHeight = 5.6;
         const scaleFactor = targetHeight / (size.y || 1);
         
         setScale([scaleFactor, scaleFactor, scaleFactor]);

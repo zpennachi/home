@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export function Footer() {
     return (
-        <footer className="w-full bg-background/80 backdrop-blur-md border-t border-muted/30 mt-auto">
+        <footer className="w-full bg-background/80 backdrop-blur-md mt-auto">
             <div className="container py-16 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 {/* Brand Logo & Nav Links */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-12">

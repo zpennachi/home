@@ -1,6 +1,6 @@
 export function ToolStack() {
     return (
-        <section className="container py-24 md:py-48 border-t border-muted" >
+        <section className="container py-24 md:py-48" >
             <div className="max-w-3xl mr-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-8 md:p-12 space-y-12">
 
                 <div className="space-y-6">
@@ -12,10 +12,10 @@ export function ToolStack() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16 pt-12 border-t border-muted/40">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16 pt-12">
                     {/* Category 1 */}
                     <div className="space-y-4">
-                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground border-b border-muted pb-2 flex items-center gap-2.5">
+                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground pb-2 flex items-center gap-2.5">
                             <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                             Spatial Computing
                         </h3>
@@ -28,7 +28,7 @@ export function ToolStack() {
                     </div>
                     {/* Category 2 */}
                     <div className="space-y-4">
-                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground border-b border-muted pb-2 flex items-center gap-2.5">
+                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground pb-2 flex items-center gap-2.5">
                             <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                             Interface Engineering
                         </h3>
@@ -41,7 +41,7 @@ export function ToolStack() {
                     </div>
                     {/* Category 3 */}
                     <div className="space-y-4">
-                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground border-b border-muted pb-2 flex items-center gap-2.5">
+                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground pb-2 flex items-center gap-2.5">
                             <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                             Interactive / XR
                         </h3>
@@ -54,7 +54,7 @@ export function ToolStack() {
                     </div>
                     {/* Category 4 */}
                     <div className="space-y-4">
-                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground border-b border-muted pb-2 flex items-center gap-2.5">
+                        <h3 className="text-xs md:text-sm font-mono uppercase tracking-wider font-semibold text-foreground pb-2 flex items-center gap-2.5">
                             <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                             Workflow
                         </h3>
