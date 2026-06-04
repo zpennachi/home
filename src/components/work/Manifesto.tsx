@@ -1,7 +1,7 @@
 export function Manifesto() {
     return (
         <section id="manifesto" className="container py-24 md:py-48 border-t border-muted">
-            <div className="max-w-3xl space-y-12">
+            <div className="max-w-3xl mr-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-8 md:p-12 shadow-2xl shadow-black/5 space-y-12">
 
                 <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
                     Creative Technology
@@ -11,7 +11,7 @@ export function Manifesto() {
                     Websites, web applications, 3D experiences, design systems, internal tools, and the systems that connect them.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 border-t border-muted">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 border-t border-muted/40">
                     <div className="space-y-3">
                         <h3 className="text-sm font-mono uppercase tracking-wider font-semibold text-foreground">Web & Product Development</h3>
                         <p className="text-muted-fg/80 text-base font-normal leading-relaxed">
