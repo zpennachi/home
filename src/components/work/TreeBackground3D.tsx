@@ -394,7 +394,7 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const { camera, size } = useThree();
     
     // Smooth targets for camera tracking (starts looking down at ground/grass)
-    const targetPos = useRef(new THREE.Vector3(-1.36, -0.4, 3.0));
+    const targetPos = useRef(new THREE.Vector3(0.38, -0.4, 2.89));
     const targetLookAt = useRef(new THREE.Vector3(TREE_X, -1.6, 0));
     
     // Smooth tracking ref for lookAt target to avoid sudden orientation flips
@@ -405,13 +405,13 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0,
-            angle: 0.08,  // Starting angle
-            radius: 3.0,  // Zoomed in close to trunk
+            angle: 0.60,  // Rotated by 30 degrees on landing
+            radius: 3.5,  // Zoomed out just a bit
             y: -0.4,       // Positioned lower
             look: new THREE.Vector3(TREE_X, -1.6, 0) // Look at the middle of the trunk
         },
         {
-            pct: 0.5,     // Hold framing through the first half of page
+            pct: 0.5,     // Zoom in and rotate back straight as we scroll out of hero
             angle: 0.08,
             radius: 3.0,
             y: -0.4,
@@ -586,7 +586,7 @@ export default function TreeBackground3D({ mode = 'scroll', scrollPercent, inter
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [-1.36, -0.4, 3.0], fov: 45 }}
+                camera={{ position: [0.38, -0.4, 2.89], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
