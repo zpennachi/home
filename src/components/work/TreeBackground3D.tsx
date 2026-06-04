@@ -5,6 +5,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
+const TREE_X = -1.6;
+
 interface CedarTreeProps {
     scrollPercentRef: React.RefObject<number>;
     mouseRef: React.RefObject<THREE.Vector2>;
@@ -242,15 +244,15 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         
-        // Target a consistent tree height of 5.5 units in our 3D world space
-        const targetHeight = 5.5;
+        // Target a consistent tree height of 5.2 units in our 3D world space (zoomed in a bit)
+        const targetHeight = 5.2;
         const scaleFactor = targetHeight / (size.y || 1);
         
         setScale([scaleFactor, scaleFactor, scaleFactor]);
         setTreeOffset([center.x, box.min.y, center.z]);
         
-        // Align base to the bottom anchor (-2.4) and position it to the left of center (X = -1.5)
-        const nextPos: [number, number, number] = [-1.5, -2.4, 0];
+        // Align base to the bottom anchor (-2.4) and position it to the left of center (X = TREE_X)
+        const nextPos: [number, number, number] = [TREE_X, -2.4, 0];
         setPosition(nextPos);
     }, [scene]);
 
@@ -325,9 +327,9 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
 
         // Ambient wandering spotlight: Lissajous drift around the camera's lookAt target on the tree
         const scrollPercent = scrollPercentRef.current ?? 0;
-        // Camera looks at Y ranging from -1.6 to 0.8 based on scroll, X = -1.5
+        // Camera looks at Y ranging from -1.6 to 0.8 based on scroll, X = TREE_X
         const lookY = THREE.MathUtils.lerp(-1.6, 0.8, scrollPercent);
-        const ambientX = -1.5 + Math.sin(time * 0.17) * 0.8 + Math.cos(time * 0.31) * 0.3;
+        const ambientX = TREE_X + Math.sin(time * 0.17) * 0.8 + Math.cos(time * 0.31) * 0.3;
         const ambientY = lookY + Math.sin(time * 0.23 + 1.0) * 0.7 + Math.cos(time * 0.13) * 0.4;
         const ambientZ = Math.sin(time * 0.19 + 2.0) * 0.5 + Math.cos(time * 0.29) * 0.2;
         const ambientPoint = new THREE.Vector3(ambientX, ambientY, ambientZ);
@@ -392,11 +394,11 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const { camera, size } = useThree();
     
     // Smooth targets for camera tracking (starts looking down at ground/grass)
-    const targetPos = useRef(new THREE.Vector3(-1.08, 0.2, 3.47));
-    const targetLookAt = useRef(new THREE.Vector3(-1.5, -2.8, 0));
+    const targetPos = useRef(new THREE.Vector3(-1.24, 0.2, 3.47));
+    const targetLookAt = useRef(new THREE.Vector3(TREE_X, -2.8, 0));
     
     // Smooth tracking ref for lookAt target to avoid sudden orientation flips
-    const currentLookAt = useRef(new THREE.Vector3(-1.5, -2.8, 0));
+    const currentLookAt = useRef(new THREE.Vector3(TREE_X, -2.8, 0));
 
     // Dynamic keyframe definitions based on scroll position (0 to 1)
     // Starts angled down at the grass/trunk base, levels out, then climbs up to the canopy
@@ -406,35 +408,35 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
             angle: 0.08,  // Starting angle
             radius: 4.5,  // Zoomed out more to start
             y: 0.2,       // Camera positioned higher looking down
-            look: new THREE.Vector3(-1.5, -2.8, 0) // Looking down at grass
+            look: new THREE.Vector3(TREE_X, -2.8, 0) // Looking down at grass
         },
         {
             pct: 0.5,     // Zoomed in by the time tech stack section starts
             angle: 0.08,
             radius: 3.6,
             y: 0.2,
-            look: new THREE.Vector3(-1.5, -2.8, 0)
+            look: new THREE.Vector3(TREE_X, -2.8, 0)
         },
         {
             pct: 0.65,    // Level out and begin climbing
             angle: 0.08,
             radius: 3.6,
             y: -1.0,
-            look: new THREE.Vector3(-1.5, -1.2, 0)
+            look: new THREE.Vector3(TREE_X, -1.2, 0)
         },
         {
             pct: 0.8,     // Floats up the trunk, starts rotating
             angle: 0.18,
             radius: 3.6,
             y: -0.2,
-            look: new THREE.Vector3(-1.5, -0.4, 0)
+            look: new THREE.Vector3(TREE_X, -0.4, 0)
         },
         {
             pct: 1.0,     // Canopy climb complete
             angle: 0.30,
             radius: 3.6,
             y: 0.8,
-            look: new THREE.Vector3(-1.5, 0.6, 0)
+            look: new THREE.Vector3(TREE_X, 0.6, 0)
         }
     ], []);
 
@@ -467,9 +469,9 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         const radius = THREE.MathUtils.lerp(startKey.radius, endKey.radius, t);
         const y = THREE.MathUtils.lerp(startKey.y, endKey.y, t);
 
-        // Reconstruct camera Cartesian target coordinates orbiting around the tree center (X = -1.5)
+        // Reconstruct camera Cartesian target coordinates orbiting around the tree center (X = TREE_X)
         targetPos.current.set(
-            -1.5 + radius * Math.sin(angle),
+            TREE_X + radius * Math.sin(angle),
             y,
             radius * Math.cos(angle)
         );
@@ -584,7 +586,7 @@ export default function TreeBackground3D({ mode = 'scroll', scrollPercent, inter
                     alpha: true,
                     antialias: true
                 }}
-                camera={{ position: [-1.08, 0.2, 3.47], fov: 45 }}
+                camera={{ position: [-1.24, 0.2, 3.47], fov: 45 }}
             >
                 <ambientLight intensity={1.4} />
                 <directionalLight position={[6, 10, 6]} intensity={1.8} />
@@ -604,7 +606,7 @@ export default function TreeBackground3D({ mode = 'scroll', scrollPercent, inter
                 {interactive && (
                     <OrbitControls 
                         makeDefault 
-                        target={[-1.5, -0.5, 0]} 
+                        target={[TREE_X, -0.5, 0]} 
                         enableZoom={true} 
                         enablePan={true} 
                         enableDamping={true} 
