@@ -142,19 +142,30 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         float totalMask = max(finalMask, ambientMask);
                         if (totalMask < 0.01) discard;
 
-                        // --- Psychedelic iridescent color overlay (smooth cosine palette) ---
-                        float hue = fract(
-                            vWorldPosition.y * 0.3
-                            + vWorldPosition.x * 0.15
-                            + uTime * 0.12
-                            + sin(vWorldPosition.z * 2.0 + uTime * 0.7) * 0.15
-                        );
-                        float hue2 = fract(
-                            vWorldPosition.z * 0.25
-                            - uTime * 0.08
-                            + cos(vWorldPosition.y * 1.5 + uTime * 0.5) * 0.2
-                        );
-                        float h = fract(mix(hue, hue2, 0.4 + 0.1 * sin(uTime * 0.3)));
+                        // --- Psychedelic iridescent color overlay (intricate domain-warped coordinates) ---
+                        vec3 p = vWorldPosition;
+                        
+                        // Layer 1: Slow, large-scale organic fluid currents
+                        float warpX = sin(p.y * 1.8 + uTime * 0.4) * 0.4 + cos(p.z * 1.5 - uTime * 0.3) * 0.3;
+                        float warpY = cos(p.x * 2.0 + uTime * 0.3) * 0.4 + sin(p.z * 1.8 + uTime * 0.5) * 0.3;
+                        float warpZ = sin(p.y * 2.2 - uTime * 0.5) * 0.4 + cos(p.x * 1.6 + uTime * 0.4) * 0.3;
+                        vec3 warpedPos = p + vec3(warpX, warpY, warpZ) * 0.6;
+                        
+                        // Layer 2: High-frequency intricate ripples (adds detailed texture)
+                        float detailWarp = sin(warpedPos.x * 4.5 + uTime * 0.8) * 0.15 
+                                         + cos(warpedPos.y * 5.0 - uTime * 0.7) * 0.15
+                                         + sin(warpedPos.z * 4.8 + uTime * 0.9) * 0.15;
+                                         
+                        // Combine frequencies for organic flow direction
+                        float flow = warpedPos.y * 0.25 - uTime * 0.08 + detailWarp * 0.4;
+                        
+                        // Multi-axis evolving waves
+                        float h1 = fract(flow + sin(warpedPos.x * 1.2 + uTime * 0.15) * 0.3);
+                        float h2 = fract(warpedPos.z * 0.2 + uTime * 0.05 + cos(warpedPos.y * 0.8 - uTime * 0.1) * 0.2);
+                        
+                        // Time-evolving blending factor that shifts with height
+                        float mixFactor = 0.5 + 0.3 * sin(uTime * 0.22 + warpedPos.y * 0.5);
+                        float h = fract(mix(h1, h2, mixFactor));
                         
                         // Smooth cosine palette: no branching, perfectly continuous gradients
                         // rgb = a + b * cos(2π * (c * t + d))
