@@ -145,27 +145,35 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         // --- Psychedelic iridescent color overlay (intricate domain-warped coordinates) ---
                         vec3 p = vWorldPosition;
                         
-                        // Layer 1: Slow, large-scale organic fluid currents
-                        float warpX = sin(p.y * 1.8 + uTime * 0.4) * 0.4 + cos(p.z * 1.5 - uTime * 0.3) * 0.3;
-                        float warpY = cos(p.x * 2.0 + uTime * 0.3) * 0.4 + sin(p.z * 1.8 + uTime * 0.5) * 0.3;
-                        float warpZ = sin(p.y * 2.2 - uTime * 0.5) * 0.4 + cos(p.x * 1.6 + uTime * 0.4) * 0.3;
-                        vec3 warpedPos = p + vec3(warpX, warpY, warpZ) * 0.6;
+                        // Create shifting, localized pockets of turbulence using 3D sine multiplications
+                        float pocketX = sin(p.x * 1.5 + uTime * 0.2) * cos(p.y * 1.2 - uTime * 0.15);
+                        float pocketY = sin(p.y * 1.6 - uTime * 0.25) * cos(p.z * 1.4 + uTime * 0.1);
+                        float pocketZ = sin(p.z * 1.3 + uTime * 0.3) * cos(p.x * 1.7 - uTime * 0.2);
+                        float turbulenceMask = smoothstep(0.02, 0.45, abs(pocketX * pocketY * pocketZ));
                         
-                        // Layer 2: High-frequency intricate ripples (adds detailed texture)
-                        float detailWarp = sin(warpedPos.x * 4.5 + uTime * 0.8) * 0.15 
-                                         + cos(warpedPos.y * 5.0 - uTime * 0.7) * 0.15
-                                         + sin(warpedPos.z * 4.8 + uTime * 0.9) * 0.15;
+                        // Layer 1: High frequency, smaller-scale organic fluid currents (much smaller wave sizes)
+                        float warpX = sin(p.y * 8.0 + uTime * 0.7) * 0.12 + cos(p.z * 7.0 - uTime * 0.6) * 0.08;
+                        float warpY = cos(p.x * 9.0 + uTime * 0.5) * 0.12 + sin(p.z * 8.0 + uTime * 0.8) * 0.08;
+                        float warpZ = sin(p.y * 10.0 - uTime * 0.8) * 0.12 + cos(p.x * 7.5 + uTime * 0.6) * 0.08;
+                        
+                        // Modulate the displacement scale by the localized turbulence mask
+                        vec3 warpedPos = p + vec3(warpX, warpY, warpZ) * (0.05 + 0.95 * turbulenceMask);
+                        
+                        // Layer 2: High-frequency detailed ripples
+                        float detailWarp = sin(warpedPos.x * 12.0 + uTime * 1.5) * 0.06 
+                                         + cos(warpedPos.y * 13.0 - uTime * 1.2) * 0.06
+                                         + sin(warpedPos.z * 11.5 + uTime * 1.6) * 0.06;
                                          
                         // Combine frequencies for organic flow direction
                         float flow = warpedPos.y * 0.25 - uTime * 0.08 + detailWarp * 0.4;
                         
                         // Multi-axis evolving waves
-                        float h1 = fract(flow + sin(warpedPos.x * 1.2 + uTime * 0.15) * 0.3);
-                        float h2 = fract(warpedPos.z * 0.2 + uTime * 0.05 + cos(warpedPos.y * 0.8 - uTime * 0.1) * 0.2);
+                        float h1 = fract(flow + sin(warpedPos.x * 2.5 + uTime * 0.3) * 0.3);
+                        float h2 = fract(warpedPos.z * 0.2 + uTime * 0.05 + cos(warpedPos.y * 1.5 - uTime * 0.2) * 0.2);
                         
                         // Time-evolving blending factor that shifts with height
                         float mixFactor = 0.5 + 0.3 * sin(uTime * 0.22 + warpedPos.y * 0.5);
-                        // Multiply by 3.5 to increase the cycle frequency and make harsh transition edges more common
+                        // Multiply by 3.5 to keep harsh transition edges common
                         float h = fract(mix(h1, h2, mixFactor) * 3.5);
                         
                         // Smooth cosine palette: no branching, perfectly continuous gradients
