@@ -93,7 +93,7 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
     return (
         <div className="relative">
             {/* Ultra-Minimal List Wrapper */}
-            <div className="flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl selection:bg-foreground selection:text-background overflow-hidden shadow-2xl shadow-black/5">
+            <div className="flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl selection:bg-foreground selection:text-background overflow-hidden">
                 <AnimatePresence mode="popLayout">
                     {allItems.map((entry, i) => {
                         const href = `/new/work/${entry.id}`;

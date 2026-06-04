@@ -30,7 +30,7 @@ export function Hero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="max-w-md pointer-events-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-6 md:p-8 shadow-2xl shadow-black/5"
+                        className="max-w-md pointer-events-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-6 md:p-8"
                     >
                         <p className="text-sm md:text-base font-normal leading-relaxed text-foreground text-left">
                             I love meeting new and interesting clients that allow me to understand just a little bit more about our wild digital world. If that sounds like you, <a href="mailto:z@zpennachi.com" className="underline hover:opacity-70 transition-opacity font-normal">hit me up!</a>

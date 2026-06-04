@@ -1,7 +1,7 @@
 export function ToolStack() {
     return (
         <section className="container py-24 md:py-48 border-t border-muted" >
-            <div className="max-w-3xl mr-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-8 md:p-12 shadow-2xl shadow-black/5 space-y-12">
+            <div className="max-w-3xl mr-auto border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl p-8 md:p-12 space-y-12">
 
                 <div className="space-y-6">
                     <h2 className="text-2xl md:text-4xl font-light tracking-tight text-foreground">

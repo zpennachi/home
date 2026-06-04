@@ -66,7 +66,7 @@ export default function AboutPage() {
                     <div className="lg:col-span-4">
                         <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-fg">Experience</h2>
                     </div>
-                    <div className="lg:col-span-8 flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl shadow-black/5">
+                    <div className="lg:col-span-8 flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl overflow-hidden">
                         {EXPERIENCE.map((item, i) => (
                             <div key={i} className="group border-b border-muted/30 last:border-b-0 p-6 md:p-8 hover:bg-foreground/5 transition-all duration-300">
                                 <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-4 gap-2">
