@@ -165,7 +165,8 @@ const CedarTreeModel = React.memo(function CedarTreeModel({ scrollPercentRef, mo
                         
                         // Time-evolving blending factor that shifts with height
                         float mixFactor = 0.5 + 0.3 * sin(uTime * 0.22 + warpedPos.y * 0.5);
-                        float h = fract(mix(h1, h2, mixFactor));
+                        // Multiply by 3.5 to increase the cycle frequency and make harsh transition edges more common
+                        float h = fract(mix(h1, h2, mixFactor) * 3.5);
                         
                         // Smooth cosine palette: no branching, perfectly continuous gradients
                         // rgb = a + b * cos(2π * (c * t + d))
