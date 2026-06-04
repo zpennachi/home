@@ -69,7 +69,18 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             type: 'entry' as const
         }));
 
-        return [...pItems, ...eItems];
+        const combined = [...pItems, ...eItems];
+
+        // Filter: only show allowed projects and all 365 daily entries (type === 'entry')
+        const allowedProjectIds = ['OHM-site', '0ghost-chat', 'MVPIQ', 'Volumetric-Design-System-ESR--main'];
+        return combined.filter(item => {
+            if (item.type === 'project') {
+                return allowedProjectIds.includes(String(item.id)) ||
+                       item.id === 'ohm' || item.id === '0ghost' || item.id === 'mvpiq' || item.id === 'esr';
+            }
+            // Allow all 365 daily visual/music entries
+            return true;
+        });
     }, [entries, projects]);
 
     // Mouse movement tracker to move the hover popup dynamically
@@ -82,7 +93,7 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
     return (
         <div className="relative">
             {/* Ultra-Minimal List Wrapper */}
-            <div className="flex flex-col border-t border-muted selection:bg-foreground selection:text-background">
+            <div className="flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl selection:bg-foreground selection:text-background overflow-hidden shadow-2xl shadow-black/5">
                 <AnimatePresence mode="popLayout">
                     {allItems.map((entry, i) => {
                         const href = `/new/work/${entry.id}`;
@@ -96,14 +107,14 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.98 }}
                                 transition={{ duration: 0.4, delay: i * 0.02, ease: [0.16, 1, 0.3, 1] }}
-                                className="border-b border-muted/50"
+                                className="border-b border-muted/30 last:border-b-0"
                             >
                                 <Link
                                     href={href}
                                     onMouseEnter={() => setHoveredItem(entry)}
                                     onMouseLeave={() => setHoveredItem(null)}
                                     onMouseMove={handleMouseMove}
-                                    className="grid grid-cols-12 py-5 items-center hover:bg-muted/15 transition-all duration-300 px-4 group cursor-pointer"
+                                    className="grid grid-cols-12 py-5 items-center hover:bg-foreground/5 transition-all duration-300 px-6 group cursor-pointer"
                                 >
                                     {/* Number & Title */}
                                     <div className="col-span-12 md:col-span-6 flex items-center gap-6">

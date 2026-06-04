@@ -3,6 +3,7 @@ import { Inter, Instrument_Sans, Outfit, JetBrains_Mono } from 'next/font/google
 import './globals.css'
 import { ThemeProvider } from '@/components/work/ThemeProvider'
 import { DynamicStyles } from '@/components/work/DynamicStyles'
+import Script from 'next/script'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -45,6 +46,12 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        {/* Load Google's model-viewer script dynamically only for mobile AR capabilities */}
+        <Script
+          type="module"
+          src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )

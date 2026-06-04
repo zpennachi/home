@@ -27,7 +27,7 @@ export function Header() {
             }}
             animate={hidden ? "hidden" : "visible"}
             transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="fixed top-0 left-0 right-0 z-50 flex h-24 items-center bg-transparent mix-blend-difference text-white pointer-events-none"
+            className="fixed top-0 left-0 right-0 z-50 flex h-20 items-center bg-background/80 backdrop-blur-md border-b border-muted/30 text-foreground pointer-events-none"
         >
             <div className="container flex items-center justify-between pointer-events-auto">
                 <Link href="/new" className="text-xl font-normal tracking-[0.1em] hover:opacity-70 transition-opacity">
@@ -40,7 +40,7 @@ export function Header() {
                     <Link href="/new/about" className="hover:opacity-70 transition-opacity">
                         About
                     </Link>
-                    <Link href="/new/contact" className="hover:opacity-70 transition-opacity px-4 py-2 border border-white/25 rounded-full hover:border-white/60">
+                    <Link href="/new/contact" className="hover:opacity-70 transition-opacity px-4 py-2 border border-foreground/20 rounded-full hover:border-foreground/60">
                         Contact
                     </Link>
                 </nav>

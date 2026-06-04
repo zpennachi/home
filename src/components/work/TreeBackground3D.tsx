@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 interface CedarTreeProps {
@@ -494,23 +494,46 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     return null;
 }
 
-export default function TreeBackground3D() {
+interface TreeBackground3DProps {
+    mode?: 'scroll' | 'static';
+    scrollPercent?: number;
+    interactive?: boolean;
+}
+
+export default function TreeBackground3D({ mode = 'scroll', scrollPercent, interactive = false }: TreeBackground3DProps) {
     const scrollPercentRef = useRef(0);
     const mouseRef = useRef(new THREE.Vector2(0, 0));
     const mouseActiveRef = useRef(false); // set to false initially until mouse moves in
     const [mounted, setMounted] = useState(false);
+
+    // Keep track of a stable random percent if none is passed
+    const stableRandomPct = useRef(Math.random());
+
+    // Determine the active static percentage
+    const activeStaticPct = scrollPercent !== undefined ? scrollPercent : stableRandomPct.current;
 
     // Track scroll positions and handle scroll boundaries
     useEffect(() => {
         setMounted(true);
 
         const handleScroll = () => {
+            if (mode === 'static') {
+                scrollPercentRef.current = activeStaticPct;
+                return;
+            }
             const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
             if (totalHeight > 0) {
                 const currentPct = window.scrollY / totalHeight;
                 scrollPercentRef.current = currentPct;
             }
         };
+
+        // Initialize position
+        if (mode === 'static') {
+            scrollPercentRef.current = activeStaticPct;
+        } else {
+            handleScroll();
+        }
 
         const handlePointerMove = (event: PointerEvent) => {
             mouseActiveRef.current = true;
@@ -540,12 +563,18 @@ export default function TreeBackground3D() {
             window.removeEventListener('pointerenter', handlePointerEnter);
             document.removeEventListener('mouseleave', handlePointerLeave);
         };
-    }, []);
+    }, [mode, activeStaticPct]);
 
     if (!mounted) return null;
 
     return (
-        <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
+        <div 
+            className={`fixed inset-0 w-full h-full z-0 transition-opacity duration-1000 ${
+                interactive 
+                    ? "pointer-events-auto opacity-100" 
+                    : "pointer-events-none opacity-50 md:opacity-100"
+            }`}
+        >
             <Canvas
                 dpr={[1, 1.5]}
                 gl={{
@@ -571,7 +600,19 @@ export default function TreeBackground3D() {
                     />
                 </Suspense>
                 
-                <CameraScrollController scrollPercentRef={scrollPercentRef} />
+                {!interactive && <CameraScrollController scrollPercentRef={scrollPercentRef} />}
+                {interactive && (
+                    <OrbitControls 
+                        makeDefault 
+                        target={[-1.5, -0.5, 0]} 
+                        enableZoom={true} 
+                        enablePan={true} 
+                        enableDamping={true} 
+                        dampingFactor={0.05} 
+                        minDistance={2}
+                        maxDistance={8}
+                    />
+                )}
             </Canvas>
         </div>
     );

@@ -1,22 +1,29 @@
-import { DynamicGrid, type ProjectEntry } from "@/components/work/DynamicGrid";
-import projectsData from "@/data/projects.json";
+import { DynamicGrid } from "@/components/work/DynamicGrid";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
     title: "Work — ZPennachi",
     description: "Selected works and experiments.",
 };
 
-export default function WorkPage() {
-    // Map JSON data to grid format
-    const entries: ProjectEntry[] = (projectsData as any[]).map(p => ({
-        id: p.id,
-        title: p.title,
-        category: p.category,
-        medium: p.medium,
-        file: p.images[0] || null,
-        branding: p.branding || null,
-        type: "project"
-    }));
+export default async function WorkPage() {
+    const supabase = await createClient();
+
+    // Query 365 entries from database
+    const { data: entries, error: entriesError } = await supabase
+        .from('365')
+        .select('id, title, category, medium, file')
+        .order('id', { ascending: false });
+
+    // Query projects from database
+    const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id, title, category, medium, images, description, created_at')
+        .order('created_at', { ascending: false });
+
+    if (entriesError || projectsError) {
+        console.error("Supabase query error inside WorkPage:", entriesError || projectsError);
+    }
 
     return (
         <main className="container py-12 md:py-24">
@@ -30,7 +37,7 @@ export default function WorkPage() {
                 </p>
             </div>
 
-            <DynamicGrid entries={entries} />
+            <DynamicGrid entries={entries} projects={projects} />
 
         </main>
     );

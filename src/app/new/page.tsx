@@ -4,7 +4,6 @@ import { Manifesto } from "@/components/work/Manifesto";
 import { ToolStack } from "@/components/work/ToolStack";
 import { DynamicGrid } from "@/components/work/DynamicGrid";
 import { ParticleBackground } from "@/components/work/ParticleBackground";
-import TreeBackground3D from "@/components/work/TreeBackground3D";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -31,9 +30,6 @@ export default async function Home() {
       <div className="fixed inset-0 z-0 pointer-events-none">
         <ParticleBackground />
       </div>
-
-      {/* Global 3D Procedural Tree Background (Scroll-Linked) */}
-      <TreeBackground3D />
 
       {/* 1. THE HOOK - Contains Hero Content Layer */}
       <Hero />

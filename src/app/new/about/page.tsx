@@ -66,18 +66,18 @@ export default function AboutPage() {
                     <div className="lg:col-span-4">
                         <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-fg">Experience</h2>
                     </div>
-                    <div className="lg:col-span-8 space-y-16">
+                    <div className="lg:col-span-8 flex flex-col border border-muted/40 bg-background/50 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl shadow-black/5">
                         {EXPERIENCE.map((item, i) => (
-                            <div key={i} className="group">
-                                <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-4">
-                                    <h3 className="text-2xl font-medium text-foreground group-hover:text-muted-fg transition-colors">
+                            <div key={i} className="group border-b border-muted/30 last:border-b-0 p-6 md:p-8 hover:bg-foreground/5 transition-all duration-300">
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-4 gap-2">
+                                    <h3 className="text-xl md:text-2xl font-normal text-foreground group-hover:opacity-75 transition-opacity">
                                         {item.role}
                                     </h3>
                                     <span className="text-sm text-muted-fg font-mono mt-1 md:mt-0">
                                         {item.company} / {item.period}
                                     </span>
                                 </div>
-                                <p className="text-lg text-muted-fg max-w-xl leading-relaxed">
+                                <p className="text-base md:text-lg text-muted-fg max-w-xl leading-relaxed font-light">
                                     {item.desc}
                                 </p>
                             </div>

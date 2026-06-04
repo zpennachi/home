@@ -47,8 +47,9 @@ export function CaseStudyLayout({
 
     // Stable "Other Projects" selection to avoid Hydration Mismatch
     // (Random.math() in render causes server/client diffs)
+    const allowedIds = ['OHM-site', '0ghost-chat', 'MVPIQ', 'Volumetric-Design-System-ESR--main'];
     const otherProjects = projectsData
-        .filter(p => p.id !== id)
+        .filter(p => p.id !== id && allowedIds.includes(p.id))
         .slice(0, 3); // Deterministic slice
 
     return (

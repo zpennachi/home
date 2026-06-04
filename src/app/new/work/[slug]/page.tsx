@@ -10,12 +10,29 @@ import localProjects from "@/data/projects.json";
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-    const { data: supabaseProjects } = await supabase.from('projects').select('id');
+    let supabaseIds: string[] = [];
+    let supabase365Ids: string[] = [];
 
-    // Combine IDs from both sources
-    const supabaseIds = (supabaseProjects || []).map((p: any) => p.id);
-    const localIds = localProjects.map(p => p.id);
-    const allIds = Array.from(new Set([...supabaseIds, ...localIds]));
+    try {
+        const { data: supabaseProjects } = await supabase.from('projects').select('id');
+        if (supabaseProjects) {
+            supabaseIds = supabaseProjects.map((p: any) => String(p.id));
+        }
+    } catch (e) {
+        console.error("Error fetching projects for generateStaticParams:", e);
+    }
+
+    try {
+        const { data: supabase365 } = await supabase.from('365').select('id');
+        if (supabase365) {
+            supabase365Ids = supabase365.map((e: any) => String(e.id));
+        }
+    } catch (e) {
+        console.error("Error fetching 365 for generateStaticParams:", e);
+    }
+
+    const localIds = localProjects.map(p => String(p.id));
+    const allIds = Array.from(new Set([...supabaseIds, ...supabase365Ids, ...localIds]));
 
     return allIds.map((id) => ({
         slug: id,
@@ -26,16 +43,39 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     const params = await props.params;
     const { slug } = params;
 
-    let { data: project } = await supabase.from('projects').select('*').eq('id', slug).single();
+    let project: any = null;
+
+    try {
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', slug).single();
+        if (dbProject) {
+            project = dbProject;
+        }
+    } catch (e) {
+        console.error("Error fetching project in generateMetadata:", e);
+    }
 
     // Fallback to local
     if (!project) {
-        const local = localProjects.find(p => p.id === slug);
+        const local = localProjects.find(p => String(p.id) === slug);
         if (local) {
             project = {
                 ...local,
-                // Ensure compatibility if types differ slightly
             } as any;
+        }
+    }
+
+    // Fallback to 365 daily
+    if (!project) {
+        try {
+            const { data: daily } = await supabase.from('365').select('*').eq('id', slug).single();
+            if (daily) {
+                project = {
+                    title: daily.title,
+                    description: daily.description,
+                };
+            }
+        } catch (e) {
+            console.error("Error fetching 365 entry in generateMetadata:", e);
         }
     }
 
@@ -43,7 +83,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
     return {
         title: `${project.title} — ZPennachi`,
-        description: project.description,
+        description: project.description || "",
     };
 }
 
@@ -53,11 +93,21 @@ import ProjectStoryLoader from '@/components/work/custom/ProjectStoryLoader';
 export default async function ProjectPage(props: { params: Promise<{ slug: string }> }) {
     const params = await props.params;
 
-    let { data: project } = await supabase.from('projects').select('*').eq('id', params.slug).single();
+    let project: any = null;
+    let isDailyEntry = false;
+
+    try {
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', params.slug).single();
+        if (dbProject) {
+            project = dbProject;
+        }
+    } catch (e) {
+        console.error("Error fetching project in ProjectPage:", e);
+    }
 
     // Fallback to local JSON
     if (!project) {
-        const local = localProjects.find(p => p.id === params.slug);
+        const local = localProjects.find(p => String(p.id) === params.slug);
         if (local) {
             project = {
                 ...local,
@@ -66,34 +116,83 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
         }
     }
 
+    // Fallback to 365 daily entry
+    if (!project) {
+        try {
+            const { data: daily } = await supabase.from('365').select('*').eq('id', params.slug).single();
+            if (daily) {
+                isDailyEntry = true;
+                // Normalize files
+                let imagesList: string[] = [];
+                if (daily.file) {
+                    if (Array.isArray(daily.file)) {
+                        imagesList = daily.file;
+                    } else if (typeof daily.file === 'string') {
+                        try {
+                            const parsed = JSON.parse(daily.file);
+                            imagesList = Array.isArray(parsed) ? parsed : [daily.file];
+                        } catch {
+                            imagesList = [daily.file];
+                        }
+                    }
+                }
+                project = {
+                    id: String(daily.id),
+                    title: daily.title,
+                    category: daily.category,
+                    medium: daily.medium,
+                    description: daily.description || "",
+                    content: daily.description || "",
+                    stack: daily.medium ? daily.medium.split(',').map((s: string) => s.trim()) : [],
+                    repo: "",
+                    images: imagesList,
+                    branding: null,
+                    created_at: daily.created_at,
+                    source: '365'
+                };
+            }
+        } catch (e) {
+            console.error("Error fetching 365 entry in ProjectPage:", e);
+        }
+    }
+
     if (!project) {
         notFound();
     }
 
-    const customVisual = <ProjectVisualLoader slug={params.slug} />;
+    const firstImage = project.images?.[0] || null;
+    const isVideo = firstImage && (firstImage.endsWith('.mp4') || firstImage.endsWith('.webm') || firstImage.endsWith('.ogg'));
+    const isAudio = firstImage && (firstImage.endsWith('.mp3') || firstImage.endsWith('.wav') || firstImage.endsWith('.ogg'));
+
+    let customVisual: React.ReactNode = null;
+    if (isVideo) {
+        customVisual = <video src={firstImage} autoPlay muted loop playsInline className="w-full h-full object-cover" />;
+    } else if (isAudio) {
+        customVisual = (
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+                <audio src={firstImage} controls className="w-full max-w-md" />
+            </div>
+        );
+    } else if (['particle-life-131', 'MVPIQ', 'weekend', '0ghost-chat', 'hawkeye'].includes(params.slug)) {
+        customVisual = <ProjectVisualLoader slug={params.slug} />;
+    }
+
     const customStory = <ProjectStoryLoader slug={params.slug} />;
 
-    // Map JSON data to CaseStudyLayout props
     return (
         <CaseStudyLayout
             id={project.id}
             title={project.title}
             category={project.category}
-            role="Lead Engineer" // TODO: Add to JSON
-            year="2024" // TODO: Add to JSON
+            role={project.role || (isDailyEntry ? "Creator" : "Lead Engineer")}
+            year={project.created_at ? new Date(project.created_at).getFullYear().toString() : "2024"}
             description={project.description}
             stack={project.stack}
+            heroImage={!isVideo && !isAudio ? firstImage : null}
             customVisual={customVisual}
             branding={project.branding}
         >
             {customStory}
-
-            {/* Fallback Content (Only show if no story, OR if story wants to render content below? 
-                Usually customStory replaces the whole view, but here we might want text below.
-                For now, let's render text if it's there, but usually the Story component handles the full layout override if needed.
-                Actually, CaseStudyLayout renders children below the fold. 
-                So we WANT the content here.
-            */}
 
             <div className="prose dark:prose-invert mt-24">
                 <ReactMarkdown
