@@ -7,6 +7,7 @@ import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { ProjectThumbnail } from './ProjectThumbnail'
 import { ImageLightbox } from './ImageLightbox'
+import localProjects from '@/data/projects.json'
 
 export interface ProjectEntry {
     id: number | string;
@@ -87,7 +88,6 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             }
         };
 
-        // Capture phase handles play event propagation (which does not bubble by default)
         document.addEventListener('play', handlePlay, true);
         return () => {
             document.removeEventListener('play', handlePlay, true);
@@ -96,6 +96,10 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
 
     // Combine projects and entries with full case study fields mapped
     const allItems = useMemo(() => {
+        const seenIds = new Set<string>();
+        const list: ProjectEntry[] = [];
+
+        // 1. Database projects (highest priority)
         const pItems = (projects || []).map((p: any) => ({
             id: p.id,
             title: p.title,
@@ -113,6 +117,38 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             type: 'project' as const
         }));
 
+        pItems.forEach(item => {
+            list.push(item);
+            seenIds.add(String(item.id).toLowerCase());
+        });
+
+        // 2. Local JSON projects (fallback for missing ones)
+        const localItems = localProjects.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            category: p.category,
+            medium: p.medium,
+            file: p.images?.[0] || null,
+            branding: p.branding || null,
+            description: p.description || '',
+            content: p.content || '',
+            stack: p.stack || [],
+            repo: p.repo || '',
+            images: p.images || [],
+            role: p.role || 'Lead Engineer',
+            created_at: p.created_at,
+            type: 'project' as const
+        }));
+
+        localItems.forEach(item => {
+            const key = String(item.id).toLowerCase();
+            if (!seenIds.has(key)) {
+                list.push(item);
+                seenIds.add(key);
+            }
+        });
+
+        // 3. 365 daily entries (type === 'entry')
         const eItems = (entries || []).map(e => {
             const files = normalizeFiles(e.file);
             return {
@@ -133,16 +169,15 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             };
         });
 
-        const combined = [...pItems, ...eItems];
-
-        const allowedProjectIds = ['OHM-site', '0ghost-chat', 'MVPIQ', 'Volumetric-Design-System-ESR--main'];
-        return combined.filter(item => {
-            if (item.type === 'project') {
-                return allowedProjectIds.includes(String(item.id)) ||
-                       item.id === 'ohm' || item.id === '0ghost' || item.id === 'mvpiq' || item.id === 'esr';
+        eItems.forEach(item => {
+            const key = String(item.id).toLowerCase();
+            if (!seenIds.has(key)) {
+                list.push(item);
+                seenIds.add(key);
             }
-            return true;
         });
+
+        return list;
     }, [entries, projects]);
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -177,9 +212,9 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
                             const isExpanded = expandedId === entry.id;
 
                             // Media helper tags
-                            const firstFile = entry.images?.[0] || entry.file;
-                            const isAudio = firstFile && (firstFile.endsWith('.mp3') || firstFile.endsWith('.wav') || firstFile.endsWith('.mpeg') || firstFile.endsWith('.aac') || firstFile.endsWith('.ogg'));
-                            const isVideo = firstFile && (firstFile.endsWith('.mp4') || firstFile.endsWith('.webm') || firstFile.endsWith('.ogg'));
+                            const firstFile = (entry.images?.[0] || (typeof entry.file === 'string' ? entry.file : (Array.isArray(entry.file) ? entry.file[0] : '')) || '') as string;
+                            const isAudio = !!firstFile && (firstFile.endsWith('.mp3') || firstFile.endsWith('.wav') || firstFile.endsWith('.mpeg') || firstFile.endsWith('.aac') || firstFile.endsWith('.ogg'));
+                            const isVideo = !!firstFile && (firstFile.endsWith('.mp4') || firstFile.endsWith('.webm') || firstFile.endsWith('.ogg'));
 
                             return (
                                 <motion.div
