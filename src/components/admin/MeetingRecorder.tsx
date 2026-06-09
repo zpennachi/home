@@ -193,21 +193,21 @@ export function MeetingRecorder({
             {isRecording ? (
                 <button
                     onClick={stopRecording}
-                    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
+                    className="flex items-center gap-1.5 border border-red-500/30 hover:border-red-500 text-red-500 hover:bg-red-500/5 px-2.5 py-1 rounded-none text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
                 >
-                    <Square className="w-3 h-3 fill-current" />
+                    <Square className="w-2.5 h-2.5 fill-current" />
                     Stop
                 </button>
             ) : (
                 <button
                     onClick={startRecording}
                     disabled={isInitializing}
-                    className="flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                    className="flex items-center gap-1.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground px-2.5 py-1 rounded-none text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer"
                 >
                     {isInitializing ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
                     ) : (
-                        <Play className="w-2.5 h-2.5 fill-current" />
+                        <Play className="w-2 h-2 fill-current" />
                     )}
                     {isInitializing ? "..." : "start transcription"}
                 </button>
@@ -215,8 +215,8 @@ export function MeetingRecorder({
             }
 
             <div className="flex items-center gap-1.5 ml-1">
-                {isSystemAudioCaptured && <Volume2 className="w-3.5 h-3.5 text-blue-500/70" />}
-                {error && <AlertCircle className="w-3.5 h-3.5 text-red-500" />}
+                {isSystemAudioCaptured && <Volume2 className="w-3 h-3 text-muted-fg" />}
+                {error && <AlertCircle className="w-3 h-3 text-red-500" />}
             </div>
         </div>
     )

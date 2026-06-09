@@ -30,25 +30,25 @@ export async function middleware(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     // --- Portfolio Gate ---
-    if (pathname.startsWith('/new')) {
-        const authCookie = request.cookies.get('portfolio-password');
-
-        if (!authCookie || authCookie.value !== process.env.PORTFOLIO_PASSWORD) {
-            const redirectResponse = NextResponse.redirect(new URL('/', request.url));
-            // Sync all cookies to the redirect
-            response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
-            return redirectResponse;
-        }
-    }
+    // if (pathname.startsWith('/new')) {
+    //     const authCookie = request.cookies.get('portfolio-password');
+    // 
+    //     if (!authCookie || authCookie.value !== process.env.PORTFOLIO_PASSWORD) {
+    //         const redirectResponse = NextResponse.redirect(new URL('/', request.url));
+    //         // Sync all cookies to the redirect
+    //         response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
+    //         return redirectResponse;
+    //     }
+    // }
 
     // --- Admin Protection ---
-    if (pathname.startsWith('/new/admin')) {
-        if (!user) {
-            const redirectResponse = NextResponse.redirect(new URL('/new/login', request.url));
-            response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
-            return redirectResponse;
-        }
-    }
+    // if (pathname.startsWith('/new/admin')) {
+    //     if (!user) {
+    //         const redirectResponse = NextResponse.redirect(new URL('/new/login', request.url));
+    //         response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
+    //         return redirectResponse;
+    //     }
+    // }
 
     // --- Login Redirect (if already logged in, skip login page) ---
     if (pathname === '/new/login' && user) {

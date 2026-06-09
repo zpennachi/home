@@ -19,6 +19,7 @@ export default async function WorkPage() {
     const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select('id, title, category, medium, images, description, created_at')
+        .eq('status', 'published')
         .order('created_at', { ascending: false });
 
     if (entriesError || projectsError) {

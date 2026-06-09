@@ -17,7 +17,8 @@ export default function NewLayout({
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/new/admin');
   const isHome = pathname === '/new';
-  const showTree = pathname === '/new' || pathname === '/new/work' || pathname === '/new/about' || pathname === '/new/contact';
+  const isLogSlice = pathname === '/new/work/log-slice';
+  const showTree = (pathname === '/new' || pathname === '/new/work' || pathname === '/new/about' || pathname === '/new/contact') && !isLogSlice;
 
   const [isTreeMode, setIsTreeMode] = useState(false);
   const modelViewerRef = useRef<any>(null);
@@ -69,10 +70,12 @@ export default function NewLayout({
   // Typecast string to any to bypass TypeScript custom-element compilation error
   const ModelViewer = 'model-viewer' as any;
 
+  const hideHeaderFooter = isAdmin || isLogSlice;
+
   return (
     <>
       <Toaster position="top-center" />
-      {!isAdmin && !isTreeMode && <Header />}
+      {!hideHeaderFooter && !isTreeMode && <Header />}
       {!isAdmin && showTree && (
         <>
           <TreeBackground3D 
@@ -89,12 +92,12 @@ export default function NewLayout({
       )}
       <div className={cn(
         "flex-grow transition-all duration-500", 
-        !isAdmin && "pt-24 pb-12",
+        !isAdmin && !isLogSlice && "pt-24 pb-12",
         isTreeMode && "opacity-0 pointer-events-none scale-98"
       )}>
         {children}
       </div>
-      {!isAdmin && !isTreeMode && <Footer />}
+      {!hideHeaderFooter && !isTreeMode && <Footer />}
 
       {/* Floating Action Bar (Mobile Only) */}
       {!isAdmin && showTree && (

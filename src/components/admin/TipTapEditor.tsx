@@ -7,6 +7,7 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import FloatingMenuExtension from '@tiptap/extension-floating-menu'
+import Image from '@tiptap/extension-image'
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { cn } from '@/lib/utils'
 import {
@@ -50,12 +51,67 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                     placeholder: 'Type your narrative...',
                     emptyEditorClass: 'is-editor-empty',
                 }),
+                Image.configure({
+                    inline: true,
+                    HTMLAttributes: {
+                        class: 'max-w-full h-auto border border-muted/50 my-4 rounded-none',
+                    },
+                }),
             ],
             content: initialContent,
             editorProps: {
                 attributes: {
                     class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] text-foreground leading-relaxed',
                 },
+                handleDOMEvents: {
+                    drop: (view, event) => {
+                        const hasFiles = event.dataTransfer?.files && event.dataTransfer.files.length > 0
+                        if (!hasFiles) return false
+
+                        event.preventDefault()
+                        
+                        const files = Array.from(event.dataTransfer.files)
+                        const imageFiles = files.filter(file => file.type.startsWith('image/'))
+                        
+                        if (imageFiles.length > 0) {
+                            imageFiles.forEach(file => {
+                                const reader = new FileReader()
+                                reader.onload = (readerEvent) => {
+                                    const content = readerEvent.target?.result as string
+                                    if (content && editor) {
+                                        editor.chain().focus().setImage({ src: content }).run()
+                                    }
+                                }
+                                reader.readAsDataURL(file)
+                            })
+                            return true
+                        }
+                        return false
+                    },
+                    paste: (view, event) => {
+                        const hasFiles = event.clipboardData?.files && event.clipboardData.files.length > 0
+                        if (!hasFiles) return false
+
+                        const files = Array.from(event.clipboardData.files)
+                        const imageFiles = files.filter(file => file.type.startsWith('image/'))
+
+                        if (imageFiles.length > 0) {
+                            event.preventDefault()
+                            imageFiles.forEach(file => {
+                                const reader = new FileReader()
+                                reader.onload = (readerEvent) => {
+                                    const content = readerEvent.target?.result as string
+                                    if (content && editor) {
+                                        editor.chain().focus().setImage({ src: content }).run()
+                                    }
+                                }
+                                reader.readAsDataURL(file)
+                            })
+                            return true
+                        }
+                        return false
+                    }
+                }
             },
             onUpdate: ({ editor }) => {
                 const markdown = (editor as any).storage.markdown.getMarkdown()
@@ -84,7 +140,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 onClick={onClick}
                 title={title}
                 className={cn(
-                    "p-2 rounded-lg transition-all duration-200 hover:bg-muted/80",
+                    "p-2 rounded-none transition-all duration-200 hover:bg-muted/80 cursor-pointer",
                     isActive ? "text-foreground bg-muted shadow-sm" : "text-muted-fg hover:text-foreground"
                 )}
             >
@@ -95,6 +151,10 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
         return (
             <div className="relative group">
                 <style jsx global>{`
+                .tiptap.prose {
+                    max-width: 100% !important;
+                    margin-inline: 0 !important;
+                }
                 .tiptap p.is-editor-empty:first-child::before {
                     content: attr(data-placeholder);
                     float: left;
@@ -130,7 +190,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 {/* Bubble Menu (Selection-based) */}
                 {editor && (
                     <BubbleMenu editor={editor}>
-                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1 rounded-xl shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1 rounded-none shadow-2xl animate-in fade-in zoom-in duration-200">
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleBold().run()}
                                 isActive={editor.isActive('bold')}
@@ -182,7 +242,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 {/* Floating Menu (Empty Line based) */}
                 {editor && (
                     <FloatingMenu editor={editor}>
-                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1.5 rounded-2xl shadow-xl">
+                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1.5 rounded-none shadow-xl">
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                                 title="Big Heading"
@@ -218,7 +278,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                     </FloatingMenu>
                 )}
 
-                <div className="w-full bg-background border border-transparent hover:border-muted focus-within:border-muted rounded-3xl p-8 transition-all duration-300">
+                <div className="w-full bg-transparent focus:outline-none pt-4">
                     <EditorContent editor={editor} />
                 </div>
             </div>

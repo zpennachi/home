@@ -14,7 +14,7 @@ export async function generateStaticParams() {
     let supabase365Ids: string[] = [];
 
     try {
-        const { data: supabaseProjects } = await supabase.from('projects').select('id');
+        const { data: supabaseProjects } = await supabase.from('projects').select('id').eq('status', 'published');
         if (supabaseProjects) {
             supabaseIds = supabaseProjects.map((p: any) => String(p.id));
         }
@@ -46,7 +46,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     let project: any = null;
 
     try {
-        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', slug).single();
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', slug).eq('status', 'published').single();
         if (dbProject) {
             project = dbProject;
         }
@@ -97,7 +97,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     let isDailyEntry = false;
 
     try {
-        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', params.slug).single();
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', params.slug).eq('status', 'published').single();
         if (dbProject) {
             project = dbProject;
         }
@@ -173,7 +173,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
                 <audio src={firstImage} controls className="w-full max-w-md" />
             </div>
         );
-    } else if (['particle-life-131', 'MVPIQ', 'weekend', '0ghost-chat', 'hawkeye'].includes(params.slug)) {
+    } else if (['particle-life-131', 'MVPIQ', 'weekend', '0ghost-chat', 'hawkeye', 'log-slice'].includes(params.slug)) {
         customVisual = <ProjectVisualLoader slug={params.slug} />;
     }
 

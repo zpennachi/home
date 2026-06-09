@@ -41,6 +41,13 @@ const NexusStory = dynamic(() => import('./nexus/Story'));
 // Vantage (Fintech Terminal)
 const VantageStory = dynamic(() => import('./vantage/Story'));
 
+// Log Slice Scroll Dissect (Timeline)
+const LogSliceStory = dynamic(() => import('./log-slice/Story'));
+const LogSliceVisual = dynamic(() => import('./log-slice'), {
+    loading: () => <div className="w-full h-full bg-black/95 animate-pulse" />,
+    ssr: false
+});
+
 // Map slugs to components
 export const PROJECT_VISUALS = {
     'particle-life-131': ParticleLife,
@@ -48,6 +55,7 @@ export const PROJECT_VISUALS = {
     'weekend': WeekendVisual,
     '0ghost-chat': ZeroGhostVisual,
     'hawkeye': HawkeyeVisual,
+    'log-slice': LogSliceVisual,
 };
 
 export const PROJECT_STORIES = {
@@ -57,4 +65,6 @@ export const PROJECT_STORIES = {
     'hawkeye': HawkeyeStory,
     'nexus': NexusStory,
     'vantage': VantageStory,
+    'log-slice': LogSliceStory,
 };
+

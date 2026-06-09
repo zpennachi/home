@@ -7,6 +7,7 @@ import { VantageVisual } from "./VantageVisual";
 import { SynthetixVisual } from "./SynthetixVisual";
 import { NexusVisual } from "./NexusVisual";
 import { GenericStoryVisual } from "./GenericStoryVisual";
+import ProjectVisualLoader from "../custom/ProjectVisualLoader";
 
 interface VisualManagerProps {
     projectId: string;
@@ -16,6 +17,9 @@ interface VisualManagerProps {
 export function VisualManager({ projectId, variant = 'default' }: VisualManagerProps) {
     const id = projectId.toLowerCase();
 
+    if (id === 'log-slice') {
+        return <ProjectVisualLoader slug="log-slice" />;
+    }
     if (id === 'hawkeye') {
         return <HawkeyeVisual variant={variant as any} />;
     }
@@ -53,7 +57,8 @@ export function hasVisualComponent(projectId: string) {
     const ids = [
         'hawkeye', 'mvpiq', '0ghost-chat', '0ghost', 'weekend',
         'particle-life-131', 'vantage', 'synthetix', 'nexus',
-        'krampus', 'box-nn', 'nn-snap', 'snowmen'
+        'krampus', 'box-nn', 'nn-snap', 'snowmen', 'log-slice'
     ];
     return ids.includes(projectId.toLowerCase());
 }
+

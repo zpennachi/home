@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check } from 'lucide-react'
-import Link from 'next/link'
+import { Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check } from 'lucide-react'
 import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary } from '../actions'
 import { TipTapEditor, TipTapEditorRef } from '@/components/admin/TipTapEditor'
 import { MeetingRecorder } from '@/components/admin/MeetingRecorder'
@@ -218,96 +217,171 @@ export default function NoteEditorPage() {
     )
 
     return (
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* STICKY CONTROL CENTER (FIXED TOP) */}
-            <div className="flex-none bg-background/80 backdrop-blur-xl border-b border-muted -mx-4 sm:-mx-6 md:-mx-12 px-4 sm:px-6 md:px-12 py-6 z-40">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-end">
-                    {/* Left: Nav & Title Area */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <Link
-                                href="/new/admin"
-                                className="group flex items-center gap-2 text-muted-fg hover:text-foreground transition-colors"
-                            >
-                                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                                <span className="text-sm font-medium">Back to Notes</span>
-                            </Link>
-                            {lastSaved && (
-                                <span className="text-[10px] text-muted-fg font-mono uppercase tracking-widest lg:hidden">
-                                    Synced {format(lastSaved, 'HH:mm:ss')}
-                                </span>
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-12 py-6 -mx-4 sm:-mx-6 md:-mx-12">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
+                
+                {/* Left Column: Editor/AI Summary Content */}
+                <div className="space-y-6 min-w-0">
+                    {/* TAB SWITCHER */}
+                    <div className="flex items-center gap-6 border-b border-muted/30 pb-2">
+                        <button
+                            onClick={() => setActiveTab('notes')}
+                            className={cn(
+                                "text-xs uppercase tracking-wider transition-colors pb-1 cursor-pointer",
+                                activeTab === 'notes' ? "text-foreground border-b border-foreground" : "text-muted-fg hover:text-foreground/70"
                             )}
-                        </div>
+                        >
+                            notes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ai')}
+                            className={cn(
+                                "text-xs uppercase tracking-wider transition-colors pb-1 flex items-center gap-1.5 cursor-pointer",
+                                activeTab === 'ai' ? "text-foreground border-b border-foreground" : "text-muted-fg hover:text-foreground/70"
+                            )}
+                        >
+                            ai summary
+                        </button>
+                    </div>
 
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                value={note.title}
-                                onChange={(e) => {
-                                    const newTitle = e.target.value
-                                    setNote({ ...note, title: newTitle })
-                                    setUpdatedTitle(params.id as string, newTitle)
-                                    saveNote({ title: newTitle })
-                                }}
-                                placeholder="Meeting Context / Title"
-                                className="w-full bg-transparent text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground placeholder:text-muted focus:outline-none border-none p-0"
-                            />
-
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-fg bg-muted/30 px-2 py-1 rounded-md">
-                                        <Clock className="w-3 h-3" />
-                                        {format(new Date(note.created_at), 'MMM d, yyyy')}
-                                    </div>
-                                    {lastSaved && (
-                                        <span className="hidden lg:inline text-[9px] text-muted-fg font-mono uppercase tracking-[0.2em]">
-                                            Last Sync: {format(lastSaved, 'HH:mm:ss')}
-                                        </span>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <AnimatePresence>
-                                        {!isRecording && (
-                                            <motion.button
-                                                initial={{ opacity: 0, scale: 0.95 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
+                    {/* CONTENT */}
+                    <div className="w-full">
+                        <AnimatePresence mode="wait">
+                            {activeTab === 'notes' ? (
+                                <motion.div
+                                    key="notes"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <TipTapEditor
+                                        ref={editorRef}
+                                        initialContent={note.content}
+                                        onChange={(content) => {
+                                            setNote({ ...note, content })
+                                            saveNote({ content })
+                                        }}
+                                    />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="ai"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="w-full !max-w-full !mx-0"
+                                >
+                                    {isSynthesizing ? (
+                                        <div className="py-12 flex flex-col items-center justify-center gap-3 text-center border border-dashed border-muted/50 rounded-none">
+                                            <Sparkles className="w-5 h-5 text-muted-fg animate-spin" />
+                                            <div>
+                                                <p className="text-xs uppercase tracking-wider text-muted-fg lowercase">synthesizing summary...</p>
+                                            </div>
+                                        </div>
+                                    ) : note.ai_summary ? (
+                                        <div className="relative pt-2 w-full !max-w-full !mx-0">
+                                            <div className="prose prose-sm sm:prose-base dark:prose-invert focus:outline-none !max-w-full !mx-0 text-foreground leading-relaxed">
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                    {note.ai_summary}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="py-16 border border-dashed border-muted/50 rounded-none flex flex-col items-center justify-center gap-4 text-center bg-transparent">
+                                            <div className="p-2 border border-muted/50 rounded-none text-muted-fg">
+                                                <Sparkles className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-medium text-foreground lowercase">no ai summary yet</p>
+                                                <p className="text-[11px] text-muted-fg max-w-xs lowercase mt-0.5">add notes or record a transcript, then generate your summary brief.</p>
+                                            </div>
+                                            <button
                                                 onClick={handleSuperpower}
                                                 disabled={isSynthesizing}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
-                                                className={cn(
-                                                    "flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-500",
-                                                    isSynthesizing
-                                                        ? "bg-muted text-muted-fg cursor-not-allowed"
-                                                        : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)]"
-                                                )}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none"
                                             >
-                                                {isSynthesizing ? <Wand2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                <span>{isSynthesizing ? "..." : "Superpower"}</span>
-                                            </motion.button>
-                                        )}
-                                    </AnimatePresence>
-                                    <button
-                                        onClick={handleDelete}
-                                        className="p-1.5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                        title="Delete Note"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                                                <Sparkles className="w-3 h-3" />
+                                                generate summary
+                                            </button>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* Right Column: Title, Metadata, Transcription Stack */}
+                <div className="space-y-3 lg:border-l lg:border-muted/30 lg:pl-4">
+                    {/* Title & Date Details */}
+                    <div className="space-y-1">
+                        <input
+                            type="text"
+                            value={note.title}
+                            onChange={(e) => {
+                                const newTitle = e.target.value
+                                setNote({ ...note, title: newTitle })
+                                setUpdatedTitle(params.id as string, newTitle)
+                                saveNote({ title: newTitle })
+                            }}
+                            placeholder="untitled note"
+                            className="w-full bg-transparent text-base sm:text-lg font-medium tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase"
+                        />
+
+                        <div className="text-[10px] text-muted-fg/80 lowercase leading-none">
+                            {format(new Date(note.created_at), 'MMM d, yyyy')}
+                            {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
                         </div>
                     </div>
 
-                    {/* Right: Transcription Feed Column (Sticky Header) */}
-                    <div className="flex flex-col rounded-2xl bg-black/5 border border-muted overflow-hidden shadow-sm">
-                        <div className="flex items-center justify-between px-3 py-2 bg-muted/20 border-b border-muted">
-                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-foreground/50">
-                                <Terminal className="w-3 h-3" />
-                                <span>Live Feed</span>
-                            </div>
+                    {/* Action Buttons Stack */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-muted/20">
+                        <AnimatePresence>
+                            {!isRecording && (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={handleSuperpower}
+                                    disabled={isSynthesizing}
+                                    className={cn(
+                                        "flex items-center justify-center gap-1.5 px-1.5 py-0.5 border border-muted hover:border-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none",
+                                        isSynthesizing
+                                            ? "text-muted-fg cursor-not-allowed opacity-50"
+                                            : "text-muted-fg hover:text-foreground"
+                                    )}
+                                >
+                                    {isSynthesizing ? <Wand2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                    <span>{isSynthesizing ? "..." : "superpower"}</span>
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+                        
+                        {activeTab === 'ai' && note.ai_summary && !isSynthesizing && (
+                            <button
+                                onClick={copyToEditor}
+                                className="flex items-center gap-1.5 px-1.5 py-0.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none"
+                            >
+                                <Copy className="w-3 h-3" />
+                                <span>copy to notes</span>
+                            </button>
+                        )}
+
+                        <button
+                            onClick={handleDelete}
+                            className="p-1 text-muted-fg hover:text-red-500 transition-colors cursor-pointer rounded-none"
+                            title="Delete Note"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    {/* Transcription Section */}
+                    <div className="pt-2 border-t border-muted/20 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] uppercase tracking-wider text-muted-fg/70 lowercase">transcription</span>
                             <MeetingRecorder
                                 onTranscription={handleTranscription}
                                 isRecording={isRecording}
@@ -317,11 +391,11 @@ export default function NoteEditorPage() {
                             />
                         </div>
 
-                        <div className="h-[100px] overflow-y-auto custom-scrollbar p-4 space-y-2 font-mono text-[11px] relative bg-black/20 backdrop-blur-sm">
+                        <div className="h-[80px] overflow-y-auto custom-scrollbar py-1 space-y-1 font-mono text-[10px] border-t border-b border-muted/30">
                             <AnimatePresence initial={false}>
                                 {transcriptSegments.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-muted-fg/30 italic text-[9px] uppercase tracking-widest">
-                                        {isRecording ? "Listening..." : "Feed Inactive"}
+                                    <div className="h-full flex items-center justify-center text-muted-fg/40 italic text-[9px] uppercase tracking-widest lowercase">
+                                        {isRecording ? "listening..." : "feed inactive"}
                                     </div>
                                 ) : (
                                     transcriptSegments.map((seg) => (
@@ -332,14 +406,14 @@ export default function NoteEditorPage() {
                                             className="flex gap-2"
                                         >
                                             <span className={cn(
-                                                "shrink-0 font-bold text-[8px] uppercase tracking-tighter w-8 pt-0.5",
-                                                seg.speaker === 0 ? "text-indigo-400" : "text-emerald-400"
+                                                "shrink-0 text-[8px] uppercase tracking-tighter w-8 pt-0.5",
+                                                seg.speaker === 0 ? "text-foreground/75 font-semibold" : "text-muted-fg/60"
                                             )}>
-                                                S{seg.speaker}
+                                                s{seg.speaker}
                                             </span>
                                             <span className={cn(
                                                 "leading-snug",
-                                                seg.isFinal ? "text-foreground/80" : "text-muted-fg animate-pulse"
+                                                seg.isFinal ? "text-foreground/80" : "text-muted-fg/50 animate-pulse"
                                             )}>
                                                 {seg.text}
                                             </span>
@@ -351,153 +425,7 @@ export default function NoteEditorPage() {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* MAIN CONTENT AREA (INDEPENDENT SCROLL) */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-12 pt-6 pb-12 -mx-4 sm:-mx-6 md:-mx-12 flex flex-col">
-                {/* TAB SWITCHER */}
-                <div className="flex items-center gap-1 mb-6 border-b border-muted relative">
-                    <button
-                        onClick={() => setActiveTab('notes')}
-                        className={cn(
-                            "relative px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors",
-                            activeTab === 'notes' ? "text-foreground" : "text-muted-fg hover:text-foreground/70"
-                        )}
-                    >
-                        Written Notes
-                        {activeTab === 'notes' && (
-                            <motion.div
-                                layoutId="activeContentTab"
-                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                            />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('ai')}
-                        className={cn(
-                            "relative px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2",
-                            activeTab === 'ai' ? "text-indigo-400" : "text-muted-fg hover:text-foreground/70"
-                        )}
-                    >
-                        <Sparkles className="w-3 h-3" />
-                        AI Summary
-                        {activeTab === 'ai' && (
-                            <motion.div
-                                layoutId="activeContentTab"
-                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-400 rounded-full"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                            />
-                        )}
-                    </button>
-                </div>
-
-                {/* TAB CONTENT */}
-                <div className="flex-1">
-                    <AnimatePresence mode="wait">
-                        {activeTab === 'notes' ? (
-                            <motion.div
-                                key="notes"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <TipTapEditor
-                                    ref={editorRef}
-                                    initialContent={note.content}
-                                    onChange={(content) => {
-                                        setNote({ ...note, content })
-                                        saveNote({ content })
-                                    }}
-                                />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="ai"
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 10 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                {isSynthesizing ? (
-                                    <div className="p-8 rounded-3xl bg-indigo-500/5 border border-indigo-500/20 border-dashed animate-pulse flex flex-col items-center justify-center gap-4 text-center">
-                                        <div className="p-3 bg-indigo-500/10 rounded-full">
-                                            <Sparkles className="w-6 h-6 text-indigo-400 animate-spin" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-black uppercase tracking-widest text-indigo-400">Synthesizing Super-Notes</p>
-                                            <p className="text-[10px] text-muted-fg font-bold uppercase tracking-[0.2em] mt-1">Synthesizing intelligence from transcript & observations...</p>
-                                        </div>
-                                    </div>
-                                ) : note.ai_summary ? (
-                                    <div className="relative p-6 sm:p-8 rounded-3xl bg-indigo-500/5 border border-indigo-500/20 group overflow-hidden">
-                                        {/* Background Glow */}
-                                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/10 blur-[100px] pointer-events-none" />
-                                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/5 blur-[100px] pointer-events-none" />
-
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 relative z-10 gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                                                    <Sparkles className="w-4 h-4 text-indigo-400" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-sm font-black uppercase tracking-widest text-indigo-400">AI Super-Summary</h3>
-                                                    <p className="text-[10px] text-muted-fg font-bold uppercase tracking-[0.2em]">Merged Transcript x User Notes</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={handleSuperpower}
-                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]"
-                                                >
-                                                    <Wand2 className="w-3 h-3" />
-                                                    Regenerate
-                                                </button>
-                                                <button
-                                                    onClick={copyToEditor}
-                                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest transition-colors"
-                                                >
-                                                    <Copy className="w-3 h-3" />
-                                                    Copy to Notes
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative z-10 prose prose-invert prose-indigo max-w-none prose-sm sm:prose-base
-                                        prose-headings:font-black prose-headings:tracking-tighter prose-headings:uppercase prose-headings:text-indigo-400
-                                        prose-p:text-foreground/90 prose-p:leading-relaxed
-                                        prose-strong:text-indigo-300
-                                        prose-ul:list-disc prose-li:text-foreground/80
-                                        border-l-2 border-indigo-500/30 pl-4 sm:pl-6 ml-1">
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                {note.ai_summary}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-12 rounded-3xl bg-muted/10 border border-muted border-dashed flex flex-col items-center justify-center gap-6 text-center">
-                                        <div className="p-4 bg-indigo-500/10 rounded-2xl">
-                                            <Sparkles className="w-8 h-8 text-indigo-400/50" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-foreground/70 mb-1">No AI Summary Yet</p>
-                                            <p className="text-[11px] text-muted-fg max-w-xs">Add notes or record a transcript, then generate your intelligence brief.</p>
-                                        </div>
-                                        <button
-                                            onClick={handleSuperpower}
-                                            disabled={isSynthesizing}
-                                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)]"
-                                        >
-                                            <Sparkles className="w-4 h-4" />
-                                            Generate Summary
-                                        </button>
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
             </div>
 
             {/* Sync Overlay */}
@@ -505,13 +433,13 @@ export default function NoteEditorPage() {
                 <AnimatePresence>
                     {saving && (
                         <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 20, opacity: 0 }}
-                            className="bg-foreground text-background px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-xs uppercase tracking-widest"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="bg-foreground text-background px-3.5 py-2 border border-muted/20 shadow-lg flex items-center gap-2 text-[10px] uppercase tracking-wider font-medium rounded-none"
                         >
-                            <div className="w-2 h-2 bg-background rounded-full animate-ping" />
-                            Archiving to Cloud...
+                            <div className="w-1.5 h-1.5 bg-background rounded-full animate-ping" />
+                            saving...
                         </motion.div>
                     )}
                 </AnimatePresence>

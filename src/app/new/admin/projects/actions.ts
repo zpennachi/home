@@ -16,6 +16,7 @@ export async function createProject(formData: FormData) {
     const content = formData.get('content') as string
     const repo = formData.get('repo') as string
     const source = formData.get('source') as string
+    const status = (formData.get('status') as string) || 'published'
 
     // Simple string-to-array parsing for stack/images (comma separated for MVP)
     const stack = (formData.get('stack') as string)?.split(',').map(s => s.trim()).filter(Boolean) || []
@@ -31,7 +32,8 @@ export async function createProject(formData: FormData) {
         repo,
         source,
         stack,
-        images
+        images,
+        status
     })
 
     if (error) {
@@ -68,6 +70,7 @@ export async function updateProject(formData: FormData) {
     const description = formData.get('description') as string
     const content = formData.get('content') as string
     const repo = formData.get('repo') as string
+    const status = (formData.get('status') as string) || 'published'
 
     // Parse arrays
     const stack = (formData.get('stack') as string)?.split(',').map(s => s.trim()).filter(Boolean) || []
@@ -82,6 +85,7 @@ export async function updateProject(formData: FormData) {
         repo: repo || null,
         stack,
         images,
+        status,
         updated_at: new Date().toISOString()
     }).eq('id', id)
 
@@ -93,5 +97,26 @@ export async function updateProject(formData: FormData) {
     revalidatePath('/new/admin/projects')
     revalidatePath(`/new/work/${id}`)
     revalidatePath('/new')
+    return { success: true }
+}
+
+export async function toggleProjectVisibility(id: string, currentStatus: string) {
+    const supabase = await createClient()
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published'
+
+    const { error } = await supabase
+        .from('projects')
+        .update({ status: newStatus })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error toggling project status:', error)
+        return { error: error.message }
+    }
+
+    revalidatePath('/new/admin/projects')
+    revalidatePath('/new')
+    revalidatePath('/new/work')
+    revalidatePath(`/new/work/${id}`)
     return { success: true }
 }

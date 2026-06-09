@@ -1,5 +1,24 @@
 [
   {
+    "id": "log-slice",
+    "title": "Chronological Core",
+    "category": "Interactive 3D",
+    "medium": "WebGL / Custom Shaders",
+    "description": "A scroll-driven volumetric timeline exploring the rings of growth in creative engineering.",
+    "content": "## Executive Summary\n\n**Chronological Core** is an interactive, scroll-driven web experiment demonstrating how dendrochronology (the study of tree rings) can serve as a metaphor for a developer's career trajectory. As the user scrolls, a procedural tree log separates, slides out a thin disc slice like a drawer, and rotates it 90 degrees to face the camera. The face of the disc displays growth rings that double as interactive, glowing timeline callouts.\n\n## The Design Philosophy\n\nMost timeline visualizations are static lists or basic 2D grids. We wanted to design something that feels dimensional, organic, and physically engaging. The concept utilizes simple cylinder geometry coupled with advanced coordinate warping in custom GLSL fragment shaders to generate detailed wood grain and growth rings procedurally.\n\n## Key Technical Features\n\n- **GPU-Accelerated Shaders**: Shaders compile in milliseconds and run at a stable 60fps on mobile and desktop.\n- **Domain Warping**: Custom GLSL math bends concentric rings to mimic natural cell growth.\n- **Zero-Redraw Loop**: Scroll state updates uniforms directly inside requestAnimationFrame, bypassing React render overhead.\n- **Responsive HTML Projections**: Uses `@react-three/drei`'s `<Html>` projection to align detailed card elements directly over active 3D coordinates.",
+    "stack": [
+      "@react-three/fiber",
+      "@react-three/drei",
+      "three",
+      "glsl",
+      "framer-motion",
+      "react"
+    ],
+    "repo": "",
+    "images": [],
+    "source": "local"
+  },
+  {
     "id": "krampus",
     "title": "Krampus Slap Fight",
     "category": "Interactive AR",

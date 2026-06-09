@@ -28,7 +28,8 @@ export function ProjectForm({ initialData, action }: ProjectFormProps) {
         content: initialData?.content || '',
         stack: initialData?.stack ? initialData.stack.join(', ') : '',
         images: initialData?.images ? initialData.images.join(', ') : '',
-        heroImage: initialData?.heroImage || ''
+        heroImage: initialData?.heroImage || '',
+        status: initialData?.status || 'published'
     })
 
     const handleChange = (field: string, value: string) => {
@@ -148,6 +149,18 @@ export function ProjectForm({ initialData, action }: ProjectFormProps) {
                                             placeholder="Web App"
                                         />
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-mono uppercase tracking-widest text-muted-fg mb-2">status</label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => handleChange('status', e.target.value)}
+                                        className="w-full bg-background border border-muted/70 rounded-sm px-3 py-2 text-xs focus:border-foreground focus:outline-none transition-colors cursor-pointer"
+                                    >
+                                        <option value="published">published (visible)</option>
+                                        <option value="draft">draft (hidden)</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
