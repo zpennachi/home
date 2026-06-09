@@ -410,21 +410,21 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
             angle: 0.3,   
             radius: 2.0,  // Start close to the trunk base for FPV feel
             y: -2.4,      // Very base of the trunk
-            look: new THREE.Vector3(TREE_X, 2.5, 0) // Tilt straight up the trunk
+            look: new THREE.Vector3(TREE_X, 1.8, 0) // Tilt straight up the trunk
         },
         {
-            pct: 0.5,     // Reach the top of the canopy in the first half
+            pct: 0.5,     // Climb to mid-tree in the first half
             angle: 0.3,   // Keep angle constant for straight FPV climb
-            radius: 1.5,  // Zoom in very close inside the canopy branches
-            y: 2.2,       // Top canopy level
-            look: new THREE.Vector3(TREE_X, 2.8, 0) // Still looking up/forward
+            radius: 1.6,  // Zoom in close
+            y: 1.0,       // Mid-canopy/branches level (not all the way to the top)
+            look: new THREE.Vector3(TREE_X, 2.0, 0) // Looking up towards canopy
         },
         {
             pct: 1.0,     // Move back down, rotate, and zoom out in the second half
-            angle: -0.8,  // Rotate camera to a new angle (keeping tree on the right side)
-            radius: 4.5,  // Zoom out way more to reveal full tree structure
-            y: -1.0,      // Move back down towards the base/middle
-            look: new THREE.Vector3(TREE_X, -0.2, 0) // Tilt down to look at the tree
+            angle: -0.6,  // Rotate camera slightly (keeping tree on the right side)
+            radius: 3.2,  // Zoom out moderately (not too much)
+            y: -0.6,      // Move back down
+            look: new THREE.Vector3(TREE_X, 0.2, 0) // Tilt down to look at the tree
         }
     ], []);
 
@@ -467,7 +467,7 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         
         // Responsive offset: shift the tree right on desktop (size.width >= 1024), center on mobile
         const isDesktop = size.width >= 1024;
-        const offsetX = isDesktop ? -1.3 : 0.0;
+        const offsetX = isDesktop ? -1.6 : 0.0; // Pushed further right
         
         targetLookAt.current.set(
             baseLook.x + offsetX * Math.cos(angle),
