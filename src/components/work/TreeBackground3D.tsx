@@ -408,21 +408,21 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         {
             pct: 0.0,
             angle: 0.3,   
-            radius: 1.8,  // Close to the trunk base
+            radius: 1.3,  // Zoomed in closer to the trunk base
             y: -3.0,      // Below the tree base level to feel like lying on the ground
             look: new THREE.Vector3(TREE_X, 1.5, 0) // Tilt straight up the trunk
         },
         {
             pct: 0.5,     // Climb to mid-tree in the first half
             angle: 0.3,   // Keep angle constant for straight FPV climb
-            radius: 1.6,  // Zoom in close
+            radius: 1.2,  // Zoomed in very close
             y: 1.0,       // Mid-canopy/branches level (not all the way to the top)
             look: new THREE.Vector3(TREE_X, 2.0, 0) // Looking up towards canopy
         },
         {
             pct: 1.0,     // Move back down, rotate, and zoom out in the second half
             angle: -0.6,  // Rotate camera slightly (keeping tree on the right side)
-            radius: 3.2,  // Zoom out moderately (not too much)
+            radius: 2.6,  // Zoomed in more than before
             y: -0.6,      // Move back down
             look: new THREE.Vector3(TREE_X, 0.2, 0) // Tilt down to look at the tree
         }
