@@ -408,30 +408,23 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         {
             pct: 0.0,
             angle: 0.3,   
-            radius: 3.6,  // Zoomed out enough at start to see the scale
-            y: -2.2,      // Low ground level
-            look: new THREE.Vector3(TREE_X, 2.8, 0) // Tilt way up the trunk for dramatic effect
+            radius: 2.0,  // Start close to the trunk base for FPV feel
+            y: -2.4,      // Very base of the trunk
+            look: new THREE.Vector3(TREE_X, 2.5, 0) // Tilt straight up the trunk
         },
         {
-            pct: 0.4,     // Start spiraling closer to the trunk
-            angle: 0.7,
-            radius: 2.8,  
-            y: -0.5,
-            look: new THREE.Vector3(TREE_X, 2.2, 0) 
+            pct: 0.5,     // Reach the top of the canopy in the first half
+            angle: 0.3,   // Keep angle constant for straight FPV climb
+            radius: 1.5,  // Zoom in very close inside the canopy branches
+            y: 2.2,       // Top canopy level
+            look: new THREE.Vector3(TREE_X, 2.8, 0) // Still looking up/forward
         },
         {
-            pct: 0.7,     // Close orbit around the trunk for the second half
-            angle: 1.1,
-            radius: 2.0,  // Zoomed in closer
-            y: 0.8,
-            look: new THREE.Vector3(TREE_X, 2.4, 0)
-        },
-        {
-            pct: 1.0,     // Zoomed in way more at the end, close canopy spiral but staying on the right side
-            angle: 1.4,
-            radius: 1.5,  // Very close to the trunk/branches
-            y: 2.2,
-            look: new THREE.Vector3(TREE_X, 2.8, 0)
+            pct: 1.0,     // Move back down, rotate, and zoom out in the second half
+            angle: -0.8,  // Rotate camera to a new angle (keeping tree on the right side)
+            radius: 4.5,  // Zoom out way more to reveal full tree structure
+            y: -1.0,      // Move back down towards the base/middle
+            look: new THREE.Vector3(TREE_X, -0.2, 0) // Tilt down to look at the tree
         }
     ], []);
 
