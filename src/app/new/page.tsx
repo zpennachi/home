@@ -4,20 +4,29 @@ import { Manifesto } from "@/components/work/Manifesto";
 import { ToolStack } from "@/components/work/ToolStack";
 import { DynamicGrid } from "@/components/work/DynamicGrid";
 import { ParticleBackground } from "@/components/work/ParticleBackground";
+import localProjects from "@/data/projects.json";
 
 export default async function Home() {
   const supabase = await createClient();
 
   const { data: entries, error: entriesError } = await supabase
     .from('365')
-    .select('id, title, category, medium, file')
+    .select('id, title, category, medium, file, created_at')
     .limit(10);
 
-  const { data: projects, error: projectsError } = await supabase
+  const { data: dbProjects, error: projectsError } = await supabase
     .from('projects')
-    .select('id, title, category, medium, images, description')
+    .select('id, title, category, medium, images, description, content, stack, repo, branding, created_at, role')
     .eq('status', 'published')
     .order('created_at', { ascending: false });
+
+  const projects = dbProjects && dbProjects.length > 0
+    ? dbProjects
+    : localProjects.map((p: any) => ({
+        ...p,
+        status: p.status || 'published',
+        source: p.source || 'local'
+      }));
 
   if (entriesError || projectsError) {
     console.error("Supabase error trace:", JSON.stringify(entriesError || projectsError, null, 2));
