@@ -11,8 +11,7 @@ export default async function Home() {
 
   const { data: entries, error: entriesError } = await supabase
     .from('365')
-    .select('id, title, category, medium, file, created_at')
-    .limit(10);
+    .select('id, title, category, medium, file, created_at');
 
   const { data: dbProjects, error: projectsError } = await supabase
     .from('projects')

@@ -12,7 +12,7 @@ export default async function WorkPage() {
     // Query 365 entries from database
     const { data: entries, error: entriesError } = await supabase
         .from('365')
-        .select('id, title, category, medium, file')
+        .select('id, title, category, medium, file, created_at')
         .order('id', { ascending: false });
 
     // Query projects from database
