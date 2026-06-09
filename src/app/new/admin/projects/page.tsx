@@ -4,13 +4,22 @@ import { Plus, Trash2, Edit, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { deleteProject, toggleProjectVisibility } from './actions'
 import { cn } from '@/lib/utils'
+import localProjects from '@/data/projects.json'
 
 export default async function AdminProjectsPage() {
     const supabase = await createClient()
-    const { data: projects } = await supabase
+    const { data: dbProjects } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false })
+
+    const projects = dbProjects && dbProjects.length > 0
+        ? dbProjects
+        : localProjects.map((p: any) => ({
+            ...p,
+            status: p.status || 'published',
+            source: p.source || 'local'
+          }));
 
     return (
         <div className="space-y-6">
