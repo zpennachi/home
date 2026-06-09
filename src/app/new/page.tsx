@@ -11,7 +11,8 @@ export default async function Home() {
 
   const { data: entries, error: entriesError } = await supabase
     .from('365')
-    .select('id, title, category, medium, file, created_at');
+    .select('id, title, category, medium, file')
+    .order('id', { ascending: false });
 
   const { data: dbProjects, error: projectsError } = await supabase
     .from('projects')

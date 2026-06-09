@@ -9,7 +9,7 @@ export default async function Admin365Page() {
     const { data: entries } = await supabase
         .from('365')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
