@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -73,6 +73,27 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
+    // Global capture listener to ensure only one media (audio/video) plays at a time
+    useEffect(() => {
+        const handlePlay = (e: Event) => {
+            const activeElement = e.target as HTMLMediaElement;
+            if (activeElement && (activeElement.tagName === 'AUDIO' || activeElement.tagName === 'VIDEO')) {
+                const mediaElements = Array.from(document.querySelectorAll('audio, video')) as HTMLMediaElement[];
+                mediaElements.forEach(media => {
+                    if (media !== activeElement && !media.paused) {
+                        media.pause();
+                    }
+                });
+            }
+        };
+
+        // Capture phase handles play event propagation (which does not bubble by default)
+        document.addEventListener('play', handlePlay, true);
+        return () => {
+            document.removeEventListener('play', handlePlay, true);
+        };
+    }, []);
+
     // Combine projects and entries with full case study fields mapped
     const allItems = useMemo(() => {
         const pItems = (projects || []).map((p: any) => ({
@@ -131,6 +152,15 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
     const handleRowClick = (e: React.MouseEvent, entryId: string | number) => {
         e.preventDefault();
         setHoveredItem(null); // Dismiss hover preview card on click
+
+        // Pause all media elements immediately upon collapsing or switching rows
+        const mediaElements = Array.from(document.querySelectorAll('audio, video')) as HTMLMediaElement[];
+        mediaElements.forEach(media => {
+            if (!media.paused) {
+                media.pause();
+            }
+        });
+
         setExpandedId(prev => prev === entryId ? null : entryId);
     };
 
