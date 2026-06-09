@@ -414,21 +414,21 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         },
         {
             pct: 0.4,     // Start spiraling closer to the trunk
-            angle: 1.2,
+            angle: 0.7,
             radius: 2.8,  
             y: -0.5,
             look: new THREE.Vector3(TREE_X, 2.2, 0) 
         },
         {
             pct: 0.7,     // Close orbit around the trunk for the second half
-            angle: 2.4,
+            angle: 1.1,
             radius: 2.0,  // Zoomed in closer
             y: 0.8,
             look: new THREE.Vector3(TREE_X, 2.4, 0)
         },
         {
-            pct: 1.0,     // Zoomed in way more at the end, close canopy spiral
-            angle: 3.8,
+            pct: 1.0,     // Zoomed in way more at the end, close canopy spiral but staying on the right side
+            angle: 1.4,
             radius: 1.5,  // Very close to the trunk/branches
             y: 2.2,
             look: new THREE.Vector3(TREE_X, 2.8, 0)
