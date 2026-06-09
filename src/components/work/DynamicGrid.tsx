@@ -24,6 +24,7 @@ export interface ProjectEntry {
     role?: string;
     created_at?: string;
     type?: 'project' | 'entry';
+    externalUrl?: string;
 }
 
 interface DynamicGridProps {
@@ -151,9 +152,22 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
         // 3. 365 daily entries (type === 'entry')
         const eItems = (entries || []).map(e => {
             const files = normalizeFiles(e.file);
+            
+            // Extract clean title and external URL if wrapped in an anchor tag
+            let title = e.title;
+            let externalUrl = "";
+            if (title) {
+                const anchorRegex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/i;
+                const match = title.match(anchorRegex);
+                if (match) {
+                    externalUrl = match[1];
+                    title = match[2];
+                }
+            }
+
             return {
                 id: e.id,
-                title: e.title,
+                title: title,
                 category: e.category,
                 medium: e.medium,
                 file: files[0] || null,
@@ -165,7 +179,8 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
                 images: files,
                 role: 'Creator',
                 created_at: e.created_at,
-                type: 'entry' as const
+                type: 'entry' as const,
+                externalUrl: externalUrl
             };
         });
 
@@ -356,6 +371,19 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
                                                                         className="inline-flex items-center gap-3 px-4 py-2 border border-muted hover:border-foreground rounded-none font-mono text-[9px] uppercase tracking-widest transition-all bg-transparent hover:bg-foreground hover:text-background"
                                                                     >
                                                                         <span>source code</span>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+
+                                                            {entry.externalUrl && (
+                                                                <div className="pt-4">
+                                                                    <a
+                                                                        href={entry.externalUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-3 px-5 py-2.5 border border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground rounded-none font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-medium"
+                                                                    >
+                                                                        <span>live project</span>
                                                                     </a>
                                                                 </div>
                                                             )}

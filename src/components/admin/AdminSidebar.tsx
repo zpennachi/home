@@ -15,9 +15,7 @@ import {
     Loader2,
     Sparkles,
     FileText,
-    ChevronRight,
-    Sun,
-    Moon
+    ChevronRight
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signout } from '@/app/new/login/actions'
@@ -25,9 +23,7 @@ import { getNotes, createNote } from '@/app/new/admin/notes/actions'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
-import { ThemeToggle } from '../work/ThemeToggle'
 import { useAdminSync } from './AdminSyncProvider'
 
 const toolItems = [
@@ -48,7 +44,6 @@ export function AdminSidebar({
 }) {
     const pathname = usePathname()
     const router = useRouter()
-    const { theme, setTheme } = useTheme()
     const { activeNoteId, activeNoteTitle, updatedTitles } = useAdminSync()
     const [notes, setNotes] = useState<any[]>([])
     const [isCreating, setIsCreating] = useState(false)
@@ -277,18 +272,6 @@ export function AdminSidebar({
 
                 {/* Footer */}
                 <div className="p-3 mt-auto space-y-2 border-t border-muted">
-                    <button
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors group lowercase"
-                    >
-                        <div className="relative w-3 h-3">
-                            <Sun className="absolute inset-0 w-3 h-3 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute inset-0 w-3 h-3 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                        </div>
-                        <span className="flex-1 text-left">
-                            {mounted && (theme === 'dark' ? 'switch to light' : 'switch to dark')}
-                        </span>
-                    </button>
                     <Link
                         href="/new"
                         target="_blank"

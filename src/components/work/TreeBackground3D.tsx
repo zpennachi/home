@@ -407,37 +407,30 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0,
-            angle: 1.05,  // Rotated by 60 degrees on landing
-            radius: 3.5,  // Zoomed out just a bit
-            y: -0.4,       // Positioned lower
-            look: new THREE.Vector3(TREE_X, -1.6, 0) // Look at the middle of the trunk
+            angle: 0.3,   // Start at the ground/trunk base, zoomed out more
+            radius: 3.8,  // Zoomed out to avoid feeling too close/zoomed in
+            y: -1.8,
+            look: new THREE.Vector3(TREE_X, 0.4, 0) // Look up the tree
         },
         {
-            pct: 0.5,     // Zoom in and rotate back straight as we scroll out of hero
-            angle: 0.08,
-            radius: 3.0,
-            y: -0.4,
-            look: new THREE.Vector3(TREE_X, -1.6, 0)
-        },
-        {
-            pct: 0.65,    // Smoothly transition into the climb
-            angle: 0.08,
-            radius: 3.2,
-            y: -1.0,
-            look: new THREE.Vector3(TREE_X, -1.2, 0)
-        },
-        {
-            pct: 0.8,
-            angle: 0.18,
-            radius: 3.4,
+            pct: 0.4,     // Climb up the trunk
+            angle: 0.1,
+            radius: 3.8,  // Zoomed out
             y: -0.2,
-            look: new THREE.Vector3(TREE_X, -0.4, 0)
+            look: new THREE.Vector3(TREE_X, 1.2, 0) // Pointing up ahead
         },
         {
-            pct: 1.0,
-            angle: 0.30,
-            radius: 3.4,
+            pct: 0.7,     // Enter lower branches, zooming out further
+            angle: 0.6,
+            radius: 4.2,  // Zoomed out
             y: 0.8,
+            look: new THREE.Vector3(TREE_X, 1.8, 0)
+        },
+        {
+            pct: 1.0,     // Top of the canopy framing
+            angle: 1.2,
+            radius: 4.6,  // Zoomed out
+            y: 2.2,
             look: new THREE.Vector3(TREE_X, 0.6, 0)
         }
     ], []);
