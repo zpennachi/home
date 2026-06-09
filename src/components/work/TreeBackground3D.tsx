@@ -408,9 +408,9 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         {
             pct: 0.0,
             angle: 0.3,   
-            radius: 2.0,  // Start close to the trunk base for FPV feel
-            y: -2.4,      // Very base of the trunk
-            look: new THREE.Vector3(TREE_X, 1.8, 0) // Tilt straight up the trunk
+            radius: 1.8,  // Close to the trunk base
+            y: -3.0,      // Below the tree base level to feel like lying on the ground
+            look: new THREE.Vector3(TREE_X, 1.5, 0) // Tilt straight up the trunk
         },
         {
             pct: 0.5,     // Climb to mid-tree in the first half
