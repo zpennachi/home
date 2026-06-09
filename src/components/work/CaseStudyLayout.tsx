@@ -141,7 +141,7 @@ export function CaseStudyLayout({
 
                 {/* Standard Hero / Visual (Hidden for FullPageHero) */}
                 {!isFullPageHero && (
-                    <div className="w-full aspect-video md:aspect-[21/9] bg-muted rounded-md overflow-hidden mb-16 md:mb-32 relative shadow-2xl shadow-black/20 group">
+                    <div className="w-full aspect-video md:aspect-[21/9] bg-muted rounded-none overflow-hidden mb-16 md:mb-32 relative border border-muted/50">
                         {isFullPageHero ? null : (
                             /* Priority 1: Custom Visual Component from ID */
                             hasVisualComponent(id || '') ? (
@@ -209,7 +209,7 @@ export function CaseStudyLayout({
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                             {otherProjects.map((project) => (
                                 <Link key={project.id} href={`/new/work/${project.id}`} className="group block space-y-6">
-                                    <div className="aspect-[16/10] bg-muted relative overflow-hidden rounded-md transition-transform hover:scale-[1.02]">
+                                    <div className="aspect-[16/10] bg-muted relative overflow-hidden rounded-none border border-muted/50">
                                         <ProjectThumbnail
                                             id={project.id}
                                             files={project.images && project.images.length > 0 ? project.images : null}

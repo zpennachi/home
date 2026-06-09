@@ -87,6 +87,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     };
 }
 
+import { ImageLightbox } from "@/components/work/ImageLightbox";
 import ProjectVisualLoader from '@/components/work/custom/ProjectVisualLoader';
 import ProjectStoryLoader from '@/components/work/custom/ProjectStoryLoader';
 
@@ -180,52 +181,53 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     const customStory = <ProjectStoryLoader slug={params.slug} />;
 
     return (
-        <CaseStudyLayout
-            id={project.id}
-            title={project.title}
-            category={project.category}
-            role={project.role || (isDailyEntry ? "Creator" : "Lead Engineer")}
-            year={project.created_at ? new Date(project.created_at).getFullYear().toString() : "2024"}
-            description={project.description}
-            stack={project.stack}
-            heroImage={!isVideo && !isAudio ? firstImage : null}
-            customVisual={customVisual}
-            branding={project.branding}
-        >
-            {customStory}
+        <ImageLightbox>
+            <CaseStudyLayout
+                id={project.id}
+                title={project.title}
+                category={project.category}
+                role={project.role || (isDailyEntry ? "Creator" : "Lead Engineer")}
+                year={project.created_at ? new Date(project.created_at).getFullYear().toString() : "2024"}
+                description={project.description}
+                stack={project.stack}
+                heroImage={!isVideo && !isAudio ? firstImage : null}
+                customVisual={customVisual}
+                branding={project.branding}
+            >
+                {customStory}
 
-            <div className="prose dark:prose-invert mt-24">
-                <ReactMarkdown
-                    rehypePlugins={[rehypeRaw]}
-                    remarkPlugins={[remarkGfm]}
-                >
-                    {project.content || ""}
-                </ReactMarkdown>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 my-24 lg:my-32">
-                {project.images?.slice(1).map((img: string, i: number) => (
-                    <div key={i} className="group relative aspect-video bg-muted overflow-hidden rounded-md shadow-2xl shadow-black/10 transition-transform hover:scale-[1.01]">
-                        <img src={img} alt={`Project shot ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute inset-0 bg-background/10 group-hover:bg-transparent transition-colors" />
-                    </div>
-                ))}
-            </div>
-
-            {/* Display Repo Link if available */}
-            {project.repo && (
-                <div className="mt-32 pt-12 border-t border-muted flex justify-center">
-                    <a
-                        href={project.repo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-4 px-8 py-4 bg-foreground text-background rounded-full font-mono text-[10px] uppercase tracking-[0.2em] font-black hover:scale-105 transition-transform shadow-2xl"
+                <div className="prose dark:prose-invert mt-24">
+                    <ReactMarkdown
+                        rehypePlugins={[rehypeRaw]}
+                        remarkPlugins={[remarkGfm]}
                     >
-                        <span>Access Source Repository</span>
-                        <div className="w-1 h-1 bg-accent rounded-full animate-pulse" />
-                    </a>
+                        {project.content || ""}
+                    </ReactMarkdown>
                 </div>
-            )}
-        </CaseStudyLayout >
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 my-24 lg:my-32">
+                    {project.images?.slice(1).map((img: string, i: number) => (
+                        <div key={i} className="relative aspect-video bg-muted overflow-hidden border border-muted/50 cursor-pointer rounded-none">
+                            <img src={img} alt={`Project shot ${i + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Display Repo Link if available */}
+                {project.repo && (
+                    <div className="mt-32 pt-12 border-t border-muted flex justify-center">
+                        <a
+                            href={project.repo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-4 px-8 py-4 bg-foreground text-background rounded-none font-mono text-[10px] uppercase tracking-[0.2em] font-black hover:scale-105 transition-transform shadow-2xl"
+                        >
+                            <span>Access Source Repository</span>
+                            <div className="w-1 h-1 bg-accent rounded-full animate-pulse" />
+                        </a>
+                    </div>
+                )}
+            </CaseStudyLayout >
+        </ImageLightbox>
     );
 }
