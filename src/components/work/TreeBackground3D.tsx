@@ -407,31 +407,31 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
     const cameraKeyframes = useMemo(() => [
         {
             pct: 0.0,
-            angle: 0.3,   // Start at the ground/trunk base, zoomed out more
-            radius: 3.8,  // Zoomed out to avoid feeling too close/zoomed in
-            y: -1.8,
-            look: new THREE.Vector3(TREE_X, 0.4, 0) // Look up the tree
+            angle: 0.3,   
+            radius: 3.6,  // Zoomed out enough at start to see the scale
+            y: -2.2,      // Low ground level
+            look: new THREE.Vector3(TREE_X, 2.8, 0) // Tilt way up the trunk for dramatic effect
         },
         {
-            pct: 0.4,     // Climb up the trunk
-            angle: 0.1,
-            radius: 3.8,  // Zoomed out
-            y: -0.2,
-            look: new THREE.Vector3(TREE_X, 1.2, 0) // Pointing up ahead
-        },
-        {
-            pct: 0.7,     // Enter lower branches, zooming out further
-            angle: 0.6,
-            radius: 4.2,  // Zoomed out
-            y: 0.8,
-            look: new THREE.Vector3(TREE_X, 1.8, 0)
-        },
-        {
-            pct: 1.0,     // Top of the canopy framing
+            pct: 0.4,     // Start spiraling closer to the trunk
             angle: 1.2,
-            radius: 4.6,  // Zoomed out
+            radius: 2.8,  
+            y: -0.5,
+            look: new THREE.Vector3(TREE_X, 2.2, 0) 
+        },
+        {
+            pct: 0.7,     // Close orbit around the trunk for the second half
+            angle: 2.4,
+            radius: 2.0,  // Zoomed in closer
+            y: 0.8,
+            look: new THREE.Vector3(TREE_X, 2.4, 0)
+        },
+        {
+            pct: 1.0,     // Zoomed in way more at the end, close canopy spiral
+            angle: 3.8,
+            radius: 1.5,  // Very close to the trunk/branches
             y: 2.2,
-            look: new THREE.Vector3(TREE_X, 0.6, 0)
+            look: new THREE.Vector3(TREE_X, 2.8, 0)
         }
     ], []);
 
