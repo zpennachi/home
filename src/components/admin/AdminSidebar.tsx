@@ -96,7 +96,7 @@ export function AdminSidebar({
                             onClick={() => setIsToolsOpen(!isToolsOpen)}
                             className={cn(
                                 "w-full group flex items-center gap-3 px-3 py-1.5 rounded-sm text-[11px] font-mono tracking-wider lowercase transition-all duration-200",
-                                isToolsOpen ? "text-foreground font-semibold" : "text-muted-fg/40 hover:text-foreground"
+                                isToolsOpen ? "text-foreground font-medium" : "text-muted-fg/40 hover:text-foreground"
                             )}
                         >
                             <span className="flex-1 text-left">tools</span>
@@ -115,7 +115,7 @@ export function AdminSidebar({
                                                 if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                             }}
                                             className={cn(
-                                                "group flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal lowercase transition-all duration-150 pl-6",
+                                                "group flex items-center gap-3 px-3 py-1.5 rounded-sm text-[13px] font-normal lowercase transition-all duration-150 pl-6",
                                                 isActive ? "text-foreground font-medium" : "text-muted-fg hover:text-foreground"
                                             )}
                                         >
@@ -157,9 +157,9 @@ export function AdminSidebar({
                                             if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                         }}
                                         className={cn(
-                                            "flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-normal lowercase transition-all duration-150 relative group/note",
+                                            "flex items-center gap-2.5 px-3 py-1.5 rounded-sm text-[13px] font-normal leading-tight lowercase transition-all duration-150 relative group/note",
                                             isNoteActive
-                                                ? "text-foreground font-semibold"
+                                                ? "text-foreground font-medium"
                                                 : "text-muted-fg hover:text-foreground"
                                         )}
                                     >

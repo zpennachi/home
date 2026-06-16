@@ -345,7 +345,7 @@ export function NoteEditor() {
                             {/* Hidden span to measure dynamic title width */}
                             <span 
                                 ref={titleSpanRef}
-                                className="absolute opacity-0 pointer-events-none whitespace-pre text-xl sm:text-2xl font-semibold tracking-tight lowercase"
+                                className="absolute opacity-0 pointer-events-none whitespace-pre text-lg sm:text-xl font-medium tracking-tight lowercase"
                             >
                                 {note.title || 'untitled note'}
                             </span>
@@ -361,17 +361,17 @@ export function NoteEditor() {
                                 }}
                                 placeholder="untitled note"
                                 style={{ width: titleWidth }}
-                                className="bg-transparent text-xl sm:text-2xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase min-w-[50px] max-w-[300px] sm:max-w-[500px]"
+                                className="bg-transparent text-lg sm:text-xl font-medium tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase min-w-[50px] max-w-[300px] sm:max-w-[500px]"
                             />
 
-                            <div className="text-xs text-muted-fg/60 lowercase shrink-0">
+                            <div className="text-[11px] text-muted-fg/40 font-mono lowercase shrink-0">
                                 {format(new Date(note.created_at), 'MM.dd.yy')}
                                 {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
                             </div>
                         </div>
 
                         {/* Right Side: Action Icons Row */}
-                        <div className="flex items-center gap-1.5 shrink-0 text-xs font-mono text-muted-fg/40 lowercase">
+                        <div className="flex items-center gap-1.5 shrink-0 text-[11px] font-mono text-muted-fg/40 lowercase">
                             {/* Transcribe Button */}
                             <MeetingRecorder
                                 onTranscription={handleTranscription}
@@ -438,7 +438,7 @@ export function NoteEditor() {
                                 <button
                                     key={p.name}
                                     onClick={() => handleToggleAttendee(p.name)}
-                                    className="text-xs font-mono text-foreground hover:text-red-500 hover:line-through transition-colors cursor-pointer select-none lowercase"
+                                    className="text-[11px] font-mono text-foreground hover:text-red-500 hover:line-through transition-colors cursor-pointer select-none lowercase"
                                     title={`click to remove ${p.name}`}
                                 >
                                     {p.initials}
@@ -450,7 +450,7 @@ export function NoteEditor() {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                                        className="text-xs font-mono text-muted-fg hover:text-foreground transition-colors cursor-pointer select-none lowercase"
+                                        className="text-[11px] font-mono text-muted-fg hover:text-foreground transition-colors cursor-pointer select-none lowercase"
                                         title="Add attendee"
                                     >
                                         +
@@ -473,7 +473,7 @@ export function NoteEditor() {
                                                             handleToggleAttendee(p.name)
                                                             setIsAddMenuOpen(false)
                                                         }}
-                                                        className="w-full text-left px-2.5 py-1.5 text-xs text-muted-fg hover:text-foreground hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors lowercase font-mono cursor-pointer"
+                                                        className="w-full text-left px-2.5 py-1.5 text-[11px] text-muted-fg hover:text-foreground hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors lowercase font-mono cursor-pointer"
                                                     >
                                                         {p.initials} • {p.name}
                                                     </button>
@@ -486,7 +486,7 @@ export function NoteEditor() {
                         </div>
 
                         {/* TAB SWITCHER */}
-                        <div className="flex items-center gap-2 text-xs font-mono text-muted-fg/40 lowercase">
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-muted-fg/40 lowercase">
                             <button
                                 onClick={() => setActiveTab('notes')}
                                 className={cn(
@@ -552,7 +552,7 @@ export function NoteEditor() {
                                                 copy to notes
                                             </button>
                                         </div>
-                                        <div className="prose prose-sm sm:prose-base dark:prose-invert focus:outline-none !max-w-full !mx-0 text-foreground leading-relaxed font-mono">
+                                        <div className="prose prose-sm dark:prose-invert focus:outline-none !max-w-full !mx-0 text-foreground leading-normal font-mono text-[13.5px]">
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                 {note.ai_summary}
                                             </ReactMarkdown>
@@ -615,7 +615,7 @@ export function NoteEditor() {
                                                         speaker {seg.speaker}
                                                     </span>
                                                     <p className={cn(
-                                                        "text-sm sm:text-base leading-relaxed text-foreground/90 font-mono",
+                                                        "text-[13.5px] leading-normal text-foreground/90 font-mono",
                                                         !seg.isFinal && "text-foreground/50 animate-pulse"
                                                     )}>
                                                         {seg.text}

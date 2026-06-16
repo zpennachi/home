@@ -80,16 +80,16 @@ export function NotesList() {
                         placeholder="search notes..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent border-0 pr-4 py-2 text-base focus:outline-none font-normal transition-all lowercase"
+                        className="w-full bg-transparent border-0 pr-4 py-1.5 text-sm focus:outline-none font-normal transition-all lowercase"
                     />
                 </div>
                 <div className="flex items-center gap-6 w-full md:w-auto shrink-0 justify-between md:justify-end">
-                    <span className="text-xs font-mono text-muted-fg/60 font-normal select-none lowercase">
+                    <span className="text-[11px] font-mono text-muted-fg/40 font-normal select-none lowercase">
                         {filteredNotes.length} notes
                     </span>
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 py-2 text-xs font-mono lowercase font-medium transition-all text-foreground hover:underline bg-transparent cursor-pointer"
+                        className="flex items-center gap-2 py-1.5 text-[11px] font-mono lowercase font-medium transition-all text-foreground hover:underline bg-transparent cursor-pointer"
                     >
                         new note
                     </button>
@@ -103,16 +103,16 @@ export function NotesList() {
                         <Link 
                             href={`/new/admin/notes/${note.id}`}
                             onClick={() => setActiveNoteId(note.id)}
-                            className="flex items-center justify-between py-3 transition-all duration-150 group"
+                            className="flex items-center justify-between py-2 transition-all duration-150 group"
                         >
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {/* Details */}
                                 <div className="flex items-baseline gap-6 min-w-0 flex-1">
-                                    <span className="font-semibold text-base text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
-                                        {note.is_pinned && <span className="text-amber-500 mr-1.5 font-semibold font-mono">*</span>}
+                                    <span className="font-medium text-sm text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
+                                        {note.is_pinned && <span className="text-amber-500 mr-1.5 font-medium font-mono">*</span>}
                                         {note.title || 'untitled'}
                                     </span>
-                                    <span className="text-sm text-muted-fg/60 truncate font-normal max-w-xl hidden md:inline lowercase">
+                                    <span className="text-[13px] text-muted-fg/50 truncate font-normal max-w-xl hidden md:inline lowercase">
                                         {note.content || 'no content yet...'}
                                     </span>
                                 </div>

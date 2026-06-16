@@ -175,7 +175,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 }
                 .notes-content-area,
                 .tiptap {
-                    line-height: 1.45 !important;
+                    line-height: 1.4 !important;
                 }
                 .tiptap p.is-editor-empty:first-child::before {
                     content: attr(data-placeholder);
@@ -188,35 +188,37 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 .notes-content-area ul,
                 .tiptap ul {
                     list-style-type: disc;
-                    padding-left: 1.5rem;
-                    margin-top: 0.5rem !important;
-                    margin-bottom: 0.5rem !important;
-                    line-height: 1.45 !important;
+                    padding-left: 1.25rem;
+                    margin-top: 0.4rem !important;
+                    margin-bottom: 0.4rem !important;
+                    line-height: 1.4 !important;
                 }
                 .notes-content-area ol,
                 .tiptap ol {
                     list-style-type: decimal;
-                    padding-left: 1.5rem;
-                    margin-top: 0.5rem !important;
-                    margin-bottom: 0.5rem !important;
-                    line-height: 1.45 !important;
+                    padding-left: 1.25rem;
+                    margin-top: 0.4rem !important;
+                    margin-bottom: 0.4rem !important;
+                    line-height: 1.4 !important;
                 }
                 .notes-content-area li,
                 .tiptap li {
-                    margin-top: 0.25rem !important;
-                    margin-bottom: 0.25rem !important;
-                    line-height: 1.45 !important;
+                    margin-top: 0.2rem !important;
+                    margin-bottom: 0.2rem !important;
+                    line-height: 1.4 !important;
+                    font-size: 13.5px !important;
                 }
                 .notes-content-area h1,
-                .tiptap h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 1.25rem; letter-spacing: -0.02em; line-height: 1.25 !important; }
+                .tiptap h1 { font-size: 1.35rem; font-weight: 600; margin-bottom: 0.6rem; margin-top: 1.1rem; letter-spacing: -0.02em; line-height: 1.2 !important; }
                 .notes-content-area h2,
-                .tiptap h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; margin-top: 1rem; letter-spacing: -0.01em; line-height: 1.3 !important; border-bottom: none !important; padding-bottom: 0 !important; }
+                .tiptap h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.4rem; margin-top: 0.9rem; letter-spacing: -0.01em; line-height: 1.25 !important; border-bottom: none !important; padding-bottom: 0 !important; }
                 .notes-content-area h3,
-                .tiptap h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.375rem; margin-top: 0.75rem; line-height: 1.35 !important; }
+                .tiptap h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.3rem; margin-top: 0.7rem; line-height: 1.3 !important; }
                 .notes-content-area p,
                 .tiptap p { 
-                    margin-bottom: 0.75rem !important; 
-                    line-height: 1.45 !important;
+                    margin-bottom: 0.6rem !important; 
+                    line-height: 1.4 !important;
+                    font-size: 13.5px !important;
                 }
                 .tiptap code { 
                     background: rgba(0,0,0,0.05); 
