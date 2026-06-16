@@ -207,25 +207,25 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                                     
                                     // Check if the previous node is also an empty paragraph
                                     if (prevNode.type.name === 'paragraph' && prevNode.content.size === 0) {
-                                        const LIGHT_COLORS = [
-                                            '#1d4ed8', // Blue 700
-                                            '#15803d', // Green 700
-                                            '#b45309', // Amber 700
-                                            '#be123c', // Rose 700
-                                            '#6d28d9', // Violet 700
-                                            '#0f766e', // Teal 700
-                                            '#be185d', // Pink 700
-                                        ]
+                                         const LIGHT_COLORS = [
+                                             '#2563eb', // Intense Blue
+                                             '#16a34a', // Intense Green
+                                             '#ea580c', // Intense Orange
+                                             '#e11d48', // Intense Crimson/Rose
+                                             '#7c3aed', // Intense Purple
+                                             '#0d9488', // Intense Teal
+                                             '#db2777', // Intense Pink
+                                         ]
 
-                                        const DARK_COLORS = [
-                                            '#60a5fa', // Blue 400
-                                            '#34d399', // Emerald 400
-                                            '#fbbf24', // Amber 400
-                                            '#f43f5e', // Rose 500
-                                            '#a78bfa', // Violet 400
-                                            '#2dd4bf', // Teal 400
-                                            '#f472b6', // Pink 400
-                                        ]
+                                         const DARK_COLORS = [
+                                             '#3b82f6', // Bright Intense Blue
+                                             '#22c55e', // Bright Intense Green
+                                             '#f97316', // Bright Intense Orange
+                                             '#f43f5e', // Bright Intense Rose
+                                             '#8b5cf6', // Bright Intense Violet
+                                             '#06b6d4', // Bright Intense Cyan/Teal
+                                             '#ec4899', // Bright Intense Pink
+                                         ]
 
                                         const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
                                         const colors = isDark ? DARK_COLORS : LIGHT_COLORS
