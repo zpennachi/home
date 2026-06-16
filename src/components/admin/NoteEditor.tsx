@@ -177,11 +177,15 @@ export function NoteEditor() {
     }, [activeNoteId])
 
     const settings = useMemo(() => {
-        return note?.editor_settings || {
+        const defaults = {
             font_family: 'mono',
             font_size: 'medium',
             line_height: 'normal',
-            page_width: 'normal'
+            page_width: 'wide'
+        }
+        return {
+            ...defaults,
+            ...(note?.editor_settings || {})
         }
     }, [note?.editor_settings])
 
