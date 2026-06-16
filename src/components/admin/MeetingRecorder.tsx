@@ -194,30 +194,30 @@ export function MeetingRecorder({
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={isInitializing}
                 className={cn(
-                    "p-1.5 transition-colors cursor-pointer rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center",
-                    isRecording ? "text-red-500" : "text-muted-fg hover:text-foreground",
+                    "transition-colors cursor-pointer text-xs font-mono lowercase",
+                    isRecording ? "text-red-500 font-semibold animate-pulse" : "text-muted-fg hover:text-foreground",
                     isInitializing && "opacity-50 cursor-not-allowed"
                 )}
                 title={isRecording ? "Stop transcription" : "Start transcription"}
             >
                 {isInitializing ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-muted-fg" />
+                    "rec..."
                 ) : isRecording ? (
-                    <Square className="w-4 h-4 fill-current" />
+                    "stop"
                 ) : (
-                    <Play className="w-4 h-4 fill-current" />
+                    "rec"
                 )}
             </button>
 
             {isSystemAudioCaptured && (
-                <div title="System audio captured" className="p-1">
-                    <Volume2 className="w-3.5 h-3.5 text-muted-fg/60" />
-                </div>
+                <span title="System audio captured" className="text-[9px] text-muted-fg/50 font-mono select-none lowercase ml-0.5">
+                    (sys)
+                </span>
             )}
             {error && (
-                <div title={error} className="p-1 text-red-500">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                </div>
+                <span title={error} className="text-[9px] text-red-500 font-mono select-none lowercase ml-0.5">
+                    (err)
+                </span>
             )}
         </div>
     )

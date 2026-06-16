@@ -61,7 +61,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
             content: initialContent,
             editorProps: {
                 attributes: {
-                    class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] text-foreground leading-relaxed',
+                    class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] text-foreground leading-relaxed font-mono',
                 },
                 handleDOMEvents: {
                     drop: (view, event) => {
@@ -163,19 +163,31 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                     height: 0;
                     font-style: italic;
                 }
+                .notes-content-area ul,
                 .tiptap ul {
                     list-style-type: disc;
                     padding-left: 1.5rem;
-                    margin-bottom: 1rem;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
                 }
+                .notes-content-area ol,
                 .tiptap ol {
                     list-style-type: decimal;
                     padding-left: 1.5rem;
-                    margin-bottom: 1rem;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
                 }
-                .tiptap h1 { font-size: 2.25rem; font-weight: 900; margin-bottom: 1.5rem; margin-top: 2rem; letter-spacing: -0.02em; }
-                .tiptap h2 { font-size: 1.75rem; font-weight: 800; margin-bottom: 1rem; margin-top: 1.5rem; letter-spacing: -0.01em; }
-                .tiptap h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 1.25rem; }
+                .notes-content-area li,
+                .tiptap li {
+                    margin-top: 0.25rem !important;
+                    margin-bottom: 0.25rem !important;
+                }
+                .notes-content-area h1,
+                .tiptap h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 1.25rem; letter-spacing: -0.02em; }
+                .notes-content-area h2,
+                .tiptap h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: none !important; padding-bottom: 0 !important; }
+                .notes-content-area h3,
+                .tiptap h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.375rem; margin-top: 0.75rem; }
                 .tiptap p { margin-bottom: 1rem; }
                 .tiptap code { 
                     background: rgba(0,0,0,0.05); 

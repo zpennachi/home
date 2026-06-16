@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminCommandPalette } from '@/components/admin/AdminCommandPalette'
 import { ToastProvider } from '@/components/admin/ToastProvider'
-import { Menu, Search as SearchIcon } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AdminSyncProvider } from '@/components/admin/AdminSyncProvider'
 
@@ -26,15 +24,15 @@ export default function AdminLayout({
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setIsMobileOpen(true)}
-                                className="p-2 -ml-2 text-muted-fg hover:text-foreground transition-colors"
+                                className="p-2 -ml-2 text-xs font-mono text-muted-fg hover:text-foreground transition-colors lowercase"
                             >
-                                <Menu className="w-5 h-5" />
+                                menu
                             </button>
                             <div className="w-5 h-5 bg-foreground rounded-sm" />
                             <span className="text-xs font-light lowercase pt-0.5">admin</span>
                         </div>
-                        <button className="p-2 text-muted-fg hover:text-foreground">
-                            <SearchIcon className="w-4 h-4" />
+                        <button className="p-2 text-xs font-mono text-muted-fg hover:text-foreground lowercase">
+                            search
                         </button>
                     </header>
 

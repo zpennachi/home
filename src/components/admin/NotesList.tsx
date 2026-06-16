@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Search, FileText, Pin, Clock, Trash2, ArrowRight, Loader2 } from 'lucide-react'
 import { getNotes, createNote, deleteNote, updateNote } from '@/app/new/admin/notes/actions'
-import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -110,8 +108,8 @@ export function NotesList() {
 
     if (loading && notes.length === 0) {
         return (
-            <div className="py-24 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-fg" />
+            <div className="py-24 flex items-center justify-center text-xs font-mono text-muted-fg lowercase">
+                loading...
             </div>
         )
     }
@@ -121,95 +119,81 @@ export function NotesList() {
             {/* Action Bar */}
             <div className="flex flex-col md:flex-row gap-6 items-center justify-between pb-2">
                 <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-fg group-focus-within:text-foreground transition-colors" />
                     <input
                         type="search"
                         placeholder="search notes..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent border-0 pl-8 pr-4 py-2 text-base focus:outline-none font-normal transition-all lowercase"
+                        className="w-full bg-transparent border-0 pr-4 py-2 text-base focus:outline-none font-normal transition-all lowercase"
                     />
                 </div>
                 <div className="flex items-center gap-6 w-full md:w-auto shrink-0 justify-between md:justify-end">
-                    <span className="text-sm text-muted-fg/60 font-normal select-none lowercase">
+                    <span className="text-xs font-mono text-muted-fg/60 font-normal select-none lowercase">
                         {filteredNotes.length} notes
                     </span>
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 py-2 text-sm lowercase font-medium transition-all text-foreground hover:underline bg-transparent"
+                        className="flex items-center gap-2 py-2 text-xs font-mono lowercase font-medium transition-all text-foreground hover:underline bg-transparent cursor-pointer"
                     >
-                        <Plus className="w-4 h-4" />
-                        <span>new note</span>
+                        new note
                     </button>
                 </div>
             </div>
 
             {/* Notes List */}
             <div className="flex flex-col">
-                <AnimatePresence mode="popLayout">
-                    {filteredNotes.map((note) => (
-                        <motion.div
-                            layout
-                            key={note.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                {filteredNotes.map((note) => (
+                    <div key={note.id}>
+                        <Link 
+                            href={`/new/admin/notes/${note.id}`}
+                            className="flex items-center justify-between py-3 transition-all duration-150 group"
                         >
-                            <Link 
-                                href={`/new/admin/notes/${note.id}`}
-                                className="flex items-center justify-between py-3 transition-all duration-150 group"
-                            >
-                                <div className="flex items-center gap-4 min-w-0 flex-1">
-                                    {/* Pin Button */}
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                {/* Details */}
+                                <div className="flex items-baseline gap-6 min-w-0 flex-1">
+                                    <span className="font-semibold text-base text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
+                                        {note.is_pinned && <span className="text-amber-500 mr-1.5 font-semibold font-mono">*</span>}
+                                        {note.title || 'untitled'}
+                                    </span>
+                                    <span className="text-sm text-muted-fg/60 truncate font-normal max-w-xl hidden md:inline lowercase">
+                                        {note.content || 'no content yet...'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 shrink-0 ml-4 text-xs font-mono text-muted-fg/40 lowercase">
+                                {/* Timestamp */}
+                                <span className="text-muted-fg/50 select-none">
+                                    {formatDistanceToNow(new Date(note.updated_at))} ago
+                                </span>
+
+                                <span className="md:opacity-0 group-hover:opacity-100 transition-all flex gap-2">
+                                    <span>/</span>
                                     <button
                                         onClick={(e) => togglePin(e, note)}
-                                        className={cn(
-                                            "p-1 transition-colors shrink-0",
-                                            note.is_pinned ? "text-amber-500" : "text-muted-fg/40 hover:text-foreground"
-                                        )}
-                                        title={note.is_pinned ? "Unpin note" : "Pin note"}
+                                        className="text-muted-fg hover:text-foreground transition-colors cursor-pointer bg-transparent"
                                     >
-                                        <Pin className="w-4 h-4" />
+                                        {note.is_pinned ? 'unpin' : 'pin'}
                                     </button>
-
-                                    {/* Details */}
-                                    <div className="flex items-baseline gap-6 min-w-0 flex-1">
-                                        <span className="font-semibold text-base text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
-                                            {note.title || 'untitled'}
-                                        </span>
-                                        <span className="text-sm text-muted-fg/60 truncate font-normal max-w-xl hidden md:inline lowercase">
-                                            {note.content || 'no content yet...'}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-6 shrink-0 ml-4">
-                                    {/* Timestamp */}
-                                    <span className="text-xs font-mono text-muted-fg/50 lowercase">
-                                        {formatDistanceToNow(new Date(note.updated_at))} ago
-                                    </span>
-
-                                    {/* Action Buttons */}
+                                    <span>/</span>
                                     <button
                                         onClick={(e) => handleDelete(e, note.id)}
-                                        className="p-1 text-muted-fg/40 hover:text-red-500 md:opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                                        title="Delete note"
+                                        className="text-muted-fg hover:text-red-500 transition-colors cursor-pointer bg-transparent"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        delete
                                     </button>
-                                </div>
-                            </Link>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
+                ))}
 
                 {filteredNotes.length === 0 && !loading && (
                     <div className="py-24 flex flex-col items-center justify-center text-center">
-                        <FileText className="w-8 h-8 text-muted-fg/30 mb-4" />
-                        <p className="text-muted-fg text-sm lowercase">no notes found. write a new one.</p>
+                        <p className="text-muted-fg text-xs font-mono lowercase">no notes found. write a new one.</p>
                         <button 
                             onClick={handleCreate} 
-                            className="mt-3 text-sm font-medium lowercase text-foreground hover:underline"
+                            className="mt-3 text-xs font-mono lowercase text-foreground hover:underline cursor-pointer bg-transparent"
                         >
                             create note
                         </button>
