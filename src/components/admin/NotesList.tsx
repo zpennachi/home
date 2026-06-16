@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { useAdminSync } from './AdminSyncProvider'
 
 export function NotesList() {
-    const { notes, setNotes, notesLoading: loading, updateNoteInCache, loadNotes } = useAdminSync()
+    const { notes, setNotes, setActiveNoteId, notesLoading: loading, updateNoteInCache, loadNotes } = useAdminSync()
     const [search, setSearch] = useState('')
     const router = useRouter()
 
@@ -18,6 +18,7 @@ export function NotesList() {
         try {
             const newNote = await createNote()
             toast.success('Note created')
+            setActiveNoteId(newNote.id)
             router.push(`/new/admin/notes/${newNote.id}`)
         } catch (err) {
             toast.error('Failed to create note')
@@ -101,6 +102,7 @@ export function NotesList() {
                     <div key={note.id}>
                         <Link 
                             href={`/new/admin/notes/${note.id}`}
+                            onClick={() => setActiveNoteId(note.id)}
                             className="flex items-center justify-between py-3 transition-all duration-150 group"
                         >
                             <div className="flex items-center gap-2 min-w-0 flex-1">

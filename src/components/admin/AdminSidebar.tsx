@@ -24,7 +24,7 @@ export function AdminSidebar({
 }) {
     const pathname = usePathname()
     const router = useRouter()
-    const { activeNoteId, notes } = useAdminSync()
+    const { activeNoteId, setActiveNoteId, notes } = useAdminSync()
     const [isCreating, setIsCreating] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [isToolsOpen, setIsToolsOpen] = useState(false)
@@ -44,7 +44,7 @@ export function AdminSidebar({
         try {
             const newNote = await createNote()
             toast.success('Note created')
-            if (window.innerWidth < 768) setIsMobileOpen?.(false)
+            setActiveNoteId(newNote.id)
             router.push(`/new/admin/notes/${newNote.id}`)
         } catch (err) {
             toast.error('Failed to create note')
@@ -147,12 +147,13 @@ export function AdminSidebar({
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 -mx-1 px-1">
                             {sidebarNotes.map((note) => {
-                                const isNoteActive = pathname === `/new/admin/notes/${note.id}`;
+                                const isNoteActive = activeNoteId === note.id;
                                 return (
                                     <Link
                                         key={note.id}
                                         href={`/new/admin/notes/${note.id}`}
                                         onClick={() => {
+                                            setActiveNoteId(note.id)
                                             if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                         }}
                                         className={cn(
