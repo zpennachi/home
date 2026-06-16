@@ -302,19 +302,13 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                                 title="Big Heading"
                             >
-                                <div className="flex items-center gap-2 px-1">
-                                    <Heading1 className="w-4 h-4" />
-                                    <span className="text-xs font-medium lowercase hidden sm:inline">title</span>
-                                </div>
+                                <Heading1 className="w-4 h-4" />
                             </MenuButton>
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                                 title="Medium Heading"
                             >
-                                <div className="flex items-center gap-2 px-1">
-                                    <Heading2 className="w-4 h-4" />
-                                    <span className="text-xs font-medium lowercase hidden sm:inline">sub</span>
-                                </div>
+                                <Heading2 className="w-4 h-4" />
                             </MenuButton>
                             <div className="w-px h-4 bg-muted/20 mx-1" />
                             <MenuButton
