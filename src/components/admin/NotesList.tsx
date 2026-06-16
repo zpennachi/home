@@ -104,7 +104,8 @@ export function NotesList() {
 
     const filteredNotes = notes.filter(n =>
         n.title.toLowerCase().includes(search.toLowerCase()) ||
-        n.content.toLowerCase().includes(search.toLowerCase())
+        n.content.toLowerCase().includes(search.toLowerCase()) ||
+        (n.attendees && n.attendees.some((a: string) => a.toLowerCase().includes(search.toLowerCase())))
     )
 
     if (loading && notes.length === 0) {

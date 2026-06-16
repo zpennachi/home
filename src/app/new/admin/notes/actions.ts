@@ -20,7 +20,8 @@ export async function getNotes() {
                 content: 'we discussed the ui update. the goals are to make the workspace look extremely professional...',
                 is_pinned: true,
                 created_at: new Date(Date.now() - 3600000).toISOString(),
-                updated_at: new Date(Date.now() - 3600000).toISOString()
+                updated_at: new Date(Date.now() - 3600000).toISOString(),
+                attendees: ['val', 'ethan']
             },
             {
                 id: 'mock-2',
@@ -28,7 +29,8 @@ export async function getNotes() {
                 content: 'ideas for the launch including product videos, community outreach, and newsletter...',
                 is_pinned: false,
                 created_at: new Date(Date.now() - 86400000).toISOString(),
-                updated_at: new Date(Date.now() - 86400000).toISOString()
+                updated_at: new Date(Date.now() - 86400000).toISOString(),
+                attendees: ['vincent', 'zane']
             }
         ]
     }
@@ -74,7 +76,8 @@ The team met to plan the redesign of the note details interface. Key objectives 
 - [ ] Simplify tab switcher headers to lowercase text labels.`,
             is_pinned: false,
             created_at: new Date(Date.now() - 3600000).toISOString(),
-            updated_at: new Date(Date.now() - 3600000).toISOString()
+            updated_at: new Date(Date.now() - 3600000).toISOString(),
+            attendees: ['val', 'ethan']
         }
     }
 

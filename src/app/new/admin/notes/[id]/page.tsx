@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check, Download, Loader2 } from 'lucide-react'
+import { Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check, Download, Loader2, Plus, X } from 'lucide-react'
 import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary } from '../actions'
 import { TipTapEditor, TipTapEditorRef } from '@/components/admin/TipTapEditor'
 import { MeetingRecorder } from '@/components/admin/MeetingRecorder'
@@ -22,6 +22,16 @@ interface TranscriptSegment {
     timestamp: Date
 }
 
+const CORE_PEOPLE = [
+    { name: 'val', initials: 'va' },
+    { name: 'ethan', initials: 'et' },
+    { name: 'christiaan', initials: 'ch' },
+    { name: 'vincent', initials: 'vi' },
+    { name: 'zane', initials: 'za' },
+    { name: 'nick', initials: 'ni' },
+    { name: 'winson', initials: 'wi' }
+]
+
 export default function NoteEditorPage() {
     const params = useParams()
     const router = useRouter()
@@ -32,10 +42,13 @@ export default function NoteEditorPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [lastSaved, setLastSaved] = useState<Date | null>(null)
+    const [titleWidth, setTitleWidth] = useState('auto')
+    const titleSpanRef = useRef<HTMLSpanElement>(null)
 
     // AI Superpower State
     const [isSynthesizing, setIsSynthesizing] = useState(false)
     const [isTranscriptCopied, setIsTranscriptCopied] = useState(false)
+    const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
     const [activeTab, setActiveTab] = useState<'notes' | 'ai' | 'transcript'>('notes')
 
     // Recording State (Lifted from MeetingRecorder)
@@ -51,6 +64,12 @@ export default function NoteEditorPage() {
     useEffect(() => {
         loadNote()
     }, [params.id])
+
+    useEffect(() => {
+        if (titleSpanRef.current) {
+            setTitleWidth(`${titleSpanRef.current.offsetWidth + 2}px`)
+        }
+    }, [note?.title])
 
     async function loadNote() {
         setLoading(true)
@@ -148,6 +167,16 @@ export default function NoteEditorPage() {
         URL.revokeObjectURL(url)
         toast.success("Transcription downloaded")
     }, [transcriptSegments, note?.title])
+
+    const handleToggleAttendee = useCallback((name: string) => {
+        if (!note) return
+        const current = note.attendees || []
+        const next = current.includes(name)
+            ? current.filter((a: string) => a !== name)
+            : [...current, name]
+        setNote((prev: any) => ({ ...prev, attendees: next }))
+        saveNote({ attendees: next })
+    }, [note, saveNote])
 
     async function handleDelete() {
         if (confirm('Delete this note?')) {
@@ -251,25 +280,95 @@ export default function NoteEditorPage() {
             <div className="w-full space-y-6">
                 
                 {/* Header Row: Title/Date on left, Actions on right */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100 dark:border-neutral-800">
-                    {/* Left Side: Title & Date Details */}
-                    <div className="flex items-baseline gap-3 min-w-0 flex-1">
-                        <input
-                            type="text"
-                            value={note.title}
-                            onChange={(e) => {
-                                const newTitle = e.target.value
-                                setNote({ ...note, title: newTitle })
-                                setUpdatedTitle(params.id as string, newTitle)
-                                saveNote({ title: newTitle })
-                            }}
-                            placeholder="untitled note"
-                            className="bg-transparent text-xl sm:text-2xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase flex-1 min-w-[120px]"
-                        />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+                    {/* Left Side: Title & Date Details & Attendees */}
+                    <div className="flex flex-col gap-2 min-w-0 flex-1">
+                        <div className="flex items-baseline gap-1 min-w-0 relative">
+                            {/* Hidden span to measure dynamic title width */}
+                            <span 
+                                ref={titleSpanRef}
+                                className="absolute opacity-0 pointer-events-none whitespace-pre text-xl sm:text-2xl font-semibold tracking-tight lowercase"
+                            >
+                                {note.title || 'untitled note'}
+                            </span>
 
-                        <div className="text-xs text-muted-fg/60 lowercase shrink-0">
-                            {format(new Date(note.created_at), 'MMM d, yyyy')}
-                            {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
+                            <input
+                                type="text"
+                                value={note.title}
+                                onChange={(e) => {
+                                    const newTitle = e.target.value
+                                    setNote({ ...note, title: newTitle })
+                                    setUpdatedTitle(params.id as string, newTitle)
+                                    saveNote({ title: newTitle })
+                                }}
+                                placeholder="untitled note"
+                                style={{ width: titleWidth }}
+                                className="bg-transparent text-xl sm:text-2xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase min-w-[50px] max-w-[300px] sm:max-w-[500px]"
+                            />
+
+                            <div className="text-xs text-muted-fg/60 lowercase shrink-0">
+                                {format(new Date(note.created_at), 'MM.dd.yy')}
+                                {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
+                            </div>
+                        </div>
+
+                        {/* Attendees Selection Row */}
+                        <div className="flex items-center gap-3.5 flex-wrap">
+                            {CORE_PEOPLE.filter(p => (note.attendees || []).includes(p.name)).map((p) => (
+                                <button
+                                    key={p.name}
+                                    onClick={() => handleToggleAttendee(p.name)}
+                                    className="text-xs font-mono text-foreground hover:text-red-500 hover:line-through transition-colors cursor-pointer select-none lowercase"
+                                    title={`click to remove ${p.name}`}
+                                >
+                                    {p.initials}
+                                </button>
+                            ))}
+
+                            {/* Add Button */}
+                            {CORE_PEOPLE.filter(p => !(note.attendees || []).includes(p.name)).length > 0 && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
+                                        className="p-1 text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer flex items-center justify-center"
+                                        title="Add attendee"
+                                    >
+                                        <Plus className="w-3 h-3" />
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isAddMenuOpen && (
+                                            <>
+                                                {/* Backdrop to close menu */}
+                                                <div 
+                                                    className="fixed inset-0 z-[40]" 
+                                                    onClick={() => setIsAddMenuOpen(false)}
+                                                />
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 4 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 4 }}
+                                                    transition={{ duration: 0.1 }}
+                                                    className="absolute left-0 mt-1 w-32 bg-background border border-neutral-200 dark:border-neutral-800 rounded shadow-md py-1 z-[50]"
+                                                >
+                                                    {CORE_PEOPLE.filter(p => !(note.attendees || []).includes(p.name)).map((p) => (
+                                                        <button
+                                                            key={p.name}
+                                                            onClick={() => {
+                                                                handleToggleAttendee(p.name)
+                                                                setIsAddMenuOpen(false)
+                                                            }}
+                                                            className="w-full text-left px-2.5 py-1.5 text-xs text-muted-fg hover:text-foreground hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors lowercase font-mono cursor-pointer"
+                                                        >
+                                                            {p.initials} • {p.name}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            </>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            )}
                         </div>
                     </div>
 
