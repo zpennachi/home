@@ -70,7 +70,13 @@ function syncEditorColors(editorInstance: Editor) {
             || ''
             
         if (!currentColor) {
-            editorInstance.commands.setColor(sectionColor)
+            setTimeout(() => {
+                if (editorInstance.isDestroyed) return
+                const currentSelection = editorInstance.state.selection
+                if (currentSelection.empty) {
+                    editorInstance.commands.setColor(sectionColor)
+                }
+            }, 0)
         }
     }
 
