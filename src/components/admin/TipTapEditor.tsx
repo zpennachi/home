@@ -108,6 +108,83 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 attributes: {
                     class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] text-foreground leading-normal font-mono',
                 },
+                handleKeyDown: (view, event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        const { state } = view
+                        const { selection } = state
+                        const { $from } = selection
+                        
+                        // Check if the current node is an empty paragraph
+                        if ($from.parent.type.name === 'paragraph' && $from.parent.content.size === 0) {
+                            const depth = $from.depth
+                            if (depth > 0) {
+                                const parent = $from.node(depth - 1)
+                                const index = $from.index(depth - 1)
+                                
+                                // We need index >= 1 (so there's at least one node before the current one)
+                                if (index >= 1) {
+                                    const prevNode = parent.child(index - 1)
+                                    
+                                    // Check if the previous node is also an empty paragraph
+                                    if (prevNode.type.name === 'paragraph' && prevNode.content.size === 0) {
+                                        const LIGHT_COLORS = [
+                                            '#1d4ed8', // Blue 700
+                                            '#15803d', // Green 700
+                                            '#b45309', // Amber 700
+                                            '#be123c', // Rose 700
+                                            '#6d28d9', // Violet 700
+                                            '#0f766e', // Teal 700
+                                            '#be185d', // Pink 700
+                                        ]
+
+                                        const DARK_COLORS = [
+                                            '#60a5fa', // Blue 400
+                                            '#34d399', // Emerald 400
+                                            '#fbbf24', // Amber 400
+                                            '#f43f5e', // Rose 500
+                                            '#a78bfa', // Violet 400
+                                            '#2dd4bf', // Teal 400
+                                            '#f472b6', // Pink 400
+                                        ]
+
+                                        const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                                        const colors = isDark ? DARK_COLORS : LIGHT_COLORS
+                                        const normalizedColors = colors.map(c => c.toLowerCase())
+
+                                        const currentColor = state.storedMarks?.find(m => m.type.name === 'textStyle')?.attrs.color 
+                                            || $from.marks().find(m => m.type.name === 'textStyle')?.attrs.color
+                                            || ''
+                                            
+                                        const currentHex = currentColor ? rgbToHex(currentColor).toLowerCase() : ''
+                                        
+                                        let nextColor = colors[0]
+                                        const currentIndex = normalizedColors.indexOf(currentHex)
+                                        if (currentIndex !== -1) {
+                                            nextColor = colors[(currentIndex + 1) % colors.length]
+                                        } else {
+                                            nextColor = colors[Math.floor(Math.random() * colors.length)]
+                                        }
+                                        
+                                        // Prevent default Enter behavior
+                                        event.preventDefault()
+                                        
+                                        // Split block, convert new block to Heading 1, and set color
+                                        if (editor) {
+                                            editor.chain()
+                                                .splitBlock()
+                                                .toggleHeading({ level: 1 })
+                                                .setColor(nextColor)
+                                                .run()
+                                        }
+                                            
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return false
+                },
                 handleDOMEvents: {
                     drop: (view, event) => {
                         const hasFiles = event.dataTransfer?.files && event.dataTransfer.files.length > 0
