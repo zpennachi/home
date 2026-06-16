@@ -24,6 +24,21 @@ import {
 
 import { Markdown } from 'tiptap-markdown'
 
+function rgbToHex(color: string): string {
+    if (!color) return '#ffffff'
+    if (color.startsWith('#')) return color
+    if (color.startsWith('rgb')) {
+        const matches = color.match(/\d+/g)
+        if (matches && matches.length >= 3) {
+            const r = parseInt(matches[0], 10)
+            const g = parseInt(matches[1], 10)
+            const b = parseInt(matches[2], 10)
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
+        }
+    }
+    return '#ffffff'
+}
+
 interface TipTapEditorProps {
     initialContent: string;
     onChange: (content: string) => void;
@@ -282,7 +297,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                                 </button>
                                 <input
                                     type="color"
-                                    value={currentColor || '#ffffff'}
+                                    value={currentColor ? rgbToHex(currentColor) : '#ffffff'}
                                     onChange={(e) => {
                                         editor.chain().focus().setColor(e.target.value).run()
                                     }}
