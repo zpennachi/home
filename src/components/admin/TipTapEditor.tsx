@@ -42,6 +42,12 @@ function rgbToHex(color: string): string {
 interface TipTapEditorProps {
     initialContent: string;
     onChange: (content: string) => void;
+    editorSettings?: {
+        font_family?: string;
+        font_size?: string;
+        line_height?: string;
+        page_width?: string;
+    };
 }
 
 export interface TipTapEditorRef {
@@ -49,7 +55,30 @@ export interface TipTapEditorRef {
 }
 
 export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
-    ({ initialContent, onChange }, ref) => {
+    ({ initialContent, onChange, editorSettings }, ref) => {
+        const settings = editorSettings || {
+            font_family: 'mono',
+            font_size: 'medium',
+            line_height: 'normal',
+        }
+
+        const fontFamily = settings.font_family === 'sans'
+            ? 'var(--font-sans), sans-serif'
+            : settings.font_family === 'serif'
+                ? 'Georgia, Cambria, "Times New Roman", Times, serif'
+                : 'var(--font-mono), monospace'
+
+        const fontSize = settings.font_size === 'small'
+            ? '12.5px'
+            : settings.font_size === 'large'
+                ? '15px'
+                : '13.5px'
+
+        const lineHeight = settings.line_height === 'tight'
+            ? '1.3'
+            : settings.line_height === 'loose'
+                ? '1.55'
+                : '1.4'
         const editor = useEditor({
             immediatelyRender: false,
             extensions: [
@@ -175,7 +204,8 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 }
                 .notes-content-area,
                 .tiptap {
-                    line-height: 1.4 !important;
+                    line-height: ${lineHeight} !important;
+                    font-family: ${fontFamily} !important;
                 }
                 .tiptap p.is-editor-empty:first-child::before {
                     content: attr(data-placeholder);
@@ -189,36 +219,36 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 .tiptap ul {
                     list-style-type: disc;
                     padding-left: 1.25rem;
-                    margin-top: 0.4rem !important;
-                    margin-bottom: 0.4rem !important;
-                    line-height: 1.4 !important;
+                    margin-top: 0.4em !important;
+                    margin-bottom: 0.4em !important;
+                    line-height: ${lineHeight} !important;
                 }
                 .notes-content-area ol,
                 .tiptap ol {
                     list-style-type: decimal;
                     padding-left: 1.25rem;
-                    margin-top: 0.4rem !important;
-                    margin-bottom: 0.4rem !important;
-                    line-height: 1.4 !important;
+                    margin-top: 0.4em !important;
+                    margin-bottom: 0.4em !important;
+                    line-height: ${lineHeight} !important;
                 }
                 .notes-content-area li,
                 .tiptap li {
-                    margin-top: 0.2rem !important;
-                    margin-bottom: 0.2rem !important;
-                    line-height: 1.4 !important;
-                    font-size: 13.5px !important;
+                    margin-top: 0.2em !important;
+                    margin-bottom: 0.2em !important;
+                    line-height: ${lineHeight} !important;
+                    font-size: ${fontSize} !important;
                 }
                 .notes-content-area h1,
-                .tiptap h1 { font-size: 1.35rem; font-weight: 600; margin-bottom: 0.6rem; margin-top: 1.1rem; letter-spacing: -0.02em; line-height: 1.2 !important; }
+                .tiptap h1 { font-size: 1.6em; font-weight: 600; margin-bottom: 0.5em; margin-top: 1em; letter-spacing: -0.02em; line-height: 1.2 !important; }
                 .notes-content-area h2,
-                .tiptap h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.4rem; margin-top: 0.9rem; letter-spacing: -0.01em; line-height: 1.25 !important; border-bottom: none !important; padding-bottom: 0 !important; }
+                .tiptap h2 { font-size: 1.3em; font-weight: 600; margin-bottom: 0.4em; margin-top: 0.8em; letter-spacing: -0.01em; line-height: 1.25 !important; border-bottom: none !important; padding-bottom: 0 !important; }
                 .notes-content-area h3,
-                .tiptap h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.3rem; margin-top: 0.7rem; line-height: 1.3 !important; }
+                .tiptap h3 { font-size: 1.15em; font-weight: 600; margin-bottom: 0.3em; margin-top: 0.6em; line-height: 1.3 !important; }
                 .notes-content-area p,
                 .tiptap p { 
-                    margin-bottom: 0.6rem !important; 
-                    line-height: 1.4 !important;
-                    font-size: 13.5px !important;
+                    margin-bottom: 0.5em !important; 
+                    line-height: ${lineHeight} !important;
+                    font-size: ${fontSize} !important;
                 }
                 .tiptap code { 
                     background: rgba(0,0,0,0.05); 

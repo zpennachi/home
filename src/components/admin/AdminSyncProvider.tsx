@@ -15,6 +15,7 @@ interface Note {
     updated_at: string
     attendees: string[]
     user_id: string
+    editor_settings?: any
 }
 
 interface AdminSyncContextType {
