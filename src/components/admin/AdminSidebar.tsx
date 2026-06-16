@@ -95,12 +95,12 @@ export function AdminSidebar({
                         <button
                             onClick={() => setIsToolsOpen(!isToolsOpen)}
                             className={cn(
-                                "w-full group flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-normal lowercase transition-all duration-200",
-                                isToolsOpen ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground"
+                                "w-full group flex items-center gap-3 px-3 py-1.5 rounded-sm text-[11px] font-mono tracking-wider lowercase transition-all duration-200",
+                                isToolsOpen ? "text-foreground font-semibold" : "text-muted-fg/40 hover:text-foreground"
                             )}
                         >
                             <span className="flex-1 text-left">tools</span>
-                            <span className="font-mono text-xs select-none ml-1">{isToolsOpen ? 'v' : '>'}</span>
+                            <span className="font-mono text-[9px] select-none ml-1">{isToolsOpen ? 'v' : '>'}</span>
                         </button>
 
                         {isToolsOpen && (
@@ -130,17 +130,17 @@ export function AdminSidebar({
                     {/* Persistent Notes Area */}
                     <div className="flex-1 flex flex-col min-h-0 space-y-3">
                         <div className="flex items-center justify-between px-3">
-                            <span className="text-xs font-normal text-muted-fg lowercase font-mono">notes</span>
+                            <span className="text-[11px] font-mono text-muted-fg/40 tracking-wider lowercase">notes</span>
                             <button
                                 onClick={handleCreateNote}
                                 disabled={isCreating}
-                                className="p-1 text-muted-fg hover:text-foreground transition-colors group/plus cursor-pointer"
+                                className="p-1 text-muted-fg/40 hover:text-foreground transition-colors group/plus cursor-pointer"
                                 title="Quick Create Note"
                             >
                                 {isCreating ? (
-                                    <span className="text-xs font-mono lowercase">...</span>
+                                    <span className="text-[10px] font-mono lowercase">...</span>
                                 ) : (
-                                    <span className="text-xs font-mono select-none">+</span>
+                                    <span className="text-[10px] font-mono select-none">+</span>
                                 )}
                             </button>
                         </div>
