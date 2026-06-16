@@ -35,7 +35,7 @@ const CORE_PEOPLE = [
 export default function NoteEditorPage() {
     const params = useParams()
     const router = useRouter()
-    const { setActiveNoteId, setUpdatedTitle } = useAdminSync()
+    const { notes: cachedNotes, setActiveNoteId, updateNoteInCache } = useAdminSync()
 
     // Note State
     const [note, setNote] = useState<any>(null)
@@ -59,10 +59,57 @@ export default function NoteEditorPage() {
     const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>([])
     const transcriptSegmentsRef = useRef<TranscriptSegment[]>([])
     const transcriptEndRef = useRef<HTMLDivElement>(null)
+    const cachedNotesRef = useRef(cachedNotes)
+    cachedNotesRef.current = cachedNotes
     const editorRef = useRef<TipTapEditorRef>(null)
 
     useEffect(() => {
-        loadNote()
+        const noteId = params.id as string
+
+        // 1. Try instant load from global cache
+        const cached = cachedNotesRef.current.find(n => n.id === noteId)
+        if (cached) {
+            setNote(cached)
+            setActiveNoteId(cached.id)
+            if (cached.transcript) {
+                try {
+                    const parsed = JSON.parse(cached.transcript)
+                    setTranscriptSegments(parsed)
+                    transcriptSegmentsRef.current = parsed
+                } catch (e) {
+                    setTranscriptSegments([])
+                    transcriptSegmentsRef.current = []
+                }
+            }
+            setLoading(false)
+            return
+        }
+
+        // 2. Fallback: fetch from DB if not in cache yet
+        async function fetchFromDB() {
+            setLoading(true)
+            const data = await getNoteById(noteId)
+            if (!data) {
+                router.push('/new/admin/notes')
+                return
+            }
+            setNote(data)
+            setActiveNoteId(data.id)
+            updateNoteInCache(data.id, data)
+            if (data.transcript) {
+                try {
+                    const parsed = JSON.parse(data.transcript)
+                    setTranscriptSegments(parsed)
+                    transcriptSegmentsRef.current = parsed
+                } catch (e) {
+                    setTranscriptSegments([])
+                    transcriptSegmentsRef.current = []
+                }
+            }
+            setLoading(false)
+        }
+        fetchFromDB()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.id])
 
     useEffect(() => {
@@ -70,31 +117,6 @@ export default function NoteEditorPage() {
             setTitleWidth(`${titleSpanRef.current.offsetWidth + 2}px`)
         }
     }, [note?.title])
-
-    async function loadNote() {
-        setLoading(true)
-        const data = await getNoteById(params.id as string)
-        if (!data) {
-            router.push('/new/admin/notes')
-        }
-        setNote(data)
-        setActiveNoteId(data.id)
-        setUpdatedTitle(data.id, data.title)
-
-        // Parse existing transcript if it exists
-        if (data.transcript) {
-            try {
-                const parsed = JSON.parse(data.transcript)
-                setTranscriptSegments(parsed)
-                transcriptSegmentsRef.current = parsed
-            } catch (e) {
-                setTranscriptSegments([])
-                transcriptSegmentsRef.current = []
-            }
-        }
-
-        setLoading(false)
-    }
 
     // Clean up active note on unmount
     useEffect(() => {
@@ -299,7 +321,7 @@ export default function NoteEditorPage() {
                                 onChange={(e) => {
                                     const newTitle = e.target.value
                                     setNote({ ...note, title: newTitle })
-                                    setUpdatedTitle(params.id as string, newTitle)
+                                    updateNoteInCache(params.id as string, { title: newTitle })
                                     saveNote({ title: newTitle })
                                 }}
                                 placeholder="untitled note"

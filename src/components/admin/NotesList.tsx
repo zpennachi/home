@@ -1,75 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { getNotes, createNote, deleteNote, updateNote } from '@/app/new/admin/notes/actions'
+import { createNote, deleteNote, updateNote } from '@/app/new/admin/notes/actions'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
+import { useAdminSync } from './AdminSyncProvider'
 
 export function NotesList() {
-    const [notes, setNotes] = useState<any[]>([])
+    const { notes, setNotes, notesLoading: loading, updateNoteInCache, loadNotes } = useAdminSync()
     const [search, setSearch] = useState('')
-    const [loading, setLoading] = useState(true)
     const router = useRouter()
-
-    useEffect(() => {
-        loadNotes()
-
-        const supabase = createClient()
-        const channel = supabase
-            .channel('dashboard-notes-sync')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'notes'
-                },
-                (payload: any) => {
-                    console.log('[REALTIME] Dashboard detected change:', {
-                        event: payload.eventType,
-                        new: payload.new,
-                        old: payload.old
-                    })
-
-                    if (payload.eventType === 'INSERT') {
-                        setNotes(prev => [payload.new, ...prev])
-                    } else if (payload.eventType === 'UPDATE') {
-                        // Ensure we have enough data to update the card UI
-                        if (payload.new && 'title' in payload.new) {
-                            setNotes(prev => prev.map(note =>
-                                note.id === payload.new.id
-                                    ? { ...note, ...payload.new }
-                                    : note
-                            ))
-                        } else {
-                            console.warn('[REALTIME] Dashboard received incomplete update. Refetching...')
-                            loadNotes()
-                        }
-                    } else if (payload.eventType === 'DELETE') {
-                        setNotes(prev => prev.filter(note => note.id !== payload.old.id))
-                    }
-                }
-            )
-            .subscribe((status, err) => {
-                console.log('[REALTIME] Dashboard sync status:', status)
-                if (err) console.error('[REALTIME] Dashboard sync error:', err)
-            })
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [])
-
-    async function loadNotes() {
-        setLoading(true)
-        const data = await getNotes()
-        setNotes(data)
-        setLoading(false)
-    }
 
     async function handleCreate() {
         try {
@@ -85,9 +28,15 @@ export function NotesList() {
         e.preventDefault()
         e.stopPropagation()
         if (confirm('Delete this note?')) {
-            await deleteNote(id)
-            setNotes(notes.filter(n => n.id !== id))
-            toast.success('Note deleted')
+            // Optimistic update
+            setNotes(prev => prev.filter(n => n.id !== id))
+            try {
+                await deleteNote(id)
+                toast.success('Note deleted')
+            } catch (err) {
+                toast.error('Failed to delete note')
+                loadNotes()
+            }
         }
     }
 
@@ -95,9 +44,15 @@ export function NotesList() {
         e.preventDefault()
         e.stopPropagation()
         const newPinned = !note.is_pinned
-        await updateNote(note.id, { is_pinned: newPinned })
-        setNotes(notes.map(n => n.id === note.id ? { ...n, is_pinned: newPinned } : n))
-        toast.success(newPinned ? 'Note pinned' : 'Note unpinned')
+        // Optimistic update
+        updateNoteInCache(note.id, { is_pinned: newPinned })
+        try {
+            await updateNote(note.id, { is_pinned: newPinned })
+            toast.success(newPinned ? 'Note pinned' : 'Note unpinned')
+        } catch (err) {
+            toast.error('Failed to update pin status')
+            updateNoteInCache(note.id, { is_pinned: !newPinned })
+        }
     }
 
     const filteredNotes = notes.filter(n =>

@@ -5,10 +5,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { signout } from '@/app/new/login/actions'
-import { getNotes, createNote } from '@/app/new/admin/notes/actions'
+import { createNote } from '@/app/new/admin/notes/actions'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
 import { useAdminSync } from './AdminSyncProvider'
 
 const toolItems = [
@@ -25,8 +24,7 @@ export function AdminSidebar({
 }) {
     const pathname = usePathname()
     const router = useRouter()
-    const { activeNoteId, activeNoteTitle, updatedTitles } = useAdminSync()
-    const [notes, setNotes] = useState<any[]>([])
+    const { activeNoteId, notes } = useAdminSync()
     const [isCreating, setIsCreating] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [isToolsOpen, setIsToolsOpen] = useState(false)
@@ -35,47 +33,7 @@ export function AdminSidebar({
         setMounted(true)
     }, [])
 
-    const loadNotes = async () => {
-        const data = await getNotes()
-        setNotes(data.slice(0, 15)) // Show top 15 notes (pinned + recent)
-    }
-
-    useEffect(() => {
-        loadNotes()
-
-        const supabase = createClient()
-
-        const channel = supabase
-            .channel('sidebar-notes-sync')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'notes'
-                },
-                (payload: any) => {
-                    if (payload.eventType === 'UPDATE') {
-                        if (payload.new && 'title' in payload.new) {
-                            setNotes(prev => prev.map(note =>
-                                note.id === payload.new.id
-                                    ? { ...note, ...payload.new }
-                                    : note
-                            ))
-                        } else {
-                            loadNotes()
-                        }
-                    } else {
-                        loadNotes()
-                    }
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [])
+    const sidebarNotes = notes.slice(0, 15)
 
     const handleCreateNote = async (e: React.MouseEvent) => {
         e.preventDefault()
@@ -88,7 +46,6 @@ export function AdminSidebar({
             toast.success('Note created')
             if (window.innerWidth < 768) setIsMobileOpen?.(false)
             router.push(`/new/admin/notes/${newNote.id}`)
-            await loadNotes()
         } catch (err) {
             toast.error('Failed to create note')
         } finally {
@@ -189,7 +146,7 @@ export function AdminSidebar({
                         </div>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 -mx-1 px-1">
-                            {notes.map((note) => {
+                            {sidebarNotes.map((note) => {
                                 const isNoteActive = pathname === `/new/admin/notes/${note.id}`;
                                 return (
                                     <Link
@@ -209,7 +166,7 @@ export function AdminSidebar({
                                             {note.is_pinned ? '*' : '-'}
                                         </span>
                                         <span className="truncate flex-1">
-                                            {(updatedTitles[note.id] || note.title || 'untitled').toLowerCase()}
+                                            {(note.title || 'untitled').toLowerCase()}
                                         </span>
                                     </Link>
                                 )
