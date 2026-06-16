@@ -13,13 +13,15 @@ export default async function AdminProjectsPage() {
         .select('*')
         .order('created_at', { ascending: false })
 
-    const projects = dbProjects && dbProjects.length > 0
-        ? dbProjects
-        : localProjects.map((p: any) => ({
+    const dbProjectsMap = new Map(dbProjects?.map(p => [p.id, p]) || []);
+    const projects = [
+        ...(dbProjects || []),
+        ...localProjects.filter(p => !dbProjectsMap.has(p.id)).map((p: any) => ({
             ...p,
             status: p.status || 'published',
             source: p.source || 'local'
-          }));
+        }))
+    ];
 
     return (
         <div className="space-y-6">

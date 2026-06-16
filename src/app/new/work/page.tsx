@@ -18,8 +18,7 @@ export default async function WorkPage() {
     // Query projects from database
     const { data: projects, error: projectsError } = await supabase
         .from('projects')
-        .select('id, title, category, medium, images, description, created_at')
-        .eq('status', 'published')
+        .select('id, title, category, medium, images, description, created_at, status')
         .order('created_at', { ascending: false });
 
     if (entriesError || projectsError) {

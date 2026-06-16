@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import localProjects from '@/data/projects.json'
 
 export async function createProject(formData: FormData) {
     const supabase = await createClient()
@@ -76,7 +77,8 @@ export async function updateProject(formData: FormData) {
     const stack = (formData.get('stack') as string)?.split(',').map(s => s.trim()).filter(Boolean) || []
     const images = (formData.get('images') as string)?.split(',').map(s => s.trim()).filter(Boolean) || []
 
-    const { error } = await supabase.from('projects').update({
+    const { error } = await supabase.from('projects').upsert({
+        id,
         title,
         category,
         medium,
@@ -86,8 +88,8 @@ export async function updateProject(formData: FormData) {
         stack,
         images,
         status,
-        updated_at: new Date().toISOString()
-    }).eq('id', id)
+        source: 'supabase'
+    })
 
     if (error) {
         console.error('Error updating project:', error)
@@ -104,10 +106,46 @@ export async function toggleProjectVisibility(id: string, currentStatus: string)
     const supabase = await createClient()
     const newStatus = currentStatus === 'published' ? 'draft' : 'published'
 
-    const { error } = await supabase
+    // Check if the project already exists in the database
+    const { data: existing } = await supabase
         .from('projects')
-        .update({ status: newStatus })
+        .select('id')
         .eq('id', id)
+        .single()
+
+    let error
+
+    if (existing) {
+        const { error: err } = await supabase
+            .from('projects')
+            .update({ status: newStatus })
+            .eq('id', id)
+        error = err
+    } else {
+        // Find local project and upsert it with the new visibility status
+        const local = localProjects.find(p => p.id === id)
+        if (local) {
+            const { error: err } = await supabase
+                .from('projects')
+                .upsert({
+                    id: local.id,
+                    title: local.title,
+                    category: local.category,
+                    medium: local.medium,
+                    description: local.description,
+                    content: local.content,
+                    repo: local.repo || null,
+                    stack: local.stack || [],
+                    images: local.images || [],
+                    branding: (local as any).branding || null,
+                    status: newStatus,
+                    source: 'supabase'
+                })
+            error = err
+        } else {
+            error = { message: 'Project not found' }
+        }
+    }
 
     if (error) {
         console.error('Error toggling project status:', error)

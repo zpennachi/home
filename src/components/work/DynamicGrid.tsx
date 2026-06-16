@@ -115,11 +115,14 @@ export function DynamicGrid({ entries, projects }: DynamicGridProps) {
             images: p.images || [],
             role: p.role || 'Lead Engineer',
             created_at: p.created_at,
-            type: 'project' as const
+            type: 'project' as const,
+            status: p.status || 'published'
         }));
 
         pItems.forEach(item => {
-            list.push(item);
+            if (item.status === 'published') {
+                list.push(item);
+            }
             seenIds.add(String(item.id).toLowerCase());
         });
 

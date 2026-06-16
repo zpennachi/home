@@ -16,17 +16,8 @@ export default async function Home() {
 
   const { data: dbProjects, error: projectsError } = await supabase
     .from('projects')
-    .select('id, title, category, medium, images, description, content, stack, repo, branding, created_at')
-    .eq('status', 'published')
+    .select('id, title, category, medium, images, description, content, stack, repo, branding, created_at, status')
     .order('created_at', { ascending: false });
-
-  const projects = dbProjects && dbProjects.length > 0
-    ? dbProjects
-    : localProjects.map((p: any) => ({
-        ...p,
-        status: p.status || 'published',
-        source: p.source || 'local'
-      }));
 
   if (entriesError || projectsError) {
     console.error("Supabase error trace:", JSON.stringify(entriesError || projectsError, null, 2));
@@ -60,7 +51,7 @@ export default async function Home() {
           </div>
 
           <div>
-            <DynamicGrid entries={entries} projects={projects} />
+            <DynamicGrid entries={entries} projects={dbProjects} />
           </div>
           
         </div>

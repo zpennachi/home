@@ -46,8 +46,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     let project: any = null;
 
     try {
-        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', slug).eq('status', 'published').single();
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', slug).single();
         if (dbProject) {
+            if (dbProject.status === 'draft') {
+                return { title: "Project Not Found" };
+            }
             project = dbProject;
         }
     } catch (e) {
@@ -98,8 +101,11 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     let isDailyEntry = false;
 
     try {
-        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', params.slug).eq('status', 'published').single();
+        const { data: dbProject } = await supabase.from('projects').select('*').eq('id', params.slug).single();
         if (dbProject) {
+            if (dbProject.status === 'draft') {
+                notFound();
+            }
             project = dbProject;
         }
     } catch (e) {
