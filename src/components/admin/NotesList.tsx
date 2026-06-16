@@ -116,35 +116,35 @@ export function NotesList() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-between pb-4 border-b border-muted/50">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-between pb-2">
                 <div className="relative flex-1 group w-full">
-                    <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-fg group-focus-within:text-foreground transition-colors" />
+                    <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-fg group-focus-within:text-foreground transition-colors" />
                     <input
                         type="search"
                         placeholder="search notes..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-transparent border-0 border-b border-muted/50 pl-7 pr-4 py-2 text-sm focus:outline-none focus:border-foreground font-light transition-all lowercase"
+                        className="w-full bg-transparent border-0 pl-8 pr-4 py-2 text-base focus:outline-none font-normal transition-all lowercase"
                     />
                 </div>
                 <div className="flex items-center gap-6 w-full md:w-auto shrink-0 justify-between md:justify-end">
-                    <span className="text-xs text-muted-fg font-light tracking-wide select-none lowercase">
+                    <span className="text-sm text-muted-fg/60 font-normal select-none lowercase">
                         {filteredNotes.length} notes
                     </span>
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 px-4 py-2 border border-muted hover:border-foreground rounded-sm text-xs uppercase tracking-widest font-light transition-all bg-transparent hover:bg-foreground hover:text-background"
+                        className="flex items-center gap-2 py-2 text-sm lowercase font-medium transition-all text-foreground hover:underline bg-transparent"
                     >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" />
                         <span>new note</span>
                     </button>
                 </div>
             </div>
 
             {/* Notes List */}
-            <div className="flex flex-col border-t border-muted/50">
+            <div className="flex flex-col">
                 <AnimatePresence mode="popLayout">
                     {filteredNotes.map((note) => (
                         <motion.div
@@ -153,31 +153,30 @@ export function NotesList() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="border-b border-muted/50"
                         >
                             <Link 
                                 href={`/new/admin/notes/${note.id}`}
-                                className="flex items-center justify-between py-4 hover:px-2 transition-all duration-150 group"
+                                className="flex items-center justify-between py-3 transition-all duration-150 group"
                             >
                                 <div className="flex items-center gap-4 min-w-0 flex-1">
                                     {/* Pin Button */}
                                     <button
                                         onClick={(e) => togglePin(e, note)}
                                         className={cn(
-                                            "p-1.5 rounded-sm hover:bg-muted transition-colors shrink-0",
+                                            "p-1 transition-colors shrink-0",
                                             note.is_pinned ? "text-amber-500" : "text-muted-fg/40 hover:text-foreground"
                                         )}
                                         title={note.is_pinned ? "Unpin note" : "Pin note"}
                                     >
-                                        <Pin className="w-3.5 h-3.5" />
+                                        <Pin className="w-4 h-4" />
                                     </button>
 
                                     {/* Details */}
                                     <div className="flex items-baseline gap-6 min-w-0 flex-1">
-                                        <span className="font-medium text-sm text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
+                                        <span className="font-semibold text-base text-foreground truncate group-hover:text-muted-fg transition-colors lowercase">
                                             {note.title || 'untitled'}
                                         </span>
-                                        <span className="text-xs text-muted-fg truncate font-light max-w-xl hidden md:inline lowercase">
+                                        <span className="text-sm text-muted-fg/60 truncate font-normal max-w-xl hidden md:inline lowercase">
                                             {note.content || 'no content yet...'}
                                         </span>
                                     </div>
@@ -185,17 +184,17 @@ export function NotesList() {
 
                                 <div className="flex items-center gap-6 shrink-0 ml-4">
                                     {/* Timestamp */}
-                                    <span className="text-[10px] font-mono text-muted-fg uppercase tracking-wider">
+                                    <span className="text-xs font-mono text-muted-fg/50 lowercase">
                                         {formatDistanceToNow(new Date(note.updated_at))} ago
                                     </span>
 
                                     {/* Action Buttons */}
                                     <button
                                         onClick={(e) => handleDelete(e, note.id)}
-                                        className="p-1.5 rounded-sm text-muted-fg hover:text-red-500 hover:bg-red-500/10 md:opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                                        className="p-1 text-muted-fg/40 hover:text-red-500 md:opacity-0 group-hover:opacity-100 transition-all shrink-0"
                                         title="Delete note"
                                     >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </Link>
@@ -205,11 +204,11 @@ export function NotesList() {
 
                 {filteredNotes.length === 0 && !loading && (
                     <div className="py-24 flex flex-col items-center justify-center text-center">
-                        <FileText className="w-8 h-8 text-muted-fg/30 mb-4 font-light" />
-                        <p className="text-muted-fg text-xs font-light lowercase">no notes found. write a new one.</p>
+                        <FileText className="w-8 h-8 text-muted-fg/30 mb-4" />
+                        <p className="text-muted-fg text-sm lowercase">no notes found. write a new one.</p>
                         <button 
                             onClick={handleCreate} 
-                            className="mt-3 text-xs font-medium uppercase tracking-widest text-foreground hover:underline"
+                            className="mt-3 text-sm font-medium lowercase text-foreground hover:underline"
                         >
                             create note
                         </button>

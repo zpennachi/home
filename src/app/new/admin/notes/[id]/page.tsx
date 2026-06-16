@@ -223,12 +223,12 @@ export default function NoteEditorPage() {
                 {/* Left Column: Editor/AI Summary Content */}
                 <div className="space-y-6 min-w-0">
                     {/* TAB SWITCHER */}
-                    <div className="flex items-center gap-6 border-b border-muted/30 pb-2">
+                    <div className="flex items-center gap-6 pb-2">
                         <button
                             onClick={() => setActiveTab('notes')}
                             className={cn(
-                                "text-xs uppercase tracking-wider transition-colors pb-1 cursor-pointer",
-                                activeTab === 'notes' ? "text-foreground border-b border-foreground" : "text-muted-fg hover:text-foreground/70"
+                                "text-sm lowercase tracking-normal transition-colors pb-1 cursor-pointer",
+                                activeTab === 'notes' ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground/70"
                             )}
                         >
                             notes
@@ -236,8 +236,8 @@ export default function NoteEditorPage() {
                         <button
                             onClick={() => setActiveTab('ai')}
                             className={cn(
-                                "text-xs uppercase tracking-wider transition-colors pb-1 flex items-center gap-1.5 cursor-pointer",
-                                activeTab === 'ai' ? "text-foreground border-b border-foreground" : "text-muted-fg hover:text-foreground/70"
+                                "text-sm lowercase tracking-normal transition-colors pb-1 flex items-center gap-1.5 cursor-pointer",
+                                activeTab === 'ai' ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground/70"
                             )}
                         >
                             ai summary
@@ -274,10 +274,10 @@ export default function NoteEditorPage() {
                                     className="w-full !max-w-full !mx-0"
                                 >
                                     {isSynthesizing ? (
-                                        <div className="py-12 flex flex-col items-center justify-center gap-3 text-center border border-dashed border-muted/50 rounded-none">
+                                        <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
                                             <Sparkles className="w-5 h-5 text-muted-fg animate-spin" />
                                             <div>
-                                                <p className="text-xs uppercase tracking-wider text-muted-fg lowercase">synthesizing summary...</p>
+                                                <p className="text-sm text-muted-fg/60 lowercase">synthesizing summary...</p>
                                             </div>
                                         </div>
                                     ) : note.ai_summary ? (
@@ -289,20 +289,20 @@ export default function NoteEditorPage() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="py-16 border border-dashed border-muted/50 rounded-none flex flex-col items-center justify-center gap-4 text-center bg-transparent">
-                                            <div className="p-2 border border-muted/50 rounded-none text-muted-fg">
+                                        <div className="py-16 flex flex-col items-center justify-center gap-4 text-center bg-transparent">
+                                            <div className="p-2 text-muted-fg">
                                                 <Sparkles className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-medium text-foreground lowercase">no ai summary yet</p>
-                                                <p className="text-[11px] text-muted-fg max-w-xs lowercase mt-0.5">add notes or record a transcript, then generate your summary brief.</p>
+                                                <p className="text-sm font-medium text-foreground lowercase">no ai summary yet</p>
+                                                <p className="text-xs text-muted-fg max-w-xs lowercase mt-0.5">add notes or record a transcript, then generate your summary brief.</p>
                                             </div>
                                             <button
                                                 onClick={handleSuperpower}
                                                 disabled={isSynthesizing}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none"
+                                                className="flex items-center gap-1.5 py-1.5 text-xs text-foreground hover:underline transition-colors bg-transparent cursor-pointer font-medium"
                                             >
-                                                <Sparkles className="w-3 h-3" />
+                                                <Sparkles className="w-4 h-4" />
                                                 generate summary
                                             </button>
                                         </div>
@@ -314,7 +314,7 @@ export default function NoteEditorPage() {
                 </div>
 
                 {/* Right Column: Title, Metadata, Transcription Stack */}
-                <div className="space-y-3 lg:border-l lg:border-muted/30 lg:pl-4">
+                <div className="space-y-3 lg:pl-4">
                     {/* Title & Date Details */}
                     <div className="space-y-1">
                         <input
@@ -327,17 +327,17 @@ export default function NoteEditorPage() {
                                 saveNote({ title: newTitle })
                             }}
                             placeholder="untitled note"
-                            className="w-full bg-transparent text-base sm:text-lg font-medium tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase"
+                            className="w-full bg-transparent text-lg sm:text-xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase"
                         />
 
-                        <div className="text-[10px] text-muted-fg/80 lowercase leading-none">
+                        <div className="text-xs text-muted-fg/60 lowercase leading-none">
                             {format(new Date(note.created_at), 'MMM d, yyyy')}
                             {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
                         </div>
                     </div>
 
                     {/* Action Buttons Stack */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-muted/20">
+                    <div className="flex items-center gap-4 pt-2">
                         <AnimatePresence>
                             {!isRecording && (
                                 <motion.button
@@ -347,13 +347,13 @@ export default function NoteEditorPage() {
                                     onClick={handleSuperpower}
                                     disabled={isSynthesizing}
                                     className={cn(
-                                        "flex items-center justify-center gap-1.5 px-1.5 py-0.5 border border-muted hover:border-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none",
+                                        "flex items-center justify-center gap-1.5 py-1 text-xs text-muted-fg hover:text-foreground hover:underline transition-colors bg-transparent cursor-pointer",
                                         isSynthesizing
                                             ? "text-muted-fg cursor-not-allowed opacity-50"
                                             : "text-muted-fg hover:text-foreground"
                                     )}
                                 >
-                                    {isSynthesizing ? <Wand2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                    {isSynthesizing ? <Wand2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                     <span>{isSynthesizing ? "..." : "superpower"}</span>
                                 </motion.button>
                             )}
@@ -362,26 +362,26 @@ export default function NoteEditorPage() {
                         {activeTab === 'ai' && note.ai_summary && !isSynthesizing && (
                             <button
                                 onClick={copyToEditor}
-                                className="flex items-center gap-1.5 px-1.5 py-0.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground text-[10px] uppercase tracking-wider transition-colors bg-transparent cursor-pointer rounded-none"
+                                className="flex items-center gap-1.5 py-1 text-xs text-muted-fg hover:text-foreground hover:underline transition-colors bg-transparent cursor-pointer"
                             >
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-4 h-4" />
                                 <span>copy to notes</span>
                             </button>
                         )}
 
                         <button
                             onClick={handleDelete}
-                            className="p-1 text-muted-fg hover:text-red-500 transition-colors cursor-pointer rounded-none"
+                            className="p-1 text-muted-fg hover:text-red-500 transition-colors cursor-pointer"
                             title="Delete Note"
                         >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
 
                     {/* Transcription Section */}
-                    <div className="pt-2 border-t border-muted/20 space-y-1.5">
+                    <div className="pt-2 space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-fg/70 lowercase">transcription</span>
+                            <span className="text-xs font-normal text-muted-fg/60 lowercase">transcription</span>
                             <MeetingRecorder
                                 onTranscription={handleTranscription}
                                 isRecording={isRecording}
@@ -391,10 +391,10 @@ export default function NoteEditorPage() {
                             />
                         </div>
 
-                        <div className="h-[80px] overflow-y-auto custom-scrollbar py-1 space-y-1 font-mono text-[10px] border-t border-b border-muted/30">
+                        <div className="h-[120px] overflow-y-auto custom-scrollbar py-1 space-y-2 font-mono text-xs">
                             <AnimatePresence initial={false}>
                                 {transcriptSegments.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-muted-fg/40 italic text-[9px] uppercase tracking-widest lowercase">
+                                    <div className="h-full flex items-center justify-center text-muted-fg/40 italic text-xs lowercase">
                                         {isRecording ? "listening..." : "feed inactive"}
                                     </div>
                                 ) : (
@@ -406,7 +406,7 @@ export default function NoteEditorPage() {
                                             className="flex gap-2"
                                         >
                                             <span className={cn(
-                                                "shrink-0 text-[8px] uppercase tracking-tighter w-8 pt-0.5",
+                                                "shrink-0 text-[10px] lowercase w-8 pt-0.5",
                                                 seg.speaker === 0 ? "text-foreground/75 font-semibold" : "text-muted-fg/60"
                                             )}>
                                                 s{seg.speaker}
@@ -436,7 +436,7 @@ export default function NoteEditorPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="bg-foreground text-background px-3.5 py-2 border border-muted/20 shadow-lg flex items-center gap-2 text-[10px] uppercase tracking-wider font-medium rounded-none"
+                            className="bg-foreground text-background px-3.5 py-2 shadow-lg flex items-center gap-2 text-xs font-medium lowercase"
                         >
                             <div className="w-1.5 h-1.5 bg-background rounded-full animate-ping" />
                             saving...

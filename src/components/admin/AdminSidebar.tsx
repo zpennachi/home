@@ -4,16 +4,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-    LayoutDashboard,
     LogOut,
     ExternalLink,
-    Globe,
     Palette,
-    Archive,
     BookOpen,
     Plus,
     Loader2,
-    Sparkles,
     FileText,
     ChevronRight
 } from 'lucide-react'
@@ -27,11 +23,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAdminSync } from './AdminSyncProvider'
 
 const toolItems = [
-    { name: 'Metrics & Stats', href: '/new/admin/stats', icon: LayoutDashboard },
-    { name: 'Site Content', href: '/new/admin/content', icon: Globe },
     { name: 'Design System', href: '/new/admin/design', icon: Palette },
-    { name: 'Harvester', href: '/new/admin/harvester', icon: Sparkles },
-    { name: '365 Archive', href: '/new/admin/365', icon: Archive },
     { name: 'Projects', href: '/new/admin/projects', icon: BookOpen },
 ]
 
@@ -138,17 +130,17 @@ export function AdminSidebar({
                 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                    "fixed left-0 top-0 bottom-0 w-64 bg-background border-r border-muted flex flex-col z-50 transition-all h-full md:rounded-none shadow-none",
+                    "fixed left-0 top-0 bottom-0 w-64 bg-background flex flex-col z-50 transition-all h-full md:rounded-none shadow-none",
                     !isMobileOpen && "-translate-x-full md:translate-x-0"
                 )}
             >
                 {/* Header */}
-                <div className="h-20 flex items-center px-6 border-b border-muted relative">
-                    <div className="w-6 h-6 bg-foreground rounded-sm mr-3" />
+                <div className="h-20 flex items-center px-6 relative">
+                    <div className="w-5 h-5 bg-foreground rounded-sm mr-3" />
                     <div>
-                        <span className="block font-light text-foreground text-xs uppercase tracking-wider">zpennachi</span>
+                        <span className="block font-medium text-foreground text-sm lowercase">zpennachi</span>
                         <div className="flex items-center gap-1.5">
-                            <span className="block text-[9px] text-muted-fg uppercase tracking-widest font-mono">admin</span>
+                            <span className="block text-xs text-muted-fg/60 lowercase font-mono">admin</span>
                         </div>
                     </div>
 
@@ -168,8 +160,8 @@ export function AdminSidebar({
                         <button
                             onClick={() => setIsToolsOpen(!isToolsOpen)}
                             className={cn(
-                                "w-full group flex items-center gap-3 px-3 py-2 rounded-sm text-[10px] font-medium uppercase tracking-widest transition-all duration-200",
-                                isToolsOpen ? "text-foreground bg-muted/50" : "text-muted-fg hover:text-foreground hover:bg-muted/30"
+                                "w-full group flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-normal lowercase transition-all duration-200",
+                                isToolsOpen ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground"
                             )}
                         >
                             <span className="flex-1 text-left">tools</span>
@@ -195,11 +187,11 @@ export function AdminSidebar({
                                                     if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                                 }}
                                                 className={cn(
-                                                    "group flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light lowercase transition-all duration-150",
-                                                    isActive ? "bg-muted text-foreground" : "text-muted-fg hover:text-foreground hover:bg-muted/30"
+                                                    "group flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal lowercase transition-all duration-150",
+                                                    isActive ? "text-foreground font-medium" : "text-muted-fg hover:text-foreground"
                                                 )}
                                             >
-                                                <item.icon className={cn("w-3.5 h-3.5 transition-colors", isActive ? "text-foreground" : "text-muted-fg group-hover:text-foreground")} />
+                                                <item.icon className={cn("w-4 h-4 transition-colors", isActive ? "text-foreground" : "text-muted-fg group-hover:text-foreground")} />
                                                 <span>{item.name.toLowerCase()}</span>
                                             </Link>
                                         )
@@ -212,17 +204,17 @@ export function AdminSidebar({
                     {/* Persistent Notes Area */}
                     <div className="flex-1 flex flex-col min-h-0 space-y-3">
                         <div className="flex items-center justify-between px-3">
-                            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-fg">notes</span>
+                            <span className="text-xs font-normal text-muted-fg lowercase">notes</span>
                             <button
                                 onClick={handleCreateNote}
                                 disabled={isCreating}
-                                className="p-1 hover:bg-muted rounded-sm transition-colors group/plus"
+                                className="p-1 text-muted-fg hover:text-foreground transition-colors group/plus"
                                 title="Quick Create Note"
                             >
                                 {isCreating ? (
-                                    <Loader2 className="w-3 h-3 animate-spin text-foreground" />
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-foreground" />
                                 ) : (
-                                    <Plus className="w-3 h-3 text-muted-fg group-hover/plus:text-foreground transition-all" />
+                                    <Plus className="w-3.5 h-3.5 text-muted-fg group-hover/plus:text-foreground transition-all" />
                                 )}
                             </button>
                         </div>
@@ -238,19 +230,16 @@ export function AdminSidebar({
                                             if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                         }}
                                         className={cn(
-                                            "flex items-center gap-2.5 px-3 py-2 rounded-sm text-xs font-light lowercase transition-all duration-150 relative group/note",
+                                            "flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-normal lowercase transition-all duration-150 relative group/note",
                                             isNoteActive
-                                                ? "bg-muted text-foreground"
-                                                : "text-muted-fg hover:text-foreground hover:bg-muted/30"
+                                                ? "text-foreground font-semibold"
+                                                : "text-muted-fg hover:text-foreground"
                                         )}
                                     >
-                                        <FileText className={cn("w-3 h-3 transition-colors", note.is_pinned ? "text-amber-500" : "text-muted-fg/40 group-hover/note:text-muted-fg/70")} />
+                                        <FileText className={cn("w-3.5 h-3.5 transition-colors", note.is_pinned ? "text-amber-500" : "text-muted-fg/40 group-hover/note:text-muted-fg/70")} />
                                         <span className="truncate flex-1">
                                             {(updatedTitles[note.id] || note.title || 'untitled').toLowerCase()}
                                         </span>
-                                        {isNoteActive && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-foreground" />
-                                        )}
                                     </Link>
                                 )
                             })}
@@ -261,7 +250,7 @@ export function AdminSidebar({
                                     onClick={() => {
                                         if (window.innerWidth < 768) setIsMobileOpen?.(false)
                                     }}
-                                    className="block text-[9px] text-muted-fg hover:text-foreground font-medium uppercase tracking-widest px-3 py-3 mt-2 border-t border-muted/30"
+                                    className="block text-xs text-muted-fg hover:text-foreground font-normal lowercase px-3 py-3 mt-2"
                                 >
                                     view all archive
                                 </Link>
@@ -271,20 +260,20 @@ export function AdminSidebar({
                 </nav>
 
                 {/* Footer */}
-                <div className="p-3 mt-auto space-y-2 border-t border-muted">
+                <div className="p-3 mt-auto space-y-1">
                     <Link
                         href="/new"
                         target="_blank"
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-muted-fg hover:text-foreground hover:bg-muted w-full transition-colors lowercase"
+                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-muted-fg hover:text-foreground w-full transition-colors lowercase"
                     >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                         live site
                     </Link>
                     <button
                         onClick={() => signout()}
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-xs font-light text-red-500 hover:bg-red-500/10 w-full transition-colors lowercase"
+                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-red-500/80 hover:text-red-500 w-full transition-colors lowercase"
                     >
-                        <LogOut className="w-3 h-3" />
+                        <LogOut className="w-3.5 h-3.5" />
                         sign out
                     </button>
                 </div>

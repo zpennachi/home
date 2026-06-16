@@ -140,8 +140,8 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 onClick={onClick}
                 title={title}
                 className={cn(
-                    "p-2 rounded-none transition-all duration-200 hover:bg-muted/80 cursor-pointer",
-                    isActive ? "text-foreground bg-muted shadow-sm" : "text-muted-fg hover:text-foreground"
+                    "p-2 rounded-none transition-all duration-200 cursor-pointer",
+                    isActive ? "text-foreground font-semibold scale-110" : "text-muted-fg hover:text-foreground"
                 )}
             >
                 {children}
@@ -190,7 +190,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 {/* Bubble Menu (Selection-based) */}
                 {editor && (
                     <BubbleMenu editor={editor}>
-                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1 rounded-none shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center gap-1 bg-background border border-muted/20 p-1.5 shadow-md animate-in fade-in zoom-in duration-200">
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleBold().run()}
                                 isActive={editor.isActive('bold')}
@@ -205,7 +205,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                             >
                                 <Italic className="w-4 h-4" />
                             </MenuButton>
-                            <div className="w-px h-4 bg-muted mx-1" />
+                            <div className="w-px h-4 bg-muted/20 mx-1" />
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                                 isActive={editor.isActive('heading', { level: 1 })}
@@ -220,7 +220,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                             >
                                 <Heading2 className="w-4 h-4" />
                             </MenuButton>
-                            <div className="w-px h-4 bg-muted mx-1" />
+                            <div className="w-px h-4 bg-muted/20 mx-1" />
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                                 isActive={editor.isActive('bulletList')}
@@ -242,14 +242,14 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 {/* Floating Menu (Empty Line based) */}
                 {editor && (
                     <FloatingMenu editor={editor}>
-                        <div className="flex items-center gap-1 bg-background/95 backdrop-blur-md border border-muted/50 p-1.5 rounded-none shadow-xl">
+                        <div className="flex items-center gap-1 bg-background border border-muted/20 p-1.5 shadow-md">
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                                 title="Big Heading"
                             >
                                 <div className="flex items-center gap-2 px-1">
                                     <Heading1 className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Title</span>
+                                    <span className="text-xs font-medium lowercase hidden sm:inline">title</span>
                                 </div>
                             </MenuButton>
                             <MenuButton
@@ -258,10 +258,10 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                             >
                                 <div className="flex items-center gap-2 px-1">
                                     <Heading2 className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Sub</span>
+                                    <span className="text-xs font-medium lowercase hidden sm:inline">sub</span>
                                 </div>
                             </MenuButton>
-                            <div className="w-px h-4 bg-muted mx-1" />
+                            <div className="w-px h-4 bg-muted/20 mx-1" />
                             <MenuButton
                                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                                 title="Bullet List"

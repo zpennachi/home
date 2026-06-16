@@ -193,16 +193,16 @@ export function MeetingRecorder({
             {isRecording ? (
                 <button
                     onClick={stopRecording}
-                    className="flex items-center gap-1.5 border border-red-500/30 hover:border-red-500 text-red-500 hover:bg-red-500/5 px-2.5 py-1 rounded-none text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-red-500 hover:underline py-1 text-xs font-medium cursor-pointer transition-all lowercase"
                 >
                     <Square className="w-2.5 h-2.5 fill-current" />
-                    Stop
+                    stop
                 </button>
             ) : (
                 <button
                     onClick={startRecording}
                     disabled={isInitializing}
-                    className="flex items-center gap-1.5 border border-muted hover:border-foreground text-muted-fg hover:text-foreground px-2.5 py-1 rounded-none text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer"
+                    className="flex items-center gap-1.5 text-muted-fg hover:text-foreground hover:underline py-1 text-xs font-medium disabled:opacity-50 whitespace-nowrap cursor-pointer transition-all lowercase"
                 >
                     {isInitializing ? (
                         <Loader2 className="w-2.5 h-2.5 animate-spin" />

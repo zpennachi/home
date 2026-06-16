@@ -410,21 +410,24 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
             angle: 0.3,   
             radius: 1.3,  // Zoomed in closer to the trunk base
             y: -3.0,      // Below the tree base level to feel like lying on the ground
-            look: new THREE.Vector3(TREE_X, 1.5, 0) // Tilt straight up the trunk
+            look: new THREE.Vector3(TREE_X, 1.5, 0), // Tilt straight up the trunk
+            offsetX: -0.6 // Centered more at start to feel in the middle of the tree
         },
         {
             pct: 0.5,     // Climb to mid-tree in the first half
             angle: 0.3,   // Keep angle constant for straight FPV climb
             radius: 1.2,  // Zoomed in very close
             y: 1.0,       // Mid-canopy/branches level (not all the way to the top)
-            look: new THREE.Vector3(TREE_X, 2.0, 0) // Looking up towards canopy
+            look: new THREE.Vector3(TREE_X, 2.0, 0), // Looking up towards canopy
+            offsetX: -0.6 // Stay centered during the FPV climb
         },
         {
             pct: 1.0,     // Move back down, rotate, and zoom out in the second half
             angle: -0.6,  // Rotate camera slightly (keeping tree on the right side)
             radius: 2.6,  // Zoomed in more than before
             y: -0.6,      // Move back down
-            look: new THREE.Vector3(TREE_X, 0.2, 0) // Tilt down to look at the tree
+            look: new THREE.Vector3(TREE_X, 0.2, 0), // Tilt down to look at the tree
+            offsetX: -1.6 // Shift tree to the right at the end to keep it clear of text
         }
     ], []);
 
@@ -467,7 +470,9 @@ function CameraScrollController({ scrollPercentRef }: ControllerProps) {
         
         // Responsive offset: shift the tree right on desktop (size.width >= 1024), center on mobile
         const isDesktop = size.width >= 1024;
-        const offsetX = isDesktop ? -1.6 : 0.0; // Pushed further right
+        const baseOffsetStart = startKey.offsetX ?? -1.3;
+        const baseOffsetEnd = endKey.offsetX ?? -1.3;
+        const offsetX = isDesktop ? THREE.MathUtils.lerp(baseOffsetStart, baseOffsetEnd, t) : 0.0;
         
         targetLookAt.current.set(
             baseLook.x + offsetX * Math.cos(angle),

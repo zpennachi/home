@@ -22,7 +22,7 @@ export default function AdminLayout({
                 <div className="h-screen overflow-hidden bg-background text-foreground selection:bg-foreground selection:text-background font-sans transition-colors duration-300 flex flex-col md:flex-row">
 
                     {/* Mobile Header */}
-                    <header className="h-16 border-b border-muted flex items-center justify-between px-4 md:hidden bg-background/80 backdrop-blur-md z-[40]">
+                    <header className="h-16 flex items-center justify-between px-4 md:hidden bg-background z-[40]">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setIsMobileOpen(true)}
@@ -31,7 +31,7 @@ export default function AdminLayout({
                                 <Menu className="w-5 h-5" />
                             </button>
                             <div className="w-5 h-5 bg-foreground rounded-sm" />
-                            <span className="text-[10px] font-medium uppercase tracking-widest pt-0.5">admin</span>
+                            <span className="text-xs font-light lowercase pt-0.5">admin</span>
                         </div>
                         <button className="p-2 text-muted-fg hover:text-foreground">
                             <SearchIcon className="w-4 h-4" />
