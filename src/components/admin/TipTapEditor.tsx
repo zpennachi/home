@@ -39,6 +39,80 @@ function rgbToHex(color: string): string {
     return '#ffffff'
 }
 
+function syncEditorColors(editorInstance: Editor) {
+    const { state } = editorInstance
+    const { selection } = state
+    const { $from } = selection
+
+    // 1. Scan backwards to find the nearest preceding H1 section color
+    let sectionColor = ''
+    const index = $from.index(0)
+    const { doc } = state
+    
+    for (let i = index; i >= 0; i--) {
+        if (i >= doc.childCount) continue
+        const node = doc.child(i)
+        if (node.type.name === 'heading' && node.attrs.level === 1) {
+            node.forEach((child) => {
+                const colorMark = child.marks.find(m => m.type.name === 'textStyle' && m.attrs.color)
+                if (colorMark) {
+                    sectionColor = colorMark.attrs.color
+                }
+            })
+            break
+        }
+    }
+
+    // 2. If selection is empty, and cursor has no active color, but there is a section color, restore it
+    if (selection.empty && sectionColor) {
+        const currentColor = state.storedMarks?.find(m => m.type.name === 'textStyle')?.attrs.color 
+            || $from.marks().find(m => m.type.name === 'textStyle')?.attrs.color
+            || ''
+            
+        if (!currentColor) {
+            editorInstance.commands.setColor(sectionColor)
+        }
+    }
+
+    // 3. Synchronize the DOM element styles so H2, H3, lists, blockquotes, and bullets get colored
+    const editorEl = editorInstance.view.dom
+    if (editorEl) {
+        const children = Array.from(editorEl.children)
+        let activeColor = ''
+        
+        children.forEach((el) => {
+            const htmlEl = el as HTMLElement
+            
+            if (htmlEl.tagName === 'H1') {
+                const span = htmlEl.querySelector('span[style*="color"]')
+                if (span) {
+                    activeColor = (span as HTMLElement).style.color || ''
+                } else {
+                    activeColor = htmlEl.style.color || ''
+                }
+            }
+            
+            if (activeColor) {
+                htmlEl.style.color = activeColor
+                if (htmlEl.tagName === 'UL' || htmlEl.tagName === 'OL') {
+                    const lis = htmlEl.querySelectorAll('li')
+                    lis.forEach((li) => {
+                        li.style.color = activeColor
+                    })
+                }
+            } else {
+                htmlEl.style.removeProperty('color')
+                if (htmlEl.tagName === 'UL' || htmlEl.tagName === 'OL') {
+                    const lis = htmlEl.querySelectorAll('li')
+                    lis.forEach((li) => {
+                        li.style.removeProperty('color')
+                    })
+                }
+            }
+        })
+    }
+}
+
 interface TipTapEditorProps {
     initialContent: string;
     onChange: (content: string) => void;
@@ -235,9 +309,16 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                     }
                 }
             },
+            onCreate: ({ editor }) => {
+                syncEditorColors(editor)
+            },
             onUpdate: ({ editor }) => {
                 const markdown = (editor as any).storage.markdown.getMarkdown()
                 onChange(markdown)
+                syncEditorColors(editor)
+            },
+            onSelectionUpdate: ({ editor }) => {
+                syncEditorColors(editor)
             },
         })
 
@@ -245,6 +326,9 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
         useEffect(() => {
             if (editor && initialContent !== (editor as any).storage.markdown.getMarkdown()) {
                 editor.commands.setContent(initialContent)
+                setTimeout(() => {
+                    syncEditorColors(editor)
+                }, 0)
             }
         }, [initialContent, editor])
 
