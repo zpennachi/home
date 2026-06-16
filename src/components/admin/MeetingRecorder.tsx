@@ -189,35 +189,36 @@ export function MeetingRecorder({
     }
 
     return (
-        <div className="flex items-center gap-2">
-            {isRecording ? (
-                <button
-                    onClick={stopRecording}
-                    className="flex items-center gap-1.5 text-red-500 hover:underline py-1 text-xs font-medium cursor-pointer transition-all lowercase"
-                >
-                    <Square className="w-2.5 h-2.5 fill-current" />
-                    stop
-                </button>
-            ) : (
-                <button
-                    onClick={startRecording}
-                    disabled={isInitializing}
-                    className="flex items-center gap-1.5 text-muted-fg hover:text-foreground hover:underline py-1 text-xs font-medium disabled:opacity-50 whitespace-nowrap cursor-pointer transition-all lowercase"
-                >
-                    {isInitializing ? (
-                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                    ) : (
-                        <Play className="w-2 h-2 fill-current" />
-                    )}
-                    {isInitializing ? "..." : "start transcription"}
-                </button>
-            )
-            }
+        <div className="flex items-center gap-1">
+            <button
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isInitializing}
+                className={cn(
+                    "p-1.5 transition-colors cursor-pointer rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center",
+                    isRecording ? "text-red-500" : "text-muted-fg hover:text-foreground",
+                    isInitializing && "opacity-50 cursor-not-allowed"
+                )}
+                title={isRecording ? "Stop transcription" : "Start transcription"}
+            >
+                {isInitializing ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-fg" />
+                ) : isRecording ? (
+                    <Square className="w-4 h-4 fill-current" />
+                ) : (
+                    <Play className="w-4 h-4 fill-current" />
+                )}
+            </button>
 
-            <div className="flex items-center gap-1.5 ml-1">
-                {isSystemAudioCaptured && <Volume2 className="w-3 h-3 text-muted-fg" />}
-                {error && <AlertCircle className="w-3 h-3 text-red-500" />}
-            </div>
+            {isSystemAudioCaptured && (
+                <div title="System audio captured" className="p-1">
+                    <Volume2 className="w-3.5 h-3.5 text-muted-fg/60" />
+                </div>
+            )}
+            {error && (
+                <div title={error} className="p-1 text-red-500">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                </div>
+            )}
         </div>
     )
 }

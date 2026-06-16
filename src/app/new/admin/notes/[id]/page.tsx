@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check } from 'lucide-react'
+import { Trash2, Clock, Lock, MessageSquare, Terminal, Sparkles, Wand2, Copy, Check, Download, Loader2 } from 'lucide-react'
 import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary } from '../actions'
 import { TipTapEditor, TipTapEditorRef } from '@/components/admin/TipTapEditor'
 import { MeetingRecorder } from '@/components/admin/MeetingRecorder'
@@ -35,8 +35,8 @@ export default function NoteEditorPage() {
 
     // AI Superpower State
     const [isSynthesizing, setIsSynthesizing] = useState(false)
-    const [isCopied, setIsCopied] = useState(false)
-    const [activeTab, setActiveTab] = useState<'notes' | 'ai'>('notes')
+    const [isTranscriptCopied, setIsTranscriptCopied] = useState(false)
+    const [activeTab, setActiveTab] = useState<'notes' | 'ai' | 'transcript'>('notes')
 
     // Recording State (Lifted from MeetingRecorder)
     const [isRecording, setIsRecording] = useState(false)
@@ -84,6 +84,13 @@ export default function NoteEditorPage() {
         }
     }, [setActiveNoteId])
 
+    // Scroll to bottom when a new transcript segment arrives in active transcript tab
+    useEffect(() => {
+        if (activeTab === 'transcript') {
+            transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [transcriptSegments, activeTab])
+
     const saveNote = useCallback(async (updates: any) => {
         if (!params.id) return
         setSaving(true)
@@ -108,16 +115,39 @@ export default function NoteEditorPage() {
         }
     }, [params.id])
 
-    // Auto-scroll transcript (Container only, not global)
-    useEffect(() => {
-        const container = transcriptEndRef.current?.parentElement
-        if (container) {
-            container.scrollTo({
-                top: container.scrollHeight,
-                behavior: 'smooth'
-            })
+    const handleCopyTranscription = useCallback(() => {
+        if (transcriptSegments.length === 0) {
+            toast.error("No transcription content to copy")
+            return
         }
+        const text = transcriptSegments
+            .map(seg => `Speaker ${seg.speaker}: ${seg.text}`)
+            .join('\n')
+        navigator.clipboard.writeText(text)
+        setIsTranscriptCopied(true)
+        toast.success("Transcription copied to clipboard")
+        setTimeout(() => setIsTranscriptCopied(false), 2000)
     }, [transcriptSegments])
+
+    const handleDownloadTranscription = useCallback(() => {
+        if (transcriptSegments.length === 0) {
+            toast.error("No transcription content to download")
+            return
+        }
+        const text = transcriptSegments
+            .map(seg => `Speaker ${seg.speaker}: ${seg.text}`)
+            .join('\n')
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${note?.title || 'untitled'}-transcript.txt`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success("Transcription downloaded")
+    }, [transcriptSegments, note?.title])
 
     async function handleDelete() {
         if (confirm('Delete this note?')) {
@@ -218,10 +248,94 @@ export default function NoteEditorPage() {
 
     return (
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-12 py-6 -mx-4 sm:-mx-6 md:-mx-12">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
+            <div className="w-full space-y-6">
                 
-                {/* Left Column: Editor/AI Summary Content */}
-                <div className="space-y-6 min-w-0">
+                {/* Header Row: Title/Date on left, Actions on right */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100 dark:border-neutral-800">
+                    {/* Left Side: Title & Date Details */}
+                    <div className="flex items-baseline gap-3 min-w-0 flex-1">
+                        <input
+                            type="text"
+                            value={note.title}
+                            onChange={(e) => {
+                                const newTitle = e.target.value
+                                setNote({ ...note, title: newTitle })
+                                setUpdatedTitle(params.id as string, newTitle)
+                                saveNote({ title: newTitle })
+                            }}
+                            placeholder="untitled note"
+                            className="bg-transparent text-xl sm:text-2xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase flex-1 min-w-[120px]"
+                        />
+
+                        <div className="text-xs text-muted-fg/60 lowercase shrink-0">
+                            {format(new Date(note.created_at), 'MMM d, yyyy')}
+                            {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
+                        </div>
+                    </div>
+
+                    {/* Right Side: Action Icons Row */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Transcribe Button */}
+                        <MeetingRecorder
+                            onTranscription={handleTranscription}
+                            isRecording={isRecording}
+                            setIsRecording={setIsRecording}
+                            isInitializing={isInitializing}
+                            setIsInitializing={setIsInitializing}
+                        />
+
+                        {/* Copy Transcription Button */}
+                        <button
+                            onClick={handleCopyTranscription}
+                            className="p-1.5 text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer"
+                            title="Copy Transcription"
+                            disabled={transcriptSegments.length === 0}
+                            style={{ opacity: transcriptSegments.length === 0 ? 0.35 : 1 }}
+                        >
+                            {isTranscriptCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                        </button>
+
+                        {/* Download Transcription Button */}
+                        <button
+                            onClick={handleDownloadTranscription}
+                            className="p-1.5 text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer"
+                            title="Download Transcription"
+                            disabled={transcriptSegments.length === 0}
+                            style={{ opacity: transcriptSegments.length === 0 ? 0.35 : 1 }}
+                        >
+                            <Download className="w-4 h-4" />
+                        </button>
+
+                        {/* Superpower Button */}
+                        <button
+                            onClick={handleSuperpower}
+                            disabled={isSynthesizing}
+                            className={cn(
+                                "p-1.5 text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer",
+                                isSynthesizing && "opacity-50 cursor-not-allowed"
+                            )}
+                            title="Superpower (AI Summary)"
+                        >
+                            {isSynthesizing ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-muted-fg" />
+                            ) : (
+                                <Sparkles className="w-4 h-4" />
+                            )}
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                            onClick={handleDelete}
+                            className="p-1.5 text-muted-fg hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors cursor-pointer"
+                            title="Delete Note"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="space-y-6">
                     {/* TAB SWITCHER */}
                     <div className="flex items-center gap-6 pb-2">
                         <button
@@ -242,12 +356,21 @@ export default function NoteEditorPage() {
                         >
                             ai summary
                         </button>
+                        <button
+                            onClick={() => setActiveTab('transcript')}
+                            className={cn(
+                                "text-sm lowercase tracking-normal transition-colors pb-1 flex items-center gap-1.5 cursor-pointer",
+                                activeTab === 'transcript' ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground/70"
+                            )}
+                        >
+                            transcript
+                        </button>
                     </div>
 
                     {/* CONTENT */}
                     <div className="w-full">
                         <AnimatePresence mode="wait">
-                            {activeTab === 'notes' ? (
+                            {activeTab === 'notes' && (
                                 <motion.div
                                     key="notes"
                                     initial={{ opacity: 0 }}
@@ -264,7 +387,9 @@ export default function NoteEditorPage() {
                                         }}
                                     />
                                 </motion.div>
-                            ) : (
+                            )}
+
+                            {activeTab === 'ai' && (
                                 <motion.div
                                     key="ai"
                                     initial={{ opacity: 0 }}
@@ -281,7 +406,16 @@ export default function NoteEditorPage() {
                                             </div>
                                         </div>
                                     ) : note.ai_summary ? (
-                                        <div className="relative pt-2 w-full !max-w-full !mx-0">
+                                        <div className="relative pt-2 w-full !max-w-full !mx-0 space-y-4">
+                                            <div className="flex justify-end">
+                                                <button
+                                                    onClick={copyToEditor}
+                                                    className="flex items-center gap-1.5 py-1 px-2.5 rounded text-xs text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors bg-transparent cursor-pointer font-medium lowercase"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                    copy to notes
+                                                </button>
+                                            </div>
                                             <div className="prose prose-sm sm:prose-base dark:prose-invert focus:outline-none !max-w-full !mx-0 text-foreground leading-relaxed">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                     {note.ai_summary}
@@ -309,120 +443,73 @@ export default function NoteEditorPage() {
                                     )}
                                 </motion.div>
                             )}
-                        </AnimatePresence>
-                    </div>
-                </div>
 
-                {/* Right Column: Title, Metadata, Transcription Stack */}
-                <div className="space-y-3 lg:pl-4">
-                    {/* Title & Date Details */}
-                    <div className="space-y-1">
-                        <input
-                            type="text"
-                            value={note.title}
-                            onChange={(e) => {
-                                const newTitle = e.target.value
-                                setNote({ ...note, title: newTitle })
-                                setUpdatedTitle(params.id as string, newTitle)
-                                saveNote({ title: newTitle })
-                            }}
-                            placeholder="untitled note"
-                            className="w-full bg-transparent text-lg sm:text-xl font-semibold tracking-tight text-foreground placeholder:text-muted/50 focus:outline-none border-none p-0 lowercase"
-                        />
-
-                        <div className="text-xs text-muted-fg/60 lowercase leading-none">
-                            {format(new Date(note.created_at), 'MMM d, yyyy')}
-                            {lastSaved && ` • synced ${format(lastSaved, 'HH:mm:ss')}`}
-                        </div>
-                    </div>
-
-                    {/* Action Buttons Stack */}
-                    <div className="flex items-center gap-4 pt-2">
-                        <AnimatePresence>
-                            {!isRecording && (
-                                <motion.button
+                            {activeTab === 'transcript' && (
+                                <motion.div
+                                    key="transcript"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    onClick={handleSuperpower}
-                                    disabled={isSynthesizing}
-                                    className={cn(
-                                        "flex items-center justify-center gap-1.5 py-1 text-xs text-muted-fg hover:text-foreground hover:underline transition-colors bg-transparent cursor-pointer",
-                                        isSynthesizing
-                                            ? "text-muted-fg cursor-not-allowed opacity-50"
-                                            : "text-muted-fg hover:text-foreground"
-                                    )}
+                                    transition={{ duration: 0.15 }}
+                                    className="w-full !max-w-full !mx-0"
                                 >
-                                    {isSynthesizing ? <Wand2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                    <span>{isSynthesizing ? "..." : "superpower"}</span>
-                                </motion.button>
+                                    {transcriptSegments.length === 0 ? (
+                                        <div className="py-16 flex flex-col items-center justify-center gap-4 text-center bg-transparent">
+                                            <div className="p-2 text-muted-fg">
+                                                <MessageSquare className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-foreground lowercase">no transcription yet</p>
+                                                <p className="text-xs text-muted-fg max-w-xs lowercase mt-0.5">start transcription using the play icon in the top header row.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative pt-2 w-full !max-w-full !mx-0 space-y-6">
+                                            <div className="flex justify-between items-center pb-2 border-b border-neutral-100 dark:border-neutral-800">
+                                                <span className="text-xs text-muted-fg/60 lowercase">live meeting audio transcript</span>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={handleCopyTranscription}
+                                                        className="flex items-center gap-1.5 py-1 px-2.5 rounded text-xs text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors bg-transparent cursor-pointer font-medium lowercase"
+                                                    >
+                                                        {isTranscriptCopied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                                        copy to clipboard
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDownloadTranscription}
+                                                        className="flex items-center gap-1.5 py-1 px-2.5 rounded text-xs text-muted-fg hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors bg-transparent cursor-pointer font-medium lowercase"
+                                                    >
+                                                        <Download className="w-3.5 h-3.5" />
+                                                        download txt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4 max-w-3xl">
+                                                {transcriptSegments.map((seg) => (
+                                                    <div key={seg.id} className="flex gap-4 items-start">
+                                                        <span className={cn(
+                                                            "shrink-0 text-[10px] lowercase font-mono px-2 py-0.5 rounded select-none w-20 text-center",
+                                                            seg.speaker === 0 
+                                                                ? "bg-neutral-900 text-neutral-100 dark:bg-neutral-100 dark:text-neutral-900 font-semibold" 
+                                                                : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
+                                                        )}>
+                                                            speaker {seg.speaker}
+                                                        </span>
+                                                        <p className={cn(
+                                                            "text-sm sm:text-base leading-relaxed text-foreground/90",
+                                                            !seg.isFinal && "text-foreground/50 animate-pulse"
+                                                        )}>
+                                                            {seg.text}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                                <div ref={transcriptEndRef} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </motion.div>
                             )}
                         </AnimatePresence>
-                        
-                        {activeTab === 'ai' && note.ai_summary && !isSynthesizing && (
-                            <button
-                                onClick={copyToEditor}
-                                className="flex items-center gap-1.5 py-1 text-xs text-muted-fg hover:text-foreground hover:underline transition-colors bg-transparent cursor-pointer"
-                            >
-                                <Copy className="w-4 h-4" />
-                                <span>copy to notes</span>
-                            </button>
-                        )}
-
-                        <button
-                            onClick={handleDelete}
-                            className="p-1 text-muted-fg hover:text-red-500 transition-colors cursor-pointer"
-                            title="Delete Note"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Transcription Section */}
-                    <div className="pt-2 space-y-2">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-normal text-muted-fg/60 lowercase">transcription</span>
-                            <MeetingRecorder
-                                onTranscription={handleTranscription}
-                                isRecording={isRecording}
-                                setIsRecording={setIsRecording}
-                                isInitializing={isInitializing}
-                                setIsInitializing={setIsInitializing}
-                            />
-                        </div>
-
-                        <div className="h-[120px] overflow-y-auto custom-scrollbar py-1 space-y-2 font-mono text-xs">
-                            <AnimatePresence initial={false}>
-                                {transcriptSegments.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-muted-fg/40 italic text-xs lowercase">
-                                        {isRecording ? "listening..." : "feed inactive"}
-                                    </div>
-                                ) : (
-                                    transcriptSegments.map((seg) => (
-                                        <motion.div
-                                            key={seg.id}
-                                            initial={{ opacity: 0, x: -5 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            className="flex gap-2"
-                                        >
-                                            <span className={cn(
-                                                "shrink-0 text-[10px] lowercase w-8 pt-0.5",
-                                                seg.speaker === 0 ? "text-foreground/75 font-semibold" : "text-muted-fg/60"
-                                            )}>
-                                                s{seg.speaker}
-                                            </span>
-                                            <span className={cn(
-                                                "leading-snug",
-                                                seg.isFinal ? "text-foreground/80" : "text-muted-fg/50 animate-pulse"
-                                            )}>
-                                                {seg.text}
-                                            </span>
-                                        </motion.div>
-                                    ))
-                                )}
-                            </AnimatePresence>
-                            <div ref={transcriptEndRef} />
-                        </div>
                     </div>
                 </div>
 
