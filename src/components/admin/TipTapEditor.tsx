@@ -8,7 +8,9 @@ import Placeholder from '@tiptap/extension-placeholder'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import FloatingMenuExtension from '@tiptap/extension-floating-menu'
 import Image from '@tiptap/extension-image'
-import { useEffect, forwardRef, useImperativeHandle } from 'react'
+import Color from '@tiptap/extension-color'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import { cn } from '@/lib/utils'
 import {
     Bold,
@@ -17,10 +19,7 @@ import {
     ListOrdered,
     Heading1,
     Heading2,
-    Type,
-    Link as LinkIcon,
     Code,
-    Highlighter
 } from 'lucide-react'
 
 import { Markdown } from 'tiptap-markdown'
@@ -42,8 +41,10 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 StarterKit,
                 BubbleMenuExtension,
                 FloatingMenuExtension,
+                TextStyle,
+                Color,
                 Markdown.configure({
-                    html: false,
+                    html: true,
                     tightLists: true,
                     bulletListMarker: '-',
                 }),
@@ -133,6 +134,9 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
         if (!editor) {
             return null
         }
+
+        const colorInputRef = useRef<HTMLInputElement>(null)
+        const currentColor = editor.getAttributes('textStyle').color || ''
 
         const MenuButton = ({ onClick, isActive, children, title }: any) => (
             <button
@@ -247,6 +251,45 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                             >
                                 <ListOrdered className="w-4 h-4" />
                             </MenuButton>
+                            <div className="w-px h-4 bg-muted/20 mx-1" />
+                            {/* Color Picker */}
+                            <div className="relative flex items-center">
+                                <button
+                                    type="button"
+                                    onClick={() => colorInputRef.current?.click()}
+                                    title="Text Color"
+                                    className={cn(
+                                        "p-2 rounded-none transition-all duration-200 cursor-pointer flex items-center gap-1",
+                                        currentColor ? "text-foreground" : "text-muted-fg hover:text-foreground"
+                                    )}
+                                >
+                                    <span className="text-xs font-mono font-bold lowercase" style={currentColor ? { color: currentColor } : undefined}>A</span>
+                                    <span
+                                        className="w-3 h-3 rounded-sm border border-muted/30"
+                                        style={{ backgroundColor: currentColor || 'currentColor' }}
+                                    />
+                                </button>
+                                <input
+                                    ref={colorInputRef}
+                                    type="color"
+                                    value={currentColor || '#ffffff'}
+                                    onChange={(e) => {
+                                        editor.chain().focus().setColor(e.target.value).run()
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    tabIndex={-1}
+                                />
+                            </div>
+                            {currentColor && (
+                                <button
+                                    type="button"
+                                    onClick={() => editor.chain().focus().unsetColor().run()}
+                                    title="Reset Color"
+                                    className="p-2 rounded-none transition-all duration-200 cursor-pointer text-muted-fg hover:text-foreground"
+                                >
+                                    <span className="text-[10px] font-mono lowercase">reset</span>
+                                </button>
+                            )}
                         </div>
                     </BubbleMenu>
                 )}
