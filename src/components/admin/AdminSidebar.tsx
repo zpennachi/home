@@ -69,27 +69,16 @@ export function AdminSidebar({
                     isMobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
-                {/* Header */}
-                <div className="h-20 flex items-center px-6 relative">
-                    <div className="w-5 h-5 bg-foreground rounded-sm mr-3" />
-                    <div>
-                        <span className="block font-medium text-foreground text-sm lowercase">zpennachi</span>
-                        <div className="flex items-center gap-1.5">
-                            <span className="block text-xs text-muted-fg/60 lowercase font-mono">admin</span>
-                        </div>
-                    </div>
-
-                    {/* Mobile Close Button */}
-                    <button
-                        onClick={() => setIsMobileOpen?.(false)}
-                        className="absolute right-4 p-2 text-muted-fg hover:text-foreground md:hidden font-mono text-xs"
-                    >
-                        &lt;
-                    </button>
-                </div>
+                {/* Mobile Close Button */}
+                <button
+                    onClick={() => setIsMobileOpen?.(false)}
+                    className="absolute right-4 top-4 p-2 text-muted-fg hover:text-foreground md:hidden font-mono text-xs z-10"
+                >
+                    &lt;
+                </button>
 
                 {/* Nav */}
-                <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto custom-scrollbar flex flex-col">
+                <nav className="flex-1 px-3 py-6 space-y-6 overflow-y-auto custom-scrollbar flex flex-col h-full">
                     {/* Utility Tools Dropdown */}
                     <div className="space-y-1">
                         <button
@@ -186,24 +175,23 @@ export function AdminSidebar({
                             )}
                         </div>
                     </div>
+                    {/* Footer */}
+                    <div className="mt-auto pt-4 pb-2 space-y-1">
+                        <Link
+                            href="/new"
+                            target="_blank"
+                            className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-muted-fg hover:text-foreground w-full transition-colors lowercase"
+                        >
+                            live site
+                        </Link>
+                        <button
+                            onClick={() => signout()}
+                            className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-red-500/80 hover:text-red-500 w-full transition-colors lowercase cursor-pointer"
+                        >
+                            sign out
+                        </button>
+                    </div>
                 </nav>
-
-                {/* Footer */}
-                <div className="p-3 mt-auto space-y-1">
-                    <Link
-                        href="/new"
-                        target="_blank"
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-muted-fg hover:text-foreground w-full transition-colors lowercase"
-                    >
-                        live site
-                    </Link>
-                    <button
-                        onClick={() => signout()}
-                        className="flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-normal text-red-500/80 hover:text-red-500 w-full transition-colors lowercase cursor-pointer"
-                    >
-                        sign out
-                    </button>
-                </div>
             </div>
         </>
     )

@@ -63,23 +63,6 @@ function syncEditorColors(editorInstance: Editor) {
         }
     }
 
-    // 2. If selection is empty, and cursor has no active color, but there is a section color, restore it
-    if (selection.empty && sectionColor) {
-        const currentColor = state.storedMarks?.find(m => m.type.name === 'textStyle')?.attrs.color 
-            || $from.marks().find(m => m.type.name === 'textStyle')?.attrs.color
-            || ''
-            
-        if (!currentColor) {
-            setTimeout(() => {
-                if (editorInstance.isDestroyed) return
-                const currentSelection = editorInstance.state.selection
-                if (currentSelection.empty) {
-                    editorInstance.commands.setColor(sectionColor)
-                }
-            }, 0)
-        }
-    }
-
     // 3. Synchronize the DOM element styles so H2, H3, lists, blockquotes, and bullets get colored
     const editorEl = editorInstance.view.dom
     if (editorEl) {
