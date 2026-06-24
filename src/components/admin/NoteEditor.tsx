@@ -352,16 +352,16 @@ export function NoteEditor() {
 
     return (
         <div
-            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-12 py-6 -mx-4 sm:-mx-6 md:-mx-12"
+            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-12 pb-6 -mx-4 sm:-mx-6 md:-mx-12"
             style={{
                 opacity: contentOpacity,
                 transition: 'opacity 80ms ease-out',
             }}
         >
-            <div className="w-full space-y-6">
+            <div className="w-full">
                 
                 {/* Header Row: Title/Date on left, Actions on right */}
-                <div className="flex flex-col gap-2.5 pb-4">
+                <div className="sticky top-0 z-30 bg-background pt-6 pb-4 border-b border-muted/20 mb-6 flex flex-col gap-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-12 md:px-12">
                     {/* Row 1: Title/Date & Actions */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {/* Title & Date Details */}

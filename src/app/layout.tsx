@@ -4,6 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/work/ThemeProvider'
 import { DynamicStyles } from '@/components/work/DynamicStyles'
 import Script from 'next/script'
+import { AudioPlayerProvider } from '@/components/archive/AudioPlayerProvider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,7 +45,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${instrumentSans.variable} ${outfit.variable} ${jetbrainsMono.variable} font-mono antialiased`}>
         <DynamicStyles />
         <ThemeProvider>
-          {children}
+          <AudioPlayerProvider>
+            {children}
+          </AudioPlayerProvider>
         </ThemeProvider>
         {/* Load Google's model-viewer script dynamically only for mobile AR capabilities */}
         <Script

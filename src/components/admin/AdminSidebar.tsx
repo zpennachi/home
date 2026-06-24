@@ -13,6 +13,7 @@ import { useAdminSync } from './AdminSyncProvider'
 const toolItems = [
     { name: 'Design System', href: '/new/admin/design' },
     { name: 'Projects', href: '/new/admin/projects' },
+    { name: 'Field Archive', href: '/new/admin/field-archive' },
 ]
 
 export function AdminSidebar({
