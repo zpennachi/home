@@ -160,13 +160,50 @@ export async function updateNote(id: string, updates: any) {
 export async function getGraphData() {
     const supabase = await createClient()
     const [notesRes, linksRes] = await Promise.all([
-        supabase.from('notes').select('id, title, is_pinned, tags'),
+        supabase.from('notes').select('id, title, is_pinned, tags, ai_summary'),
         supabase.from('note_links').select('source_id, target_id, target_title')
     ])
     return {
         notes: notesRes.data || [],
         links: linksRes.data || []
     }
+}
+
+export async function getNotesByTag(tag: string) {
+    const supabase = await createClient()
+    const { data } = await supabase.from('notes').select('id, title, ai_summary, tags')
+    // Filter notes that contain this tag (case-insensitive)
+    const tagLower = tag.replace(/^#/, '').toLowerCase()
+    const matching = (data || []).filter(n => {
+        if (!n.tags || !Array.isArray(n.tags)) return false
+        return n.tags.some((t: string) => t.replace(/^#/, '').toLowerCase() === tagLower)
+    })
+    return matching
+}
+
+export async function createNoteFromDangling(title: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    // Create the new note
+    const { data: newNote, error } = await supabase
+        .from('notes')
+        .insert({ user_id: user.id, title, content: '' })
+        .select()
+        .single()
+
+    if (error || !newNote) throw new Error('Failed to create note')
+
+    // Resolve all dangling links that reference this title
+    await supabase
+        .from('note_links')
+        .update({ target_id: newNote.id })
+        .eq('target_title', title)
+        .is('target_id', null)
+
+    revalidatePath('/new/admin/notes')
+    return newNote
 }
 
 export async function deleteNote(id: string) {
