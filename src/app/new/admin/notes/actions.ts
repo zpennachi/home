@@ -198,11 +198,17 @@ export async function saveNoteTranscript(id: string, transcript: string) {
     }
     // No revalidatePath here to avoid router thrashing during transcription
 }
+export async function getAllNoteIdsToSeed() {
+    const supabase = await createClient()
+    const { data } = await supabase.from('notes').select('id')
+    return (data || []).map(n => n.id)
+}
+
 export async function generateAISummary(id: string) {
     const supabase = await createClient()
     const { data: note, error: fetchError } = await supabase
         .from('notes')
-        .select('content, transcript, title')
+        .select('content, transcript, title, ai_summary')
         .eq('id', id)
         .single()
 
@@ -223,8 +229,9 @@ export async function generateAISummary(id: string) {
 
     const hasTranscript = transcriptText.trim().length > 0
     const hasNotes = (note.content || '').trim().length > 0
+    const hasOldSummary = (note.ai_summary || '').trim().length > 0
 
-    if (!hasTranscript && !hasNotes) {
+    if (!hasTranscript && !hasNotes && !hasOldSummary) {
         throw new Error('Add some notes or record a transcript before synthesizing.')
     }
 
@@ -241,7 +248,7 @@ export async function generateAISummary(id: string) {
     let auto_links: string[] = []
 
     if (openaiKey) {
-        const res = await synthesizeWithOpenAI(openaiKey, note, transcriptText, hasTranscript, hasNotes, allTitles)
+        const res = await synthesizeWithOpenAI(openaiKey, note as any, transcriptText, hasTranscript, hasNotes, hasOldSummary, allTitles)
         summary = res.summary
         tags = res.tags || []
         auto_links = res.auto_links || []
@@ -287,10 +294,11 @@ export async function generateAISummary(id: string) {
 // ── OpenAI Synthesis (Primary) ──────────────────────────────────────────
 async function synthesizeWithOpenAI(
     apiKey: string,
-    note: { title: string; content: string; transcript: string },
+    note: { title: string; content: string; transcript: string; ai_summary?: string },
     transcriptText: string,
     hasTranscript: boolean,
     hasNotes: boolean,
+    hasOldSummary: boolean,
     allTitles: string[]
 ): Promise<{ summary: string, tags: string[], auto_links: string[] }> {
     const systemPrompt = `You are an elite Chief of Staff, operator, and strategic thinking partner.
@@ -334,6 +342,7 @@ Anything that could slow progress, blockers, risks, or open questions. Omit this
         '',
         hasTranscript ? `## Transcript\n${transcriptText}` : '',
         hasNotes ? `## User's Personal Notes\n${note.content}` : '',
+        hasOldSummary ? `## Previous Summary (Refine/Include this context)\n${note.ai_summary}` : '',
         '',
         `# EXISTING NOTES INDEX (For Auto-Linking)`,
         allTitles.length > 0 ? allTitles.map(t => `- ${t}`).join('\n') : '(No other notes exist yet)'

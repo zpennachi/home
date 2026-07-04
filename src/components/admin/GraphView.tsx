@@ -43,8 +43,6 @@ export function GraphView({ data }: { data: GraphData }) {
     const router = useRouter()
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
-    
-    // Process Data
     const { nodes, links } = useMemo(() => {
         const rawNodes = data.notes.map(n => ({
             id: n.id,
@@ -112,6 +110,35 @@ export function GraphView({ data }: { data: GraphData }) {
 
         return { nodes: physicsNodes, links: rawLinks }
     }, [data])
+
+    // ── Seeder Logic ──────────────────────────────────────────────────────
+    const [isSeeding, setIsSeeding] = useState(false)
+    const [seedProgress, setSeedProgress] = useState({ current: 0, total: 0 })
+
+    const handleSeedGraph = async () => {
+        if (!confirm('This will run the AI on all your old notes to build the graph. It may take a minute. Proceed?')) return
+        setIsSeeding(true)
+        try {
+            const { getAllNoteIdsToSeed, generateAISummary } = await import('@/app/new/admin/notes/actions')
+            const ids = await getAllNoteIdsToSeed()
+            setSeedProgress({ current: 0, total: ids.length })
+
+            for (let i = 0; i < ids.length; i++) {
+                try {
+                    await generateAISummary(ids[i])
+                } catch (err: any) {
+                    console.warn(`Skipped note ${ids[i]}: ${err.message}`)
+                }
+                setSeedProgress(prev => ({ ...prev, current: i + 1 }))
+            }
+            
+            // Reload page to fetch new graph data
+            window.location.reload()
+        } catch (err) {
+            console.error('Seeding failed', err)
+            setIsSeeding(false)
+        }
+    }
 
     // Physics Loop & Rendering
     useEffect(() => {
@@ -339,11 +366,27 @@ export function GraphView({ data }: { data: GraphData }) {
     }
 
     return (
-        <div ref={containerRef} className="w-full h-full min-h-[500px] bg-background relative overflow-hidden">
+        <div ref={containerRef} className="w-full h-full min-h-[500px] bg-background relative overflow-hidden group">
             <canvas 
                 ref={canvasRef} 
                 className="absolute inset-0 block w-full h-full outline-none"
             />
+            {/* Seeder UI */}
+            <div className="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-2">
+                {isSeeding ? (
+                    <div className="bg-background/80 backdrop-blur text-foreground px-3 py-1.5 rounded-sm border border-muted text-xs font-mono shadow-sm">
+                        synthesizing: {seedProgress.current} / {seedProgress.total}
+                    </div>
+                ) : (
+                    <button 
+                        onClick={handleSeedGraph}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur text-muted-fg hover:text-foreground px-3 py-1.5 rounded-sm border border-muted text-xs font-mono shadow-sm cursor-pointer"
+                        title="Run AI Synthesis on all old notes to build the graph"
+                    >
+                        seed ai graph
+                    </button>
+                )}
+            </div>
         </div>
     )
 }
