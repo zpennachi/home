@@ -197,6 +197,8 @@ export async function saveNoteTranscript(id: string, transcript: string) {
         throw error
     }
     // No revalidatePath here to avoid router thrashing during transcription
+}
+
 export async function getSeedStats() {
     const supabase = await createClient()
     const { data } = await supabase.from('notes').select('id, ai_summary')
