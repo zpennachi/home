@@ -1,198 +1,52 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text, Html } from '@react-three/drei'
 import { useRouter } from 'next/navigation'
-import * as THREE from 'three'
 
 interface GraphData {
     notes: { id: string, title: string, is_pinned: boolean, tags?: string[] }[]
     links: { source_id: string, target_id: string | null, target_title: string }[]
 }
 
-function GraphSimulation({ nodes, links, onNodeClick }: { nodes: any[], links: any[], onNodeClick: (n: any) => void }) {
-    const groupRef = useRef<THREE.Group>(null)
-    const linesRef = useRef<THREE.LineSegments>(null)
-    const pointsRef = useRef<THREE.Points>(null)
+// ── Minimalist 2D Physics Engine ─────────────────────────────────────────
+
+class Node2D {
+    id: string
+    name: string
+    isDangling: boolean
+    isPinned: boolean
+    isTag: boolean
+    val: number
     
-    // Physics simulation state
-    const positions = useRef<THREE.Vector3[]>([])
-    const velocities = useRef<THREE.Vector3[]>([])
-    
-    // Initialize random positions
-    useEffect(() => {
-        positions.current = nodes.map(() => new THREE.Vector3(
-            (Math.random() - 0.5) * 10,
-            (Math.random() - 0.5) * 10,
-            (Math.random() - 0.5) * 10
-        ))
-        velocities.current = nodes.map(() => new THREE.Vector3(0, 0, 0))
-    }, [nodes])
+    x: number = 0
+    y: number = 0
+    vx: number = 0
+    vy: number = 0
+    radius: number
 
-    // Physics loop
-    useFrame(() => {
-        if (!positions.current.length) return
-
-        const pos = positions.current
-        const vel = velocities.current
-        const len = nodes.length
-
-        // Repulsion (O(N^2) but fine for <100 nodes)
-        for (let i = 0; i < len; i++) {
-            for (let j = i + 1; j < len; j++) {
-                const dx = pos[i].x - pos[j].x
-                const dy = pos[i].y - pos[j].y
-                const dz = pos[i].z - pos[j].z
-                let distSq = dx * dx + dy * dy + dz * dz
-                if (distSq < 0.1) distSq = 0.1 // prevent division by zero
-                const force = 2.0 / distSq // Repulsion strength
-                
-                const fx = (dx / Math.sqrt(distSq)) * force
-                const fy = (dy / Math.sqrt(distSq)) * force
-                const fz = (dz / Math.sqrt(distSq)) * force
-                
-                vel[i].x += fx
-                vel[i].y += fy
-                vel[i].z += fz
-                vel[j].x -= fx
-                vel[j].y -= fy
-                vel[j].z -= fz
-            }
-        }
-
-        // Attraction along links
-        links.forEach(link => {
-            const i = nodes.findIndex(n => n.id === link.source)
-            const j = nodes.findIndex(n => n.id === link.target)
-            if (i === -1 || j === -1) return
-            
-            const dx = pos[j].x - pos[i].x
-            const dy = pos[j].y - pos[i].y
-            const dz = pos[j].z - pos[i].z
-            
-            // Spring force
-            const force = 0.02 // Attraction strength
-            vel[i].x += dx * force
-            vel[i].y += dy * force
-            vel[i].z += dz * force
-            vel[j].x -= dx * force
-            vel[j].y -= dy * force
-            vel[j].z -= dz * force
-        })
-
-        // Centering force to keep them on screen
-        for (let i = 0; i < len; i++) {
-            vel[i].x -= pos[i].x * 0.005
-            vel[i].y -= pos[i].y * 0.005
-            vel[i].z -= pos[i].z * 0.005
-        }
-
-        // Apply velocities and damping
-        for (let i = 0; i < len; i++) {
-            vel[i].multiplyScalar(0.85) // Damping
-            pos[i].add(vel[i])
-        }
-    })
-
-    return (
-        <group ref={groupRef}>
-            {nodes.map((node, i) => (
-                <GraphNode 
-                    key={node.id} 
-                    node={node} 
-                    positionRef={positions} 
-                    index={i} 
-                    onClick={() => onNodeClick(node)}
-                />
-            ))}
-            <GraphLinks links={links} nodes={nodes} positionsRef={positions} />
-        </group>
-    )
-}
-
-function GraphNode({ node, positionRef, index, onClick }: any) {
-    const meshRef = useRef<THREE.Mesh>(null)
-    const [hovered, setHovered] = useState(false)
-
-    useFrame(() => {
-        if (meshRef.current && positionRef.current[index]) {
-            meshRef.current.position.copy(positionRef.current[index])
-        }
-    })
-
-    const isDangling = node.isDangling
-    const isPinned = node.is_pinned
-    const isTag = node.isTag
-    
-    // Scale based on connections
-    const scale = 1 + (node.val || 1) * (isTag ? 0.1 : 0.2)
-
-    return (
-        <mesh 
-            ref={meshRef} 
-            onClick={(e) => { e.stopPropagation(); onClick(); }}
-            onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
-            onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'default'; }}
-            scale={hovered ? scale * 1.2 : scale}
-        >
-            <sphereGeometry args={[isTag ? 0.2 : 0.3, 16, 16]} />
-            <meshStandardMaterial 
-                color={isTag ? '#8b5cf6' : isDangling ? '#a3a3a3' : isPinned ? '#f59e0b' : '#3b82f6'} 
-                roughness={0.2}
-                metalness={0.8}
-            />
-            {/* HTML label for crisp text rendering */}
-            <Html distanceFactor={15} center zIndexRange={[100, 0]}>
-                <div 
-                    className={`px-2 py-1 rounded-md text-xs font-mono whitespace-nowrap transition-opacity ${hovered ? 'opacity-100 bg-background/90 text-foreground border border-muted' : isTag ? 'opacity-50 text-muted-fg' : 'opacity-70 text-foreground'}`}
-                    style={{ transform: 'translate3d(0, -20px, 0)', pointerEvents: 'none' }}
-                >
-                    {node.name}
-                </div>
-            </Html>
-        </mesh>
-    )
-}
-
-function GraphLinks({ links, nodes, positionsRef }: any) {
-    const lineRef = useRef<THREE.LineSegments>(null)
-    const geometry = useMemo(() => new THREE.BufferGeometry(), [])
-    
-    useFrame(() => {
-        if (!lineRef.current || !positionsRef.current.length || !links || links.length === 0) return
+    constructor(data: any) {
+        this.id = data.id
+        this.name = data.name
+        this.isDangling = !!data.isDangling
+        this.isPinned = !!data.is_pinned
+        this.isTag = !!data.isTag
+        this.val = data.val || 0
+        this.radius = this.isTag ? 4 : 6 + (this.val * 0.5)
         
-        const pos = positionsRef.current
-        const points: number[] = []
-        
-        links.forEach((link: any) => {
-            const i = nodes.findIndex((n: any) => n.id === link.source)
-            const j = nodes.findIndex((n: any) => n.id === link.target)
-            if (i !== -1 && j !== -1 && pos[i] && pos[j]) {
-                points.push(pos[i].x, pos[i].y, pos[i].z)
-                points.push(pos[j].x, pos[j].y, pos[j].z)
-            }
-        })
-        
-        if (points.length > 0) {
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
-        }
-    })
-
-    if (!links || links.length === 0) return null
-
-    return (
-        <lineSegments ref={lineRef} geometry={geometry}>
-            <lineBasicMaterial color="#888888" transparent opacity={0.3} />
-        </lineSegments>
-    )
+        // Spawn randomly around center
+        this.x = (Math.random() - 0.5) * 400
+        this.y = (Math.random() - 0.5) * 400
+    }
 }
 
 export function GraphView({ data }: { data: GraphData }) {
     const router = useRouter()
-
-    const graphData = useMemo(() => {
-        const nodes = data.notes.map(n => ({
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    
+    // Process Data
+    const { nodes, links } = useMemo(() => {
+        const rawNodes = data.notes.map(n => ({
             id: n.id,
             name: n.title || 'untitled',
             val: 0,
@@ -200,11 +54,13 @@ export function GraphView({ data }: { data: GraphData }) {
         }))
 
         const danglingTargets = new Map<string, any>()
-        const links: any[] = []
+        const tagNodes = new Map<string, any>()
+        const rawLinks: { source: string, target: string }[] = []
 
+        // Process existing links
         data.links.forEach(l => {
             if (l.target_id) {
-                links.push({ source: l.source_id, target: l.target_id })
+                rawLinks.push({ source: l.source_id, target: l.target_id })
             } else {
                 const pseudoId = `dangling-${l.target_title.toLowerCase()}`
                 if (!danglingTargets.has(pseudoId)) {
@@ -215,12 +71,11 @@ export function GraphView({ data }: { data: GraphData }) {
                         isDangling: true
                     })
                 }
-                links.push({ source: l.source_id, target: pseudoId })
+                rawLinks.push({ source: l.source_id, target: pseudoId })
             }
         })
 
-        // Extract tags to form Tag Nodes
-        const tagNodes = new Map<string, any>()
+        // Process tags
         data.notes.forEach(n => {
             if (n.tags && Array.isArray(n.tags)) {
                 n.tags.forEach(tag => {
@@ -233,31 +88,246 @@ export function GraphView({ data }: { data: GraphData }) {
                             isTag: true
                         })
                     }
-                    links.push({ source: n.id, target: tagId })
+                    rawLinks.push({ source: n.id, target: tagId })
                 })
             }
         })
 
-        danglingTargets.forEach(node => nodes.push(node))
-        tagNodes.forEach(node => nodes.push(node))
+        danglingTargets.forEach(node => rawNodes.push(node))
+        tagNodes.forEach(node => rawNodes.push(node))
 
-        links.forEach(link => {
-            const src = nodes.find(n => n.id === link.source)
-            const tgt = nodes.find(n => n.id === link.target)
+        // Count connections for size scaling
+        rawLinks.forEach(link => {
+            const src = rawNodes.find(n => n.id === link.source)
+            const tgt = rawNodes.find(n => n.id === link.target)
             if (src) src.val += 1
             if (tgt) tgt.val += 1
         })
 
-        return { nodes, links }
+        // Convert to Physics Nodes
+        const physicsNodes = rawNodes.map(n => new Node2D(n))
+
+        return { nodes: physicsNodes, links: rawLinks }
     }, [data])
 
-    const handleNodeClick = (node: any) => {
-        if (!node.isDangling && !node.isTag) {
-            router.push(`/new/admin/notes/${node.id}`)
-        }
-    }
+    // Physics Loop & Rendering
+    useEffect(() => {
+        const canvas = canvasRef.current
+        const container = containerRef.current
+        if (!canvas || !container || nodes.length === 0) return
 
-    if (!graphData.nodes.length) {
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        let width = container.clientWidth
+        let height = container.clientHeight
+        
+        // Handle High-DPI displays for crisp rendering
+        const dpr = window.devicePixelRatio || 1
+        
+        const resize = () => {
+            width = container.clientWidth
+            height = container.clientHeight
+            canvas.width = width * dpr
+            canvas.height = height * dpr
+            canvas.style.width = `${width}px`
+            canvas.style.height = `${height}px`
+            ctx.scale(dpr, dpr)
+        }
+        
+        window.addEventListener('resize', resize)
+        resize()
+        // Ensure accurate sizing after mount
+        setTimeout(resize, 100)
+
+        let animationId: number
+        let hoveredNodeId: string | null = null
+
+        // Mouse Interactivity
+        const handleMouseMove = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect()
+            const mouseX = e.clientX - rect.left - width / 2
+            const mouseY = e.clientY - rect.top - height / 2
+
+            let found: string | null = null
+            // Check in reverse order so top nodes are hit first
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const n = nodes[i]
+                const dx = mouseX - n.x
+                const dy = mouseY - n.y
+                const distSq = dx * dx + dy * dy
+                
+                // Hitbox includes label padding
+                const hitRadius = n.radius + 15
+                if (distSq < hitRadius * hitRadius) {
+                    found = n.id
+                    break
+                }
+            }
+
+            hoveredNodeId = found
+            document.body.style.cursor = found ? 'pointer' : 'default'
+        }
+
+        const handleClick = () => {
+            if (hoveredNodeId) {
+                const node = nodes.find(n => n.id === hoveredNodeId)
+                if (node && !node.isDangling && !node.isTag) {
+                    router.push(`/new/admin/notes/${node.id}`)
+                }
+            }
+        }
+
+        canvas.addEventListener('mousemove', handleMouseMove)
+        canvas.addEventListener('click', handleClick)
+
+        const REPULSION = 1000
+        const SPRING_K = 0.015
+        const DAMPING = 0.85
+        const CENTER_PULL = 0.002
+
+        const step = () => {
+            // Apply Forces
+            for (let i = 0; i < nodes.length; i++) {
+                const n1 = nodes[i]
+                
+                // Repulsion
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const n2 = nodes[j]
+                    const dx = n1.x - n2.x
+                    const dy = n1.y - n2.y
+                    let distSq = dx * dx + dy * dy
+                    if (distSq < 1) distSq = 1
+                    
+                    const force = REPULSION / distSq
+                    const fx = (dx / Math.sqrt(distSq)) * force
+                    const fy = (dy / Math.sqrt(distSq)) * force
+                    
+                    n1.vx += fx
+                    n1.vy += fy
+                    n2.vx -= fx
+                    n2.vy -= fy
+                }
+
+                // Centering
+                n1.vx -= n1.x * CENTER_PULL
+                n1.vy -= n1.y * CENTER_PULL
+            }
+
+            // Spring Attraction
+            links.forEach(link => {
+                const src = nodes.find(n => n.id === link.source)
+                const tgt = nodes.find(n => n.id === link.target)
+                if (!src || !tgt) return
+
+                const dx = tgt.x - src.x
+                const dy = tgt.y - src.y
+                const dist = Math.sqrt(dx * dx + dy * dy)
+                
+                const force = (dist - 40) * SPRING_K // Target distance 40
+                const fx = (dx / dist) * force
+                const fy = (dy / dist) * force
+
+                src.vx += fx
+                src.vy += fy
+                tgt.vx -= fx
+                tgt.vy -= fy
+            })
+
+            // Update Positions
+            nodes.forEach(n => {
+                n.vx *= DAMPING
+                n.vy *= DAMPING
+                n.x += n.vx
+                n.y += n.vy
+            })
+
+            // Render
+            ctx.clearRect(0, 0, width, height)
+            ctx.save()
+            ctx.translate(width / 2, height / 2) // Center graph
+
+            // Draw Links
+            ctx.lineWidth = 1
+            ctx.strokeStyle = 'rgba(150, 150, 150, 0.2)'
+            ctx.beginPath()
+            links.forEach(link => {
+                const src = nodes.find(n => n.id === link.source)
+                const tgt = nodes.find(n => n.id === link.target)
+                if (src && tgt) {
+                    ctx.moveTo(src.x, src.y)
+                    ctx.lineTo(tgt.x, tgt.y)
+                }
+            })
+            ctx.stroke()
+
+            // Draw Nodes & Labels
+            nodes.forEach(n => {
+                const isHovered = hoveredNodeId === n.id
+                
+                // Color mapping matching solid minimalist design
+                let color = '#3b82f6' // Default note (blue)
+                if (n.isPinned) color = '#f59e0b' // Pinned (amber)
+                if (n.isDangling) color = '#a3a3a3' // Dangling (gray)
+                if (n.isTag) color = '#8b5cf6' // Tag (purple)
+                
+                // Node Circle
+                ctx.beginPath()
+                ctx.arc(n.x, n.y, isHovered ? n.radius * 1.5 : n.radius, 0, 2 * Math.PI)
+                ctx.fillStyle = color
+                ctx.fill()
+                
+                // Subtle border
+                ctx.lineWidth = 1.5
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
+                ctx.stroke()
+
+                // Text Label
+                ctx.font = `400 ${isHovered ? '12px' : '10px'} ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`
+                const textWidth = ctx.measureText(n.name).width
+                
+                // Label Background
+                const bgPaddingX = 6
+                const bgPaddingY = 4
+                const textY = n.y + n.radius + 14
+
+                ctx.fillStyle = isHovered ? 'rgba(23, 23, 23, 1)' : 'rgba(255, 255, 255, 0.8)'
+                ctx.beginPath()
+                ctx.roundRect(
+                    n.x - textWidth / 2 - bgPaddingX, 
+                    textY - 10 - bgPaddingY, 
+                    textWidth + bgPaddingX * 2, 
+                    12 + bgPaddingY * 2, 
+                    4
+                )
+                ctx.fill()
+                if (isHovered) {
+                    ctx.lineWidth = 1
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+                    ctx.stroke()
+                }
+
+                // Text
+                ctx.fillStyle = isHovered ? '#ffffff' : n.isTag ? '#a3a3a3' : '#171717'
+                ctx.textAlign = 'center'
+                ctx.fillText(n.name, n.x, textY)
+            })
+
+            ctx.restore()
+            animationId = requestAnimationFrame(step)
+        }
+
+        animationId = requestAnimationFrame(step)
+
+        return () => {
+            cancelAnimationFrame(animationId)
+            window.removeEventListener('resize', resize)
+            canvas.removeEventListener('mousemove', handleMouseMove)
+            canvas.removeEventListener('click', handleClick)
+        }
+    }, [nodes, links, router])
+
+    if (!nodes.length) {
         return (
             <div className="w-full h-full flex items-center justify-center text-muted-fg font-mono text-sm">
                 No notes or connections found.
@@ -266,17 +336,11 @@ export function GraphView({ data }: { data: GraphData }) {
     }
 
     return (
-        <div className="w-full h-full min-h-[500px] bg-background">
-            <Canvas camera={{ position: [0, 0, 15], fov: 50 }}>
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} intensity={1} />
-                <GraphSimulation 
-                    nodes={graphData.nodes} 
-                    links={graphData.links} 
-                    onNodeClick={handleNodeClick} 
-                />
-                <OrbitControls enableDamping dampingFactor={0.05} />
-            </Canvas>
+        <div ref={containerRef} className="w-full h-full min-h-[500px] bg-background relative overflow-hidden">
+            <canvas 
+                ref={canvasRef} 
+                className="absolute inset-0 block w-full h-full outline-none"
+            />
         </div>
     )
 }
