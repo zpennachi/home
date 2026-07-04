@@ -58,15 +58,16 @@ export function GraphView({ data }: { data: GraphData }) {
         const rawLinks: { source: string, target: string }[] = []
 
         // Process existing links
-        data.links.forEach(l => {
+        ;(data.links || []).forEach(l => {
             if (l.target_id) {
                 rawLinks.push({ source: l.source_id, target: l.target_id })
             } else {
-                const pseudoId = `dangling-${l.target_title.toLowerCase()}`
+                const titleStr = typeof l.target_title === 'string' ? l.target_title : 'unknown'
+                const pseudoId = `dangling-${titleStr.toLowerCase()}`
                 if (!danglingTargets.has(pseudoId)) {
                     danglingTargets.set(pseudoId, {
                         id: pseudoId,
-                        name: l.target_title,
+                        name: titleStr,
                         val: 0,
                         isDangling: true
                     })
@@ -76,19 +77,21 @@ export function GraphView({ data }: { data: GraphData }) {
         })
 
         // Process tags
-        data.notes.forEach(n => {
+        ;(data.notes || []).forEach(n => {
             if (n.tags && Array.isArray(n.tags)) {
                 n.tags.forEach(tag => {
-                    const tagId = `tag-${tag.toLowerCase()}`
-                    if (!tagNodes.has(tagId)) {
-                        tagNodes.set(tagId, {
-                            id: tagId,
-                            name: tag,
-                            val: 0,
-                            isTag: true
-                        })
+                    if (typeof tag === 'string') {
+                        const tagId = `tag-${tag.toLowerCase()}`
+                        if (!tagNodes.has(tagId)) {
+                            tagNodes.set(tagId, {
+                                id: tagId,
+                                name: tag,
+                                val: 0,
+                                isTag: true
+                            })
+                        }
+                        rawLinks.push({ source: n.id, target: tagId })
                     }
-                    rawLinks.push({ source: n.id, target: tagId })
                 })
             }
         })
