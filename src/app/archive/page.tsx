@@ -1,14 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { AudioPlayerButton } from '@/components/archive/AudioPlayerButton'
 
-// Required for typescript to accept the model-viewer custom element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { src?: string; alt?: string; 'auto-rotate'?: boolean; 'camera-controls'?: boolean }, HTMLElement>;
-    }
-  }
-}
+// Use casting for the custom element to avoid TS errors
+const ModelViewer = 'model-viewer' as any;
 
 export const revalidate = 60; // revalidate every minute
 
@@ -76,13 +70,13 @@ export default async function ArchivePage() {
                                 )}
 
                                 {item.media_type === '3d' && item.file_url && (
-                                    <model-viewer 
+                                    <ModelViewer 
                                         src={item.file_url}
                                         alt={item.title}
                                         auto-rotate
                                         camera-controls
                                         style={{ width: '100%', height: '100%' }}
-                                    ></model-viewer>
+                                    ></ModelViewer>
                                 )}
                             </div>
 
