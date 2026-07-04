@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import * as THREE from 'three'
 
 interface GraphData {
-    notes: { id: string, title: string, is_pinned: boolean }[]
+    notes: { id: string, title: string, is_pinned: boolean, tags?: string[] }[]
     links: { source_id: string, target_id: string | null, target_title: string }[]
 }
 
@@ -123,9 +123,10 @@ function GraphNode({ node, positionRef, index, onClick }: any) {
 
     const isDangling = node.isDangling
     const isPinned = node.is_pinned
+    const isTag = node.isTag
     
     // Scale based on connections
-    const scale = 1 + (node.val || 1) * 0.2
+    const scale = 1 + (node.val || 1) * (isTag ? 0.1 : 0.2)
 
     return (
         <mesh 
@@ -135,16 +136,16 @@ function GraphNode({ node, positionRef, index, onClick }: any) {
             onPointerOut={(e) => { e.stopPropagation(); setHovered(false); document.body.style.cursor = 'default'; }}
             scale={hovered ? scale * 1.2 : scale}
         >
-            <sphereGeometry args={[0.3, 16, 16]} />
+            <sphereGeometry args={[isTag ? 0.2 : 0.3, 16, 16]} />
             <meshStandardMaterial 
-                color={isDangling ? '#a3a3a3' : isPinned ? '#f59e0b' : '#3b82f6'} 
+                color={isTag ? '#8b5cf6' : isDangling ? '#a3a3a3' : isPinned ? '#f59e0b' : '#3b82f6'} 
                 roughness={0.2}
                 metalness={0.8}
             />
             {/* HTML label for crisp text rendering */}
             <Html distanceFactor={15} center zIndexRange={[100, 0]}>
                 <div 
-                    className={`px-2 py-1 rounded-md text-xs font-mono whitespace-nowrap transition-opacity ${hovered ? 'opacity-100 bg-background/90 text-foreground border border-muted' : 'opacity-70 text-foreground'}`}
+                    className={`px-2 py-1 rounded-md text-xs font-mono whitespace-nowrap transition-opacity ${hovered ? 'opacity-100 bg-background/90 text-foreground border border-muted' : isTag ? 'opacity-50 text-muted-fg' : 'opacity-70 text-foreground'}`}
                     style={{ transform: 'translate3d(0, -20px, 0)', pointerEvents: 'none' }}
                 >
                     {node.name}
@@ -218,7 +219,27 @@ export function GraphView({ data }: { data: GraphData }) {
             }
         })
 
+        // Extract tags to form Tag Nodes
+        const tagNodes = new Map<string, any>()
+        data.notes.forEach(n => {
+            if (n.tags && Array.isArray(n.tags)) {
+                n.tags.forEach(tag => {
+                    const tagId = `tag-${tag.toLowerCase()}`
+                    if (!tagNodes.has(tagId)) {
+                        tagNodes.set(tagId, {
+                            id: tagId,
+                            name: tag,
+                            val: 0,
+                            isTag: true
+                        })
+                    }
+                    links.push({ source: n.id, target: tagId })
+                })
+            }
+        })
+
         danglingTargets.forEach(node => nodes.push(node))
+        tagNodes.forEach(node => nodes.push(node))
 
         links.forEach(link => {
             const src = nodes.find(n => n.id === link.source)
@@ -231,7 +252,7 @@ export function GraphView({ data }: { data: GraphData }) {
     }, [data])
 
     const handleNodeClick = (node: any) => {
-        if (!node.isDangling) {
+        if (!node.isDangling && !node.isTag) {
             router.push(`/new/admin/notes/${node.id}`)
         }
     }

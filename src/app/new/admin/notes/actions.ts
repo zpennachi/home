@@ -160,7 +160,7 @@ export async function updateNote(id: string, updates: any) {
 export async function getGraphData() {
     const supabase = await createClient()
     const [notesRes, linksRes] = await Promise.all([
-        supabase.from('notes').select('id, title, is_pinned'),
+        supabase.from('notes').select('id, title, is_pinned, tags'),
         supabase.from('note_links').select('source_id, target_id, target_title')
     ])
     return {
@@ -228,14 +228,23 @@ export async function generateAISummary(id: string) {
         throw new Error('Add some notes or record a transcript before synthesizing.')
     }
 
+    // Fetch all other note titles for auto-linking
+    const { data: allNotes } = await supabase.from('notes').select('id, title').neq('id', id)
+    const allTitles = (allNotes || []).map(n => n.title).filter(Boolean) as string[]
+
     // 2. Try OpenAI first, fall back to Deepgram
     const openaiKey = process.env.OPENAI_API_KEY
     const deepgramKey = process.env.DEEPGRAM_API_KEY
 
     let summary: string
+    let tags: string[] = []
+    let auto_links: string[] = []
 
     if (openaiKey) {
-        summary = await synthesizeWithOpenAI(openaiKey, note, transcriptText, hasTranscript, hasNotes)
+        const res = await synthesizeWithOpenAI(openaiKey, note, transcriptText, hasTranscript, hasNotes, allTitles)
+        summary = res.summary
+        tags = res.tags || []
+        auto_links = res.auto_links || []
     } else if (deepgramKey) {
         summary = await synthesizeWithDeepgram(deepgramKey, note, transcriptText)
     } else {
@@ -245,12 +254,30 @@ export async function generateAISummary(id: string) {
     // 3. Persist to DB
     const { error: updateError } = await supabase
         .from('notes')
-        .update({ ai_summary: summary })
+        .update({ ai_summary: summary, tags })
         .eq('id', id)
 
     if (updateError) {
         console.error('[AI] DB Update Error:', updateError.message)
         return summary // Still return even if DB fails
+    }
+
+    // 4. Update auto links
+    if (auto_links.length > 0) {
+        const { data: potentialTargets } = await supabase
+            .from('notes')
+            .select('id, title')
+
+        const targetMap = new Map((potentialTargets || []).map(t => [t.title?.toLowerCase(), t.id]))
+
+        const newLinks = auto_links.map(title => ({
+            source_id: id,
+            target_id: targetMap.get(title.toLowerCase()) || null,
+            target_title: title
+        }))
+
+        // Upsert prevents duplicate links if manual links already exist
+        await supabase.from('note_links').upsert(newLinks, { onConflict: 'source_id, target_title' })
     }
 
     revalidatePath(`/new/admin/notes/${id}`)
@@ -263,98 +290,53 @@ async function synthesizeWithOpenAI(
     note: { title: string; content: string; transcript: string },
     transcriptText: string,
     hasTranscript: boolean,
-    hasNotes: boolean
-): Promise<string> {
+    hasNotes: boolean,
+    allTitles: string[]
+): Promise<{ summary: string, tags: string[], auto_links: string[] }> {
     const systemPrompt = `You are an elite Chief of Staff, operator, and strategic thinking partner.
 
-Your job is not to summarize conversations.
-
 Your job is to determine what matters, what should happen next, what can wait, and what deserves attention.
-
 Assume every conversation is part of a larger ongoing body of work.
 
 Focus on clarity, prioritization, and execution.
 
 # OUTPUT FORMAT
 
+You must respond with a JSON object containing three keys: "summary", "tags", and "auto_links".
+
+1. "summary": A markdown string structured exactly as follows:
 ## What Happened
-
-A concise synthesis of what this conversation was actually about.
-
-Do not recap the discussion chronologically.
-
-Instead explain:
-
-* What changed
-* What decisions were made
-* What matters going forward
-
-Keep this to a few short paragraphs.
+A concise synthesis of what this conversation was actually about. Do not recap the discussion chronologically. Explain what changed, what decisions were made, and what matters going forward. Keep this to a few short paragraphs.
 
 ---
-
 ## Next
-
 The most important actions that should happen immediately.
-
-Format:
-
 * [ ] Action
 
-Only include work that deserves attention now.
-
-Prioritize ruthlessly.
-
-If there are no clear actions, say so.
-
 ---
-
 ## Later
-
-Important follow-ups, opportunities, ideas, improvements, or projects that emerged but are not immediate priorities.
-
-Keep this concise. Focus on things worth revisiting after the current priorities are handled.
+Important follow-ups, opportunities, ideas, or projects that emerged but are not immediate priorities.
 
 ---
-
 ## Watchouts
+Anything that could slow progress, blockers, risks, or open questions. Omit this section if none exist.
 
-Anything that could slow progress, create confusion, introduce risk, require a decision, depend on another stakeholder, or become a problem later.
-
-Include:
-
-* Blockers
-* Risks
-* Open questions
-* Missing information
-* Dependencies
-
-If nothing stands out, omit this section.
+2. "tags": An array of 3-5 strings representing core concepts or topics from the note (e.g. ["#ui-design", "#marketing"]). Prefix with #.
+3. "auto_links": An array of strings. Review the provided "EXISTING NOTES INDEX" below. If the current note strongly relates to any of these existing notes, include their exact titles in this array to form a connection.
 
 # RULES
-
 * Prioritize usefulness over completeness.
-* Be concise.
-* Eliminate filler, repetition, and meeting-speak.
-* Surface implied priorities, not just explicitly stated ones.
-* Focus on decisions, execution, and momentum.
-* Use the language and terminology from the conversation when possible.
-* Do not invent information.
-* If something is unclear, say so.
-* Treat this like a personal operating brief, not meeting notes.
-
-The goal is that someone can read this in 60 seconds and immediately know:
-
-1. What happened
-2. What they should do next
-3. What can wait
-4. What needs attention`
+* Eliminate filler and meeting-speak.
+* Treat this like a personal operating brief.`
 
     const userContent = [
         `# Meeting: ${note.title || 'Untitled'}`,
         '',
         hasTranscript ? `## Transcript\n${transcriptText}` : '',
         hasNotes ? `## User's Personal Notes\n${note.content}` : '',
+        '',
+        `# EXISTING NOTES INDEX (For Auto-Linking)`,
+        allTitles.length > 0 ? allTitles.map(t => `- ${t}`).join('\n') : '(No other notes exist yet)'
     ].filter(Boolean).join('\n\n')
 
     const controller = new AbortController()
@@ -369,12 +351,13 @@ The goal is that someone can read this in 60 seconds and immediately know:
             },
             body: JSON.stringify({
                 model: 'gpt-4o-mini',
+                response_format: { type: 'json_object' },
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userContent }
                 ],
                 temperature: 0.3,
-                max_tokens: 2000,
+                max_tokens: 2500,
             }),
             signal: controller.signal
         })
@@ -393,7 +376,7 @@ The goal is that someone can read this in 60 seconds and immediately know:
             throw new Error('OpenAI returned empty response')
         }
 
-        return content
+        return JSON.parse(content)
     } catch (error: any) {
         clearTimeout(timeoutId)
         if (error.name === 'AbortError') {
