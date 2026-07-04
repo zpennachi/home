@@ -283,8 +283,8 @@ export function GraphView({ data }: { data: GraphData }) {
         canvas.addEventListener('click', handleClick)
         canvas.addEventListener('wheel', handleWheel, { passive: false })
 
-        const REPULSION = 800
-        const SPRING_K = 0.01
+        const REPULSION = 2000
+        const SPRING_K = 0.015
         const DAMPING = 0.85
         const CENTER_PULL = 0.001
         const MAX_VELOCITY = 20
@@ -301,7 +301,7 @@ export function GraphView({ data }: { data: GraphData }) {
                     const dy = n1.y - n2.y
                     let distSq = dx * dx + dy * dy
                     // Soften the repulsion at very close distances to prevent extreme explosion forces
-                    if (distSq < 100) distSq = 100
+                    if (distSq < 200) distSq = 200
                     
                     const force = REPULSION / distSq
                     const fx = (dx / Math.sqrt(distSq)) * force
@@ -329,7 +329,8 @@ export function GraphView({ data }: { data: GraphData }) {
                 const dist = Math.sqrt(dx * dx + dy * dy)
                 if (dist === 0) return
                 
-                const force = (dist - 40) * SPRING_K // Target distance 40
+                // Target distance increased from 40 to 120 to spread nodes out
+                const force = (dist - 120) * SPRING_K 
                 const fx = (dx / dist) * force
                 const fy = (dy / dist) * force
 
