@@ -162,7 +162,7 @@ function GraphLinks({ links, nodes, positionsRef }: any) {
         if (!lineRef.current || !positionsRef.current.length) return
         
         const pos = positionsRef.current
-        const points = []
+        const points: number[] = []
         
         links.forEach((link: any) => {
             const i = nodes.findIndex((n: any) => n.id === link.source)
