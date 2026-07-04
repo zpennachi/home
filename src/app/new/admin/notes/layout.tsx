@@ -12,6 +12,10 @@ export default function NotesLayout({
     const pathname = usePathname()
     const { activeNoteId } = useAdminSync()
 
+    if (pathname === '/new/admin/notes/graph') {
+        return <>{children}</>
+    }
+
     // Determine if we're on a specific note route
     const isNoteRoute = pathname.startsWith('/new/admin/notes/') && pathname !== '/new/admin/notes'
 
