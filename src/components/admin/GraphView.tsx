@@ -179,11 +179,52 @@ export function GraphView({ data }: { data: GraphData }) {
         let animationId: number
         let hoveredNodeId: string | null = null
 
+        // Pan & Zoom State
+        let panX = 0
+        let panY = 0
+        let scale = 1
+        
+        let isDragging = false
+        let lastMouseX = 0
+        let lastMouseY = 0
+        let dragDistance = 0
+
+        const handleMouseDown = (e: MouseEvent) => {
+            isDragging = true
+            dragDistance = 0
+            const rect = canvas.getBoundingClientRect()
+            lastMouseX = e.clientX - rect.left
+            lastMouseY = e.clientY - rect.top
+        }
+
+        const handleMouseUp = () => {
+            isDragging = false
+        }
+
+        const handleMouseLeave = () => {
+            isDragging = false
+        }
+
         // Mouse Interactivity
         const handleMouseMove = (e: MouseEvent) => {
             const rect = canvas.getBoundingClientRect()
-            const mouseX = e.clientX - rect.left - width / 2
-            const mouseY = e.clientY - rect.top - height / 2
+            const rawMouseX = e.clientX - rect.left
+            const rawMouseY = e.clientY - rect.top
+
+            if (isDragging) {
+                const dx = rawMouseX - lastMouseX
+                const dy = rawMouseY - lastMouseY
+                panX += dx
+                panY += dy
+                dragDistance += Math.abs(dx) + Math.abs(dy)
+            }
+
+            lastMouseX = rawMouseX
+            lastMouseY = rawMouseY
+
+            // Transform raw mouse coords into physics space for hit detection
+            const mouseX = (rawMouseX - (width / 2 + panX)) / scale
+            const mouseY = (rawMouseY - (height / 2 + panY)) / scale
 
             let found: string | null = null
             // Check in reverse order so top nodes are hit first
@@ -202,10 +243,11 @@ export function GraphView({ data }: { data: GraphData }) {
             }
 
             hoveredNodeId = found
-            document.body.style.cursor = found ? 'pointer' : 'default'
+            document.body.style.cursor = isDragging ? 'grabbing' : (found ? 'pointer' : 'grab')
         }
 
         const handleClick = () => {
+            if (dragDistance > 5) return // Ignore click if we were dragging
             if (hoveredNodeId) {
                 const node = nodes.find(n => n.id === hoveredNodeId)
                 if (node && !node.isDangling && !node.isTag) {
@@ -214,8 +256,32 @@ export function GraphView({ data }: { data: GraphData }) {
             }
         }
 
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault()
+            const zoomSensitivity = 0.002
+            const delta = -e.deltaY * zoomSensitivity
+            const newScale = Math.min(Math.max(0.1, scale + delta), 4) // Clamp zoom 0.1x to 4x
+            
+            const rect = canvas.getBoundingClientRect()
+            const rawMouseX = e.clientX - rect.left
+            const rawMouseY = e.clientY - rect.top
+
+            // Zoom relative to mouse cursor
+            const rx = rawMouseX - (width / 2 + panX)
+            const ry = rawMouseY - (height / 2 + panY)
+
+            panX -= rx * (newScale / scale - 1)
+            panY -= ry * (newScale / scale - 1)
+
+            scale = newScale
+        }
+
+        canvas.addEventListener('mousedown', handleMouseDown)
+        window.addEventListener('mouseup', handleMouseUp)
+        canvas.addEventListener('mouseleave', handleMouseLeave)
         canvas.addEventListener('mousemove', handleMouseMove)
         canvas.addEventListener('click', handleClick)
+        canvas.addEventListener('wheel', handleWheel, { passive: false })
 
         const REPULSION = 800
         const SPRING_K = 0.01
@@ -292,10 +358,12 @@ export function GraphView({ data }: { data: GraphData }) {
             // Render
             ctx.clearRect(0, 0, width, height)
             ctx.save()
-            ctx.translate(width / 2, height / 2) // Center graph
+            // Apply Pan & Zoom
+            ctx.translate(width / 2 + panX, height / 2 + panY)
+            ctx.scale(scale, scale)
 
             // Draw Links
-            ctx.lineWidth = 1
+            ctx.lineWidth = 1 / scale // Keep lines thin when zoomed
             ctx.strokeStyle = 'rgba(150, 150, 150, 0.2)'
             ctx.beginPath()
             links.forEach(link => {
@@ -325,7 +393,7 @@ export function GraphView({ data }: { data: GraphData }) {
                 ctx.fill()
                 
                 // Subtle border
-                ctx.lineWidth = 1.5
+                ctx.lineWidth = 1.5 / scale // Scale independent border
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
                 ctx.stroke()
 
@@ -349,7 +417,7 @@ export function GraphView({ data }: { data: GraphData }) {
                 )
                 ctx.fill()
                 if (isHovered) {
-                    ctx.lineWidth = 1
+                    ctx.lineWidth = 1 / scale
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
                     ctx.stroke()
                 }
@@ -369,8 +437,12 @@ export function GraphView({ data }: { data: GraphData }) {
         return () => {
             cancelAnimationFrame(animationId)
             window.removeEventListener('resize', resize)
+            canvas.removeEventListener('mousedown', handleMouseDown)
+            window.removeEventListener('mouseup', handleMouseUp)
+            canvas.removeEventListener('mouseleave', handleMouseLeave)
             canvas.removeEventListener('mousemove', handleMouseMove)
             canvas.removeEventListener('click', handleClick)
+            canvas.removeEventListener('wheel', handleWheel)
         }
     }, [nodes, links, router])
 
