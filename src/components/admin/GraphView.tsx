@@ -33,9 +33,9 @@ class Node2D {
         this.val = data.val || 0
         this.radius = this.isTag ? 4 : 6 + (this.val * 0.5)
         
-        // Spawn randomly around center
-        this.x = (Math.random() - 0.5) * 400
-        this.y = (Math.random() - 0.5) * 400
+        // Spawn randomly over a much larger area to prevent dense overlap
+        this.x = (Math.random() - 0.5) * 1000
+        this.y = (Math.random() - 0.5) * 1000
     }
 }
 
@@ -211,10 +211,11 @@ export function GraphView({ data }: { data: GraphData }) {
         canvas.addEventListener('mousemove', handleMouseMove)
         canvas.addEventListener('click', handleClick)
 
-        const REPULSION = 1000
-        const SPRING_K = 0.015
+        const REPULSION = 800
+        const SPRING_K = 0.01
         const DAMPING = 0.85
-        const CENTER_PULL = 0.002
+        const CENTER_PULL = 0.001
+        const MAX_VELOCITY = 20
 
         const step = () => {
             // Apply Forces
@@ -227,7 +228,8 @@ export function GraphView({ data }: { data: GraphData }) {
                     const dx = n1.x - n2.x
                     const dy = n1.y - n2.y
                     let distSq = dx * dx + dy * dy
-                    if (distSq < 1) distSq = 1
+                    // Soften the repulsion at very close distances to prevent extreme explosion forces
+                    if (distSq < 100) distSq = 100
                     
                     const force = REPULSION / distSq
                     const fx = (dx / Math.sqrt(distSq)) * force
@@ -253,6 +255,7 @@ export function GraphView({ data }: { data: GraphData }) {
                 const dx = tgt.x - src.x
                 const dy = tgt.y - src.y
                 const dist = Math.sqrt(dx * dx + dy * dy)
+                if (dist === 0) return
                 
                 const force = (dist - 40) * SPRING_K // Target distance 40
                 const fx = (dx / dist) * force
@@ -264,10 +267,18 @@ export function GraphView({ data }: { data: GraphData }) {
                 tgt.vy -= fy
             })
 
-            // Update Positions
+            // Update Positions with Velocity Clamping
             nodes.forEach(n => {
                 n.vx *= DAMPING
                 n.vy *= DAMPING
+                
+                // Clamp velocity to prevent physics explosions
+                const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy)
+                if (speed > MAX_VELOCITY) {
+                    n.vx = (n.vx / speed) * MAX_VELOCITY
+                    n.vy = (n.vy / speed) * MAX_VELOCITY
+                }
+
                 n.x += n.vx
                 n.y += n.vy
             })
