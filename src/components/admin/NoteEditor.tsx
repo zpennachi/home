@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary } from '@/app/new/admin/notes/actions'
+import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary, getGraphData } from '@/app/new/admin/notes/actions'
 import { TipTapEditor, TipTapEditorRef } from '@/components/admin/TipTapEditor'
 import { MeetingRecorder } from '@/components/admin/MeetingRecorder'
+import { GraphView } from '@/components/admin/GraphView'
 import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
@@ -54,7 +55,8 @@ export function NoteEditor() {
     const [isTranscriptCopied, setIsTranscriptCopied] = useState(false)
     const [isAddMenuOpen, setIsAddMenuOpen] = useState(false)
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-    const [activeTab, setActiveTab] = useState<'notes' | 'ai' | 'transcript'>('notes')
+    const [activeTab, setActiveTab] = useState<'notes' | 'ai' | 'transcript' | 'graph'>('notes')
+    const [graphData, setGraphData] = useState<{notes: any[], links: any[]} | null>(null)
 
 
 
@@ -162,6 +164,13 @@ export function NoteEditor() {
             transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
         }
     }, [transcriptSegments, activeTab])
+
+    // Fetch graph data when graph tab is opened
+    useEffect(() => {
+        if (activeTab === 'graph' && !graphData) {
+            getGraphData().then(setGraphData).catch(console.error)
+        }
+    }, [activeTab, graphData])
 
     const saveNote = useCallback(async (updates: any) => {
         if (!activeNoteId) return
@@ -541,6 +550,16 @@ export function NoteEditor() {
                                 transcript
                             </button>
                             <span>/</span>
+                            <button
+                                onClick={() => setActiveTab('graph')}
+                                className={cn(
+                                    "transition-colors cursor-pointer",
+                                    activeTab === 'graph' ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground"
+                                )}
+                            >
+                                graph
+                            </button>
+                            <span>/</span>
                             <div className="relative">
                                 <button
                                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -755,6 +774,18 @@ export function NoteEditor() {
                                             ))}
                                             <div ref={transcriptEndRef} />
                                         </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'graph' && (
+                            <div className="w-full h-[500px] border border-muted mt-4 overflow-hidden rounded-sm">
+                                {graphData ? (
+                                    <GraphView data={graphData} />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs font-mono text-muted-fg lowercase">
+                                        loading graph...
                                     </div>
                                 )}
                             </div>

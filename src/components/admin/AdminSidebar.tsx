@@ -14,6 +14,7 @@ const toolItems = [
     { name: 'Design System', href: '/new/admin/design' },
     { name: 'Projects', href: '/new/admin/projects' },
     { name: 'Field Archive', href: '/new/admin/field-archive' },
+    { name: 'Graph Map', href: '/new/admin/notes/graph' },
 ]
 
 export function AdminSidebar({

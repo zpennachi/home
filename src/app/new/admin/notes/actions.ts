@@ -122,8 +122,51 @@ export async function updateNote(id: string, updates: any) {
         throw error
     }
 
+    // Process wiki-links if content or summary was updated
+    if (updates.content !== undefined || updates.ai_summary !== undefined) {
+        const { data: note } = await supabase.from('notes').select('content, ai_summary').eq('id', id).single()
+        if (note) {
+            const combinedText = (note.content || '') + '\n' + (note.ai_summary || '')
+            const regex = /\[\[(.*?)\]\]/g
+            const matches = [...combinedText.matchAll(regex)]
+            const targetTitles = [...new Set(matches.map(m => m[1].trim()))]
+
+            // Clear old links
+            await supabase.from('note_links').delete().eq('source_id', id)
+
+            if (targetTitles.length > 0) {
+                // Find matching notes by title (case insensitive using ilike might be better, but we'll fetch and match lowercase)
+                const { data: potentialTargets } = await supabase
+                    .from('notes')
+                    .select('id, title')
+                
+                const targetMap = new Map((potentialTargets || []).map(t => [t.title?.toLowerCase(), t.id]))
+
+                const newLinks = targetTitles.map(title => ({
+                    source_id: id,
+                    target_id: targetMap.get(title.toLowerCase()) || null,
+                    target_title: title
+                }))
+
+                await supabase.from('note_links').insert(newLinks)
+            }
+        }
+    }
+
     revalidatePath('/new/admin/notes')
     revalidatePath(`/new/admin/notes/${id}`)
+}
+
+export async function getGraphData() {
+    const supabase = await createClient()
+    const [notesRes, linksRes] = await Promise.all([
+        supabase.from('notes').select('id, title, is_pinned'),
+        supabase.from('note_links').select('source_id, target_id, target_title')
+    ])
+    return {
+        notes: notesRes.data || [],
+        links: linksRes.data || []
+    }
 }
 
 export async function deleteNote(id: string) {
