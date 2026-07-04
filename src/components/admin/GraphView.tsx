@@ -159,7 +159,7 @@ function GraphLinks({ links, nodes, positionsRef }: any) {
     const geometry = useMemo(() => new THREE.BufferGeometry(), [])
     
     useFrame(() => {
-        if (!lineRef.current || !positionsRef.current.length) return
+        if (!lineRef.current || !positionsRef.current.length || !links || links.length === 0) return
         
         const pos = positionsRef.current
         const points: number[] = []
@@ -173,8 +173,12 @@ function GraphLinks({ links, nodes, positionsRef }: any) {
             }
         })
         
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+        if (points.length > 0) {
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+        }
     })
+
+    if (!links || links.length === 0) return null
 
     return (
         <lineSegments ref={lineRef} geometry={geometry}>
