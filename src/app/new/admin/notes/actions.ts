@@ -197,11 +197,16 @@ export async function saveNoteTranscript(id: string, transcript: string) {
         throw error
     }
     // No revalidatePath here to avoid router thrashing during transcription
-}
-export async function getAllNoteIdsToSeed() {
+export async function getSeedStats() {
     const supabase = await createClient()
-    const { data } = await supabase.from('notes').select('id')
-    return (data || []).map(n => n.id)
+    const { data } = await supabase.from('notes').select('id, ai_summary')
+    const allNotes = data || []
+    const unsyncedIds = allNotes.filter(n => !n.ai_summary).map(n => n.id)
+    return {
+        total: allNotes.length,
+        synced: allNotes.length - unsyncedIds.length,
+        unsyncedIds
+    }
 }
 
 export async function generateAISummary(id: string) {

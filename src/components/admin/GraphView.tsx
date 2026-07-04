@@ -113,14 +113,20 @@ export function GraphView({ data }: { data: GraphData }) {
 
     // ── Seeder Logic ──────────────────────────────────────────────────────
     const [isSeeding, setIsSeeding] = useState(false)
+    const [seedStats, setSeedStats] = useState<{total: number, synced: number, unsyncedIds: string[]} | null>(null)
     const [seedProgress, setSeedProgress] = useState({ current: 0, total: 0 })
 
+    useEffect(() => {
+        import('@/app/new/admin/notes/actions').then(m => m.getSeedStats()).then(setSeedStats).catch(console.error)
+    }, [])
+
     const handleSeedGraph = async () => {
-        if (!confirm('This will run the AI on all your old notes to build the graph. It may take a minute. Proceed?')) return
+        if (!seedStats || seedStats.unsyncedIds.length === 0) return
+        if (!confirm(`This will run the AI on your ${seedStats.unsyncedIds.length} unsynced notes to build the graph. It may take a minute. Proceed?`)) return
         setIsSeeding(true)
         try {
-            const { getAllNoteIdsToSeed, generateAISummary } = await import('@/app/new/admin/notes/actions')
-            const ids = await getAllNoteIdsToSeed()
+            const { generateAISummary } = await import('@/app/new/admin/notes/actions')
+            const ids = seedStats.unsyncedIds
             setSeedProgress({ current: 0, total: ids.length })
 
             for (let i = 0; i < ids.length; i++) {
@@ -388,15 +394,18 @@ export function GraphView({ data }: { data: GraphData }) {
                     <div className="bg-background/80 backdrop-blur text-foreground px-3 py-1.5 rounded-sm border border-muted text-xs font-mono shadow-sm">
                         synthesizing: {seedProgress.current} / {seedProgress.total}
                     </div>
-                ) : (
-                    <button 
-                        onClick={handleSeedGraph}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur text-muted-fg hover:text-foreground px-3 py-1.5 rounded-sm border border-muted text-xs font-mono shadow-sm cursor-pointer"
-                        title="Run AI Synthesis on all old notes to build the graph"
-                    >
-                        seed ai graph
-                    </button>
-                )}
+                ) : seedStats && seedStats.unsyncedIds.length > 0 ? (
+                    <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur px-3 py-1.5 rounded-sm border border-muted shadow-sm">
+                        <span className="text-[10px] text-muted-fg font-mono uppercase tracking-widest">{seedStats.synced}/{seedStats.total} Synced</span>
+                        <button 
+                            onClick={handleSeedGraph}
+                            className="text-foreground hover:text-blue-500 text-xs font-mono lowercase cursor-pointer"
+                            title="Run AI Synthesis on unsynced notes"
+                        >
+                            seed {seedStats.unsyncedIds.length} unsynced notes
+                        </button>
+                    </div>
+                ) : null}
             </div>
         </div>
     )
