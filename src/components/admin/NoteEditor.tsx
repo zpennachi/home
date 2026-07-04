@@ -445,9 +445,9 @@ export function NoteEditor() {
                                 onClick={handleSuperpower}
                                 disabled={isSynthesizing}
                                 className="text-muted-fg hover:text-foreground transition-colors cursor-pointer disabled:opacity-40"
-                                title="Superpower (AI Summary)"
+                                title="Superpower (AI Summary & Graph Linking)"
                             >
-                                {isSynthesizing ? "briefing..." : "brief"}
+                                {isSynthesizing ? "synthesizing..." : "synthesize"}
                             </button>
 
                             <span>/</span>
