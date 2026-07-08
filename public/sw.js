@@ -2,7 +2,7 @@ const CACHE_NAME = 'zp-dash-v1'
 
 // Assets to pre-cache for offline shell
 const PRECACHE_URLS = [
-  '/new/admin/notes',
+  '/new/admin',
 ]
 
 // Install: pre-cache the app shell

@@ -2,7 +2,7 @@
   "name": "ZPennachi — Dashboard",
   "short_name": "ZP",
   "description": "Personal operating system — notes, field archive, projects, and knowledge graph.",
-  "start_url": "/new/admin/notes",
+  "start_url": "/new/admin",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
