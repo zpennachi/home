@@ -42,13 +42,13 @@ export async function middleware(request: NextRequest) {
     // }
 
     // --- Admin Protection ---
-    // if (pathname.startsWith('/new/admin')) {
-    //     if (!user) {
-    //         const redirectResponse = NextResponse.redirect(new URL('/new/login', request.url));
-    //         response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
-    //         return redirectResponse;
-    //     }
-    // }
+    if (pathname.startsWith('/new/admin')) {
+        if (!user) {
+            const redirectResponse = NextResponse.redirect(new URL('/new/login', request.url));
+            response.cookies.getAll().forEach(c => redirectResponse.cookies.set(c.name, c.value, c as any));
+            return redirectResponse;
+        }
+    }
 
     // --- Login Redirect (if already logged in, skip login page) ---
     if (pathname === '/new/login' && user) {
