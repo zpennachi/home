@@ -10,7 +10,7 @@ import FloatingMenuExtension from '@tiptap/extension-floating-menu'
 import Image from '@tiptap/extension-image'
 import Color from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
-import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import {
     Bold,
@@ -23,6 +23,93 @@ import {
 } from 'lucide-react'
 
 import { Markdown } from 'tiptap-markdown'
+import { Extension } from '@tiptap/core'
+import { Plugin } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
+
+export const WikiLinkDecorations = Extension.create<{
+  onClick?: (title: string, event: MouseEvent) => void
+  existingTitles?: string[]
+}>({
+  name: 'wikiLinkDecorations',
+
+  addOptions() {
+    return {
+      onClick: undefined,
+      existingTitles: []
+    }
+  },
+
+  addProseMirrorPlugins() {
+    const existingTitles = this.options.existingTitles || []
+    const existingSet = new Set(existingTitles.map(t => t.toLowerCase()))
+
+    return [
+      new Plugin({
+        state: {
+          init(_, { doc }) {
+            return findWikiLinks(doc, existingSet)
+          },
+          apply(tr, oldState) {
+            return tr.docChanged ? findWikiLinks(tr.doc, existingSet) : oldState
+          },
+        },
+        props: {
+          decorations: (state) => {
+            const currentTitles = this.options.existingTitles || []
+            const currentSet = new Set(currentTitles.map((t: string) => t.toLowerCase()))
+            return findWikiLinks(state.doc, currentSet)
+          },
+          handleDOMEvents: {
+            click: (view, event) => {
+              const target = event.target as HTMLElement
+              if (target && target.classList.contains('wiki-link-span')) {
+                const title = target.getAttribute('data-wiki-title')
+                if (title && this.options.onClick) {
+                  this.options.onClick(title, event)
+                  return true
+                }
+              }
+              return false
+            }
+          }
+        },
+      }),
+    ]
+  },
+})
+
+function findWikiLinks(doc: any, existingSet: Set<string>) {
+  const decorations: Decoration[] = []
+
+  doc.descendants((node: any, pos: number) => {
+    if (node.isText) {
+      const text = node.text || ''
+      const regex = /\[\[(.*?)\]\]/g
+      let match
+      while ((match = regex.exec(text)) !== null) {
+        const start = pos + match.index
+        const end = start + match[0].length
+        const title = match[1]
+        const exists = existingSet.has(title.trim().toLowerCase())
+
+        const className = exists
+          ? 'wiki-link-span cursor-pointer text-blue-600 dark:text-blue-400 font-medium underline decoration-solid hover:opacity-85'
+          : 'wiki-link-span cursor-pointer text-neutral-400 dark:text-neutral-500 underline decoration-dashed hover:opacity-85'
+
+        decorations.push(
+          Decoration.inline(start, end, {
+            class: className,
+            'data-wiki-title': title,
+            style: 'cursor: pointer;'
+          })
+        )
+      }
+    }
+  })
+
+  return DecorationSet.create(doc, decorations)
+}
 
 function rgbToHex(color: string): string {
     if (!color) return '#ffffff'
@@ -111,6 +198,8 @@ interface TipTapEditorProps {
         line_height?: string;
         page_width?: string;
     };
+    onWikiLinkClick?: (title: string, event: MouseEvent) => void;
+    existingTitles?: string[];
 }
 
 export interface TipTapEditorRef {
@@ -118,7 +207,7 @@ export interface TipTapEditorRef {
 }
 
 export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
-    ({ initialContent, onChange, editorSettings }, ref) => {
+    ({ initialContent, onChange, editorSettings, onWikiLinkClick, existingTitles = [] }, ref) => {
         const settings = editorSettings || {
             font_family: 'mono',
             font_size: 'medium',
@@ -142,6 +231,7 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
             : settings.line_height === 'loose'
                 ? '1.55'
                 : '1.4'
+
         const editor = useEditor({
             immediatelyRender: false,
             extensions: [
@@ -165,6 +255,10 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                         class: 'max-w-full h-auto border border-muted/50 my-4 rounded-none',
                     },
                 }),
+                WikiLinkDecorations.configure({
+                    onClick: onWikiLinkClick,
+                    existingTitles: existingTitles,
+                })
             ],
             content: initialContent,
             editorProps: {
@@ -172,6 +266,29 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                     class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] text-foreground leading-normal font-mono',
                 },
                 handleKeyDown: (view, event) => {
+                    if (suggestionState?.isOpen && filteredSuggestions.length > 0) {
+                        if (event.key === 'ArrowDown') {
+                            event.preventDefault()
+                            setSelectedIdx(prev => (prev + 1) % filteredSuggestions.length)
+                            return true
+                        }
+                        if (event.key === 'ArrowUp') {
+                            event.preventDefault()
+                            setSelectedIdx(prev => (prev - 1 + filteredSuggestions.length) % filteredSuggestions.length)
+                            return true
+                        }
+                        if (event.key === 'Enter') {
+                            event.preventDefault()
+                            selectSuggestion(filteredSuggestions[selectedIdx])
+                            return true
+                        }
+                        if (event.key === 'Escape') {
+                            event.preventDefault()
+                            setSuggestionState(null)
+                            return true
+                        }
+                    }
+
                     if (event.key === 'Enter' && !event.shiftKey) {
                         const { state } = view
                         const { selection } = state
@@ -305,11 +422,74 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 const markdown = (editor as any).storage.markdown.getMarkdown()
                 onChange(markdown)
                 syncEditorColors(editor)
+                setTimeout(() => checkWikiLinkSuggestion(editor), 0)
             },
             onSelectionUpdate: ({ editor }) => {
                 syncEditorColors(editor)
+                setTimeout(() => checkWikiLinkSuggestion(editor), 0)
             },
         })
+
+        const [suggestionState, setSuggestionState] = useState<{
+            isOpen: boolean;
+            query: string;
+            coords: { top: number; left: number };
+            startPos: number;
+        } | null>(null)
+        const [selectedIdx, setSelectedIdx] = useState(0)
+
+        // Filter titles based on query
+        const filteredSuggestions = useMemo(() => {
+            if (!suggestionState) return []
+            const query = suggestionState.query.toLowerCase()
+            return existingTitles
+                .filter(t => t.toLowerCase().includes(query))
+                .slice(0, 5)
+        }, [suggestionState, existingTitles])
+
+        const selectSuggestion = useCallback((title: string) => {
+            if (!editor || !suggestionState) return
+            const { startPos } = suggestionState
+            const currentPos = editor.state.selection.$from.pos
+            
+            // Delete matching query and insert [[title]]
+            editor.chain()
+                .focus()
+                .deleteRange({ from: startPos, to: currentPos })
+                .insertContent(`[[${title}]]`)
+                .run()
+                
+            setSuggestionState(null)
+            setSelectedIdx(0)
+        }, [editor, suggestionState])
+
+        const checkWikiLinkSuggestion = useCallback((editorInstance: Editor) => {
+            const { state } = editorInstance
+            const { selection } = state
+            const { $from } = selection
+            
+            // Get current text block before cursor
+            const textBefore = $from.parent.textBetween(0, $from.parentOffset, null, null)
+            const match = textBefore.match(/\[\[([^\]]*)$/)
+            if (match) {
+                const query = match[1]
+                const startPos = $from.pos - match[0].length
+                
+                try {
+                    const coords = editorInstance.view.coordsAtPos($from.pos)
+                    setSuggestionState({
+                        isOpen: true,
+                        query,
+                        coords: { top: coords.bottom + window.scrollY, left: coords.left + window.scrollX },
+                        startPos
+                    })
+                } catch (e) {
+                    setSuggestionState(null)
+                }
+            } else {
+                setSuggestionState(null)
+            }
+        }, [])
 
         // Handle external content updates (e.g. from initial load)
         useEffect(() => {
@@ -536,6 +716,35 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
                 <div className="w-full bg-transparent focus:outline-none pt-4">
                     <EditorContent editor={editor} />
                 </div>
+
+                {suggestionState?.isOpen && filteredSuggestions.length > 0 && (
+                    <div 
+                        className="fixed z-[9999] w-64 bg-background border border-neutral-200 dark:border-neutral-800 rounded shadow-lg py-1 text-xs font-mono lowercase"
+                        style={{
+                            top: `${suggestionState.coords.top}px`,
+                            left: `${suggestionState.coords.left}px`,
+                        }}
+                    >
+                        {filteredSuggestions.map((title, idx) => (
+                            <button
+                                key={title}
+                                type="button"
+                                onMouseDown={(e) => {
+                                    e.preventDefault()
+                                }}
+                                onClick={() => selectSuggestion(title)}
+                                className={cn(
+                                    "w-full text-left px-3 py-1.5 transition-colors cursor-pointer block",
+                                    idx === selectedIdx 
+                                        ? "bg-neutral-100 dark:bg-neutral-900 text-foreground font-semibold" 
+                                        : "text-muted-fg hover:text-foreground"
+                                )}
+                            >
+                                {title.toLowerCase()}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
         )
     }

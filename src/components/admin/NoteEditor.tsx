@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary, getGraphData } from '@/app/new/admin/notes/actions'
+import { getNoteById, updateNote, deleteNote, saveNoteTranscript, generateAISummary, getGraphData, getNoteConnections, getNoteByTitle, createNoteFromDangling } from '@/app/new/admin/notes/actions'
 import { TipTapEditor, TipTapEditorRef } from '@/components/admin/TipTapEditor'
 import { MeetingRecorder } from '@/components/admin/MeetingRecorder'
 import { GraphView } from '@/components/admin/GraphView'
@@ -35,7 +35,104 @@ const CORE_PEOPLE = [
 
 export function NoteEditor() {
     const router = useRouter()
-    const { activeNoteId, notes: cachedNotes, setActiveNoteId, updateNoteInCache } = useAdminSync()
+    const { activeNoteId, notes: cachedNotes, setActiveNoteId, updateNoteInCache, loadNotes } = useAdminSync()
+
+    const [connections, setConnections] = useState<{ inbound: any[], outbound: any[] }>({ inbound: [], outbound: [] })
+    const [popoverState, setPopoverState] = useState<{
+        isOpen: boolean;
+        title: string;
+        coords: { top: number; left: number };
+        noteDetails: any | null;
+        loading: boolean;
+        isEditing: boolean;
+        editContent: string;
+    } | null>(null)
+
+    const fetchConnections = useCallback(async () => {
+        if (!activeNoteId) return
+        try {
+            const data = await getNoteConnections(activeNoteId)
+            setConnections(data)
+        } catch (err) {
+            console.error('Failed to fetch connections:', err)
+        }
+    }, [activeNoteId])
+
+    useEffect(() => {
+        fetchConnections()
+        setPopoverState(null)
+    }, [activeNoteId, fetchConnections])
+
+    const handleWikiLinkClick = useCallback(async (title: string, event: MouseEvent) => {
+        let top = event ? event.clientY + window.scrollY + 15 : 200
+        let left = event ? event.clientX + window.scrollX - 100 : 200
+        
+        if (left < 10) left = 10
+        if (left + 350 > window.innerWidth) left = window.innerWidth - 370
+
+        setPopoverState({
+            isOpen: true,
+            title,
+            coords: { top, left },
+            noteDetails: null,
+            loading: true,
+            isEditing: false,
+            editContent: ''
+        })
+
+        try {
+            const targetNote = await getNoteByTitle(title)
+            setPopoverState(prev => {
+                if (!prev || prev.title !== title) return prev
+                return {
+                    ...prev,
+                    loading: false,
+                    noteDetails: targetNote,
+                    editContent: targetNote ? targetNote.content : ''
+                }
+            })
+        } catch (err) {
+            console.error('Failed to fetch popover note:', err)
+            setPopoverState(prev => prev ? { ...prev, loading: false } : null)
+        }
+    }, [])
+
+    const handleCreateFromPopover = async () => {
+        if (!popoverState) return
+        setPopoverState(prev => prev ? { ...prev, loading: true } : null)
+        try {
+            const newNote = await createNoteFromDangling(popoverState.title)
+            loadNotes()
+            setPopoverState(prev => {
+                if (!prev) return null
+                return {
+                    ...prev,
+                    loading: false,
+                    noteDetails: newNote,
+                    editContent: ''
+                }
+            })
+            fetchConnections()
+        } catch (err) {
+            toast.error('Failed to create note')
+            setPopoverState(prev => prev ? { ...prev, loading: false } : null)
+        }
+    }
+
+    const handleSavePopoverContent = async () => {
+        if (!popoverState || !popoverState.noteDetails) return
+        const targetId = popoverState.noteDetails.id
+        const content = popoverState.editContent
+        
+        try {
+            await updateNote(targetId, { content })
+            setPopoverState(prev => prev ? { ...prev, noteDetails: { ...prev.noteDetails, content } } : null)
+            toast.success('Saved target note inline')
+            updateNoteInCache(targetId, { content })
+        } catch (err) {
+            toast.error('Failed to save target note')
+        }
+    }
 
     // Note State — initialize synchronously from cache for instant render
     const initialNote = useMemo(() => {
@@ -178,12 +275,15 @@ export function NoteEditor() {
         try {
             await updateNote(activeNoteId, updates)
             setLastSaved(new Date())
+            if (updates.content !== undefined) {
+                fetchConnections()
+            }
         } catch (err) {
             toast.error('Failed to save')
         } finally {
             setSaving(false)
         }
-    }, [activeNoteId])
+    }, [activeNoteId, fetchConnections])
 
     const settings = useMemo(() => {
         const defaults = {
@@ -463,6 +563,56 @@ export function NoteEditor() {
                         </div>
                     </div>
 
+                    {/* Connections Breadcrumbs Row */}
+                    {(connections.inbound.length > 0 || connections.outbound.length > 0) && (
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] font-mono text-muted-fg/60 lowercase select-none py-1 border-b border-muted/5">
+                            {connections.inbound.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-muted-fg/40">inbound:</span>
+                                    {connections.inbound.map(conn => (
+                                        <button
+                                            key={conn.id}
+                                            onClick={() => {
+                                                setActiveNoteId(conn.id)
+                                                router.push(`/new/admin/notes/${conn.id}`)
+                                            }}
+                                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline cursor-pointer bg-transparent border-none p-0 font-mono text-[10px]"
+                                        >
+                                            [{conn.title.toLowerCase()}]
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {connections.inbound.length > 0 && connections.outbound.length > 0 && <span className="text-muted-fg/20">•</span>}
+                            {connections.outbound.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-muted-fg/40">outbound:</span>
+                                    {connections.outbound.map(conn => (
+                                        <button
+                                            key={conn.title}
+                                            onClick={() => {
+                                                if (conn.id) {
+                                                    setActiveNoteId(conn.id)
+                                                    router.push(`/new/admin/notes/${conn.id}`)
+                                                } else {
+                                                    handleWikiLinkClick(conn.title, null as any)
+                                                }
+                                            }}
+                                            className={cn(
+                                                "cursor-pointer bg-transparent border-none p-0 font-mono text-[10px]",
+                                                conn.id
+                                                    ? "text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                                                    : "text-neutral-400 dark:text-neutral-500 line-through decoration-dashed hover:text-foreground"
+                                            )}
+                                        >
+                                            [{conn.title.toLowerCase()}]
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Row 2: Attendees & Tab Switcher */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {/* Attendees Selection Row */}
@@ -679,6 +829,8 @@ export function NoteEditor() {
                                 ref={editorRef}
                                 initialContent={note.content}
                                 editorSettings={settings}
+                                existingTitles={cachedNotes.map((n: any) => n.title)}
+                                onWikiLinkClick={(title, e) => handleWikiLinkClick(title, e as any)}
                                 onChange={(content) => {
                                     setNote({ ...note, content })
                                     saveNote({ content })
@@ -793,6 +945,116 @@ export function NoteEditor() {
                     </div>
                 </div>
             </div>
+
+            {/* Wiki Link Inline Popover */}
+            {popoverState?.isOpen && (
+                <>
+                    <div 
+                        className="fixed inset-0 z-[100]" 
+                        onClick={() => setPopoverState(null)} 
+                    />
+                    
+                    <div 
+                        className="absolute z-[101] w-[350px] bg-background border border-neutral-200 dark:border-neutral-800 rounded shadow-xl p-4 text-xs font-mono lowercase flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-150"
+                        style={{
+                            top: `${popoverState.coords.top}px`,
+                            left: `${popoverState.coords.left}px`,
+                        }}
+                    >
+                        {/* Popover Header */}
+                        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2 text-[10px] text-muted-fg/60">
+                            <span className="font-semibold text-foreground truncate max-w-[200px]">
+                                [[{popoverState.title.toLowerCase()}]]
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0 select-none">
+                                {popoverState.noteDetails && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setActiveNoteId(popoverState.noteDetails.id)
+                                                router.push(`/new/admin/notes/${popoverState.noteDetails.id}`)
+                                                setPopoverState(null)
+                                            }}
+                                            className="hover:text-foreground text-blue-500 transition-colors cursor-pointer bg-transparent border-none p-0"
+                                        >
+                                            open
+                                        </button>
+                                        <span>/</span>
+                                    </>
+                                )}
+                                <button
+                                    onClick={() => setPopoverState(null)}
+                                    className="hover:text-foreground transition-colors cursor-pointer bg-transparent border-none p-0"
+                                >
+                                    close
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Popover Content */}
+                        {popoverState.loading ? (
+                            <div className="py-6 text-center text-muted-fg/50">
+                                loading...
+                            </div>
+                        ) : popoverState.noteDetails ? (
+                            <div className="flex flex-col gap-3">
+                                {popoverState.isEditing ? (
+                                    <div className="flex flex-col gap-2">
+                                        <textarea
+                                            value={popoverState.editContent}
+                                            onChange={(e) => setPopoverState(prev => prev ? { ...prev, editContent: e.target.value } : null)}
+                                            className="w-full min-h-[120px] bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-2 text-foreground focus:outline-none font-mono text-[11px] rounded"
+                                            placeholder="type note content..."
+                                        />
+                                        <div className="flex justify-end gap-2 text-[10px]">
+                                            <button
+                                                onClick={() => setPopoverState(prev => prev ? { ...prev, isEditing: false } : null)}
+                                                className="text-muted-fg hover:text-foreground bg-transparent border-none p-0 cursor-pointer"
+                                            >
+                                                cancel
+                                            </button>
+                                            <span>/</span>
+                                            <button
+                                                onClick={async () => {
+                                                    await handleSavePopoverContent()
+                                                    setPopoverState(prev => prev ? { ...prev, isEditing: false } : null)
+                                                }}
+                                                className="text-foreground hover:underline bg-transparent border-none p-0 cursor-pointer"
+                                            >
+                                                save
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2.5">
+                                        <div className="max-h-[140px] overflow-y-auto custom-scrollbar text-[11px] leading-normal text-muted-fg/80 whitespace-pre-wrap">
+                                            {popoverState.noteDetails.content || 'no content yet. click edit below to write.'}
+                                        </div>
+                                        <div className="flex justify-end text-[10px]">
+                                            <button
+                                                onClick={() => setPopoverState(prev => prev ? { ...prev, isEditing: true } : null)}
+                                                className="text-muted-fg hover:text-foreground bg-transparent border-none p-0 cursor-pointer"
+                                            >
+                                                edit inline
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="py-4 text-center space-y-3">
+                                <p className="text-muted-fg/60">ghost note. this link does not have a note associated with it yet.</p>
+                                <button
+                                    onClick={handleCreateFromPopover}
+                                    className="px-2.5 py-1 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors text-foreground cursor-pointer font-mono rounded"
+                                >
+                                    create note
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
 
             {/* Sync Overlay */}
             {saving && (

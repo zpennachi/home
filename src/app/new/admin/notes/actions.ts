@@ -492,3 +492,80 @@ ${note.content || '(No manual notes yet)'}
     return summary
 }
 
+export async function getNoteConnections(id: string) {
+    const supabase = await createClient()
+    
+    // 1. Fetch current note title
+    const { data: currentNote } = await supabase
+        .from('notes')
+        .select('title')
+        .eq('id', id)
+        .single()
+        
+    const noteTitle = currentNote?.title || ''
+    
+    // 2. Fetch outbound links
+    const { data: outboundData } = await supabase
+        .from('note_links')
+        .select('target_id, target_title')
+        .eq('source_id', id)
+        
+    // 3. Fetch inbound links
+    const { data: links } = await supabase
+        .from('note_links')
+        .select('source_id')
+        .or(`target_id.eq.${id},target_title.ilike.${noteTitle}`)
+
+    const sourceIds = [...new Set((links || []).map(l => l.source_id).filter(sid => sid !== id))]
+    
+    let inbound: { id: string, title: string, snippet: string }[] = []
+    if (sourceIds.length > 0) {
+        const { data: sourceNotes } = await supabase
+            .from('notes')
+            .select('id, title, content')
+            .in('id', sourceIds)
+            
+        if (sourceNotes) {
+            inbound = sourceNotes.map(n => {
+                let snippet = ''
+                const content = n.content || ''
+                const escapedTitle = noteTitle.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+                const regex = new RegExp(`\\[\\[([^\\]]*?${escapedTitle}[^\\]]*?)\\]\\]`, 'i')
+                const match = content.match(regex)
+                if (match && match.index !== undefined) {
+                    const start = Math.max(0, match.index - 40)
+                    const end = Math.min(content.length, match.index + match[0].length + 40)
+                    snippet = '...' + content.substring(start, end).replace(/\s+/g, ' ') + '...'
+                } else {
+                    snippet = content.substring(0, 80).replace(/\s+/g, ' ') + (content.length > 80 ? '...' : '')
+                }
+                return {
+                    id: n.id,
+                    title: n.title || 'Untitled',
+                    snippet: snippet.trim()
+                }
+            })
+        }
+    }
+
+    const outbound = (outboundData || []).map((l: any) => ({
+        id: l.target_id,
+        title: l.target_title
+    }))
+
+    return { inbound, outbound }
+}
+
+export async function getNoteByTitle(title: string) {
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from('notes')
+        .select('*')
+        .ilike('title', title)
+        .limit(1)
+        .maybeSingle()
+        
+    return data
+}
+
+
