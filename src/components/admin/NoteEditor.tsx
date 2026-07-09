@@ -239,8 +239,82 @@ export function NoteEditor() {
                 silentAudioRef.current.pause()
                 silentAudioRef.current = null
             }
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'none'
+            }
         }
     }, [])
+
+    const startDictation = useCallback(() => {
+        if (!recognitionRef.current) return
+        try {
+            // Start a silent audio loop to convince iOS Safari to keep the background audio thread and microphone alive
+            const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA")
+            audio.loop = true
+            audio.play().catch(err => console.warn("Failed to start background audio keepalive:", err))
+            silentAudioRef.current = audio
+
+            recognitionRef.current.start()
+            setIsDictating(true)
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'recording voice note...',
+                    artist: 'home notes',
+                    album: 'dictation active'
+                })
+                navigator.mediaSession.playbackState = 'playing'
+            }
+        } catch (e) {
+            console.error('Failed to start dictation:', e)
+        }
+    }, [])
+
+    const stopDictation = useCallback(() => {
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.stop()
+            } catch (e) {}
+        }
+        setIsDictating(false)
+        if (silentAudioRef.current) {
+            silentAudioRef.current.pause()
+            silentAudioRef.current = null
+        }
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: 'dictation paused',
+                artist: 'home notes',
+                album: 'dictation suspended'
+            })
+            navigator.mediaSession.playbackState = 'paused'
+        }
+    }, [])
+
+    // Register Media Session widget controls on mount/update
+    useEffect(() => {
+        if ('mediaSession' in navigator) {
+            try {
+                navigator.mediaSession.setActionHandler('play', () => {
+                    startDictation()
+                })
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    stopDictation()
+                })
+            } catch (e) {
+                console.error('Failed to set media session handlers:', e)
+            }
+        }
+        return () => {
+            if ('mediaSession' in navigator) {
+                try {
+                    navigator.mediaSession.setActionHandler('play', null)
+                    navigator.mediaSession.setActionHandler('pause', null)
+                } catch (e) {}
+            }
+        }
+    }, [startDictation, stopDictation])
 
     const handleDictateClick = useCallback(() => {
         if (!recognitionRef.current) {
@@ -252,39 +326,19 @@ export function NoteEditor() {
             return
         }
         if (isDictating) {
-            recognitionRef.current.stop()
-            setIsDictating(false)
-            if (silentAudioRef.current) {
-                silentAudioRef.current.pause()
-                silentAudioRef.current = null
-            }
+            stopDictation()
+            toast.success('Dictation paused')
         } else {
-            try {
-                // Start a silent audio loop to convince iOS Safari to keep the background audio thread and microphone alive
-                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA")
-                audio.loop = true
-                audio.play().catch(err => console.warn("Failed to start background audio keepalive:", err))
-                silentAudioRef.current = audio
-
-                recognitionRef.current.start()
-                setIsDictating(true)
-                toast.success('Dictation active. Start speaking to note...')
-            } catch (e) {
-                console.error(e)
-            }
+            startDictation()
+            toast.success('Dictation active. Start speaking to note...')
         }
-    }, [isRecording, isDictating])
+    }, [isRecording, isDictating, startDictation, stopDictation])
 
     useEffect(() => {
         if (isRecording && isDictating) {
-            recognitionRef.current?.stop()
-            setIsDictating(false)
-            if (silentAudioRef.current) {
-                silentAudioRef.current.pause()
-                silentAudioRef.current = null
-            }
+            stopDictation()
         }
-    }, [isRecording, isDictating])
+    }, [isRecording, isDictating, stopDictation])
 
     // Transcript State
     const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>(() => {
