@@ -163,8 +163,10 @@ export function NoteEditor() {
 
     // Voice Dictation State & Hook
     const [isDictating, setIsDictating] = useState(false)
+    const [isPocketMode, setIsPocketMode] = useState(false)
     const isDictatingRef = useRef(false)
     const silentAudioRef = useRef<HTMLAudioElement | null>(null)
+    const wakeLockRef = useRef<any>(null)
     const recognitionRef = useRef<any>(null)
 
     // Keep the isDictatingRef synced to avoid stale closures in browser event callbacks
@@ -239,15 +241,29 @@ export function NoteEditor() {
                 silentAudioRef.current.pause()
                 silentAudioRef.current = null
             }
+            if (wakeLockRef.current) {
+                try {
+                    wakeLockRef.current.release()
+                } catch (e) {}
+            }
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = 'none'
             }
         }
     }, [])
 
-    const startDictation = useCallback(() => {
+    const startDictation = useCallback(async () => {
         if (!recognitionRef.current) return
         try {
+            // Request Screen Wake Lock to keep CPU & Mic active in pocket
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLockRef.current = await (navigator as any).wakeLock.request('screen')
+                } catch (lockErr) {
+                    console.warn('Failed to obtain screen wake lock:', lockErr)
+                }
+            }
+
             // Start a silent audio loop to convince iOS Safari to keep the background audio thread and microphone alive
             const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA")
             audio.loop = true
@@ -256,6 +272,7 @@ export function NoteEditor() {
 
             recognitionRef.current.start()
             setIsDictating(true)
+            setIsPocketMode(true) // auto-enter pocket mode
 
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
@@ -277,9 +294,21 @@ export function NoteEditor() {
             } catch (e) {}
         }
         setIsDictating(false)
+        setIsPocketMode(false) // turn off pocket mode
         if (silentAudioRef.current) {
             silentAudioRef.current.pause()
             silentAudioRef.current = null
+        }
+
+        // Release Screen Wake Lock
+        if (wakeLockRef.current) {
+            try {
+                wakeLockRef.current.release().then(() => {
+                    wakeLockRef.current = null
+                })
+            } catch (lockErr) {
+                console.error('Failed to release wake lock:', lockErr)
+            }
         }
 
         if ('mediaSession' in navigator) {
@@ -1106,6 +1135,28 @@ export function NoteEditor() {
                 <div className="fixed bottom-8 right-8 z-50 bg-foreground text-background px-3 py-1.5 shadow flex items-center gap-2 text-xs font-mono lowercase">
                     <div className="w-1 h-1 bg-background rounded-full animate-pulse" />
                     saving...
+                </div>
+            )}
+
+            {/* Pocket Mode Overlay */}
+            {isPocketMode && (
+                <div 
+                    onDoubleClick={() => setIsPocketMode(false)}
+                    className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center cursor-pointer select-none"
+                    title="Double tap to unlock screen"
+                >
+                    <div className="flex flex-col items-center gap-4 text-center">
+                        {/* Dim Lock Icon */}
+                        <div className="w-16 h-16 border-2 border-neutral-800 rounded-full flex items-center justify-center opacity-25 animate-pulse">
+                            <svg className="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <div className="space-y-1 opacity-20">
+                            <p className="font-mono text-xs text-neutral-400 lowercase tracking-widest">pocket mode active</p>
+                            <p className="font-mono text-[9px] text-neutral-600 lowercase">double-tap to unlock screen</p>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
