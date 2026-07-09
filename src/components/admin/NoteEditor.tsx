@@ -161,6 +161,97 @@ export function NoteEditor() {
     const [isRecording, setIsRecording] = useState(false)
     const [isInitializing, setIsInitializing] = useState(false)
 
+    // Voice Dictation State & Hook
+    const [isDictating, setIsDictating] = useState(false)
+    const recognitionRef = useRef<any>(null)
+
+    useEffect(() => {
+        const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        if (SpeechRecognitionClass) {
+            const rec = new SpeechRecognitionClass()
+            rec.continuous = true
+            rec.interimResults = false
+            rec.lang = 'en-US'
+            
+            rec.onresult = (event: any) => {
+                const resultIndex = event.resultIndex
+                const transcript = event.results[resultIndex][0].transcript
+                
+                if (transcript && editorRef.current?.editor) {
+                    const editor = editorRef.current.editor
+                    const { state } = editor
+                    const { selection } = state
+                    const { $from } = selection
+                    
+                    const pos = $from.pos
+                    let prefix = ' '
+                    if (pos > 1) {
+                        try {
+                            const textBefore = state.doc.textBetween(Math.max(1, pos - 1), pos)
+                            if (textBefore === ' ' || textBefore === '\n') {
+                                prefix = ''
+                            }
+                        } catch (e) {}
+                    } else {
+                        prefix = ''
+                    }
+                    
+                    editor.chain().focus().insertContent(prefix + transcript.trim()).run()
+                }
+            }
+            
+            rec.onerror = (event: any) => {
+                console.error('Speech recognition error:', event.error)
+                if (event.error === 'not-allowed') {
+                    toast.error('Microphone permission blocked for dictation')
+                }
+                setIsDictating(false)
+            }
+            
+            rec.onend = () => {
+                setIsDictating(false)
+            }
+            
+            recognitionRef.current = rec
+        }
+        
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.abort()
+            }
+        }
+    }, [])
+
+    const handleDictateClick = useCallback(() => {
+        if (!recognitionRef.current) {
+            toast.error('Speech recognition is not supported in this browser. Please use Google Chrome.')
+            return
+        }
+        if (isRecording) {
+            toast.error('Please stop the meeting recorder before starting dictation')
+            return
+        }
+        if (isDictating) {
+            recognitionRef.current.stop()
+            setIsDictating(false)
+        } else {
+            try {
+                recognitionRef.current.start()
+                setIsDictating(true)
+                toast.success('Dictation active. Start speaking to note...')
+            } catch (e) {
+                console.error(e)
+            }
+        }
+    }, [isRecording, isDictating])
+
+    useEffect(() => {
+        if (isRecording && isDictating) {
+            recognitionRef.current?.stop()
+            setIsDictating(false)
+        }
+    }, [isRecording, isDictating])
+
     // Transcript State
     const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>(() => {
         if (initialNote?.transcript) {
@@ -513,6 +604,21 @@ export function NoteEditor() {
                                 isInitializing={isInitializing}
                                 setIsInitializing={setIsInitializing}
                             />
+
+                            <span>/</span>
+
+                            {/* Dictate Button */}
+                            <button
+                                onClick={handleDictateClick}
+                                className={cn(
+                                    "transition-colors cursor-pointer disabled:opacity-40",
+                                    isDictating ? "text-red-500 font-semibold animate-pulse" : "text-muted-fg hover:text-foreground"
+                                )}
+                                title={isDictating ? "Stop voice dictation" : "Start voice dictation"}
+                                disabled={isRecording || isInitializing}
+                            >
+                                {isDictating ? "dictating..." : "dictate"}
+                            </button>
 
                             <span>/</span>
 
