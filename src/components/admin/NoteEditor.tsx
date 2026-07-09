@@ -163,7 +163,14 @@ export function NoteEditor() {
 
     // Voice Dictation State & Hook
     const [isDictating, setIsDictating] = useState(false)
+    const isDictatingRef = useRef(false)
+    const silentAudioRef = useRef<HTMLAudioElement | null>(null)
     const recognitionRef = useRef<any>(null)
+
+    // Keep the isDictatingRef synced to avoid stale closures in browser event callbacks
+    useEffect(() => {
+        isDictatingRef.current = isDictating
+    }, [isDictating])
 
     useEffect(() => {
         const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -209,7 +216,16 @@ export function NoteEditor() {
             }
             
             rec.onend = () => {
-                setIsDictating(false)
+                // If it ended due to silence timeout or mobile sleep but user didn't hit stop, restart it immediately
+                if (isDictatingRef.current) {
+                    try {
+                        recognitionRef.current.start()
+                    } catch (e) {
+                        console.error('Failed to restart speech recognition:', e)
+                    }
+                } else {
+                    setIsDictating(false)
+                }
             }
             
             recognitionRef.current = rec
@@ -218,6 +234,10 @@ export function NoteEditor() {
         return () => {
             if (recognitionRef.current) {
                 recognitionRef.current.abort()
+            }
+            if (silentAudioRef.current) {
+                silentAudioRef.current.pause()
+                silentAudioRef.current = null
             }
         }
     }, [])
@@ -234,8 +254,18 @@ export function NoteEditor() {
         if (isDictating) {
             recognitionRef.current.stop()
             setIsDictating(false)
+            if (silentAudioRef.current) {
+                silentAudioRef.current.pause()
+                silentAudioRef.current = null
+            }
         } else {
             try {
+                // Start a silent audio loop to convince iOS Safari to keep the background audio thread and microphone alive
+                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAAA")
+                audio.loop = true
+                audio.play().catch(err => console.warn("Failed to start background audio keepalive:", err))
+                silentAudioRef.current = audio
+
                 recognitionRef.current.start()
                 setIsDictating(true)
                 toast.success('Dictation active. Start speaking to note...')
@@ -249,6 +279,10 @@ export function NoteEditor() {
         if (isRecording && isDictating) {
             recognitionRef.current?.stop()
             setIsDictating(false)
+            if (silentAudioRef.current) {
+                silentAudioRef.current.pause()
+                silentAudioRef.current = null
+            }
         }
     }, [isRecording, isDictating])
 
