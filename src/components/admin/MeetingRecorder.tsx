@@ -22,7 +22,6 @@ export function MeetingRecorder({
 }: MeetingRecorderProps) {
     const [error, setError] = useState<string | null>(null)
     const [isSystemAudioCaptured, setIsSystemAudioCaptured] = useState(false)
-    const [recordMyVoice, setRecordMyVoice] = useState(false)
 
     const audioContextRef = useRef<AudioContext | null>(null)
     const processorRef = useRef<ScriptProcessorNode | null>(null)
@@ -87,24 +86,22 @@ export function MeetingRecorder({
             audioContextRef.current = audioContext
             const mixer = audioContext.createGain()
 
-            // 3. Optional: Capture Microphone
+            // 3. Capture Microphone (Always required)
             let micStream: MediaStream | null = null
-            if (recordMyVoice) {
-                try {
-                    micStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            autoGainControl: true
-                        }
-                    })
-                    micStreamRef.current = micStream
-                    const micSource = audioContext.createMediaStreamSource(micStream)
-                    micSource.connect(mixer)
-                } catch (micErr) {
-                    console.warn("Microphone access denied or failed", micErr)
-                    toast.error("Microphone capture failed. Recording system audio only.")
-                }
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                })
+                micStreamRef.current = micStream
+                const micSource = audioContext.createMediaStreamSource(micStream)
+                micSource.connect(mixer)
+            } catch (micErr) {
+                console.warn("Microphone access denied or failed", micErr)
+                toast.error("Microphone capture failed. Recording system audio only.")
             }
 
             // 4. Capture System Audio (Optional but recommended for meetings)
@@ -145,7 +142,7 @@ export function MeetingRecorder({
                 setIsRecording(true)
                 isRecordingRef.current = true
                 setIsInitializing(false)
-                toast.success(recordMyVoice ? "Transcription active (Mic + System)" : "Transcription active (System audio only)")
+                toast.success("Transcription active (Mic + System)")
             }
 
             socket.onmessage = (message) => {
@@ -225,18 +222,6 @@ export function MeetingRecorder({
                 <span title={error} className="text-[9px] text-red-500 font-mono select-none lowercase ml-0.5">
                     (err)
                 </span>
-            )}
-
-            {!isRecording && !isInitializing && (
-                <label className="flex items-center gap-1.5 ml-2 cursor-pointer select-none text-[10px] font-mono text-muted-fg/40 hover:text-foreground transition-colors lowercase">
-                    <input
-                        type="checkbox"
-                        checked={recordMyVoice}
-                        onChange={(e) => setRecordMyVoice(e.target.checked)}
-                        className="rounded-sm border-neutral-300 dark:border-neutral-800 bg-transparent text-foreground focus:ring-0 w-3 h-3 cursor-pointer"
-                    />
-                    <span>record my mic</span>
-                </label>
             )}
         </div>
     )

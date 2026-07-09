@@ -353,12 +353,7 @@ export function NoteEditor() {
         }
     }, [transcriptSegments, activeTab])
 
-    // Fetch graph data when graph tab is opened
-    useEffect(() => {
-        if (activeTab === 'graph' && !graphData) {
-            getGraphData().then(setGraphData).catch(console.error)
-        }
-    }, [activeTab, graphData])
+
 
     const saveNote = useCallback(async (updates: any) => {
         if (!activeNoteId) return
@@ -634,30 +629,6 @@ export function NoteEditor() {
 
                             <span>/</span>
 
-                            {/* Download Transcription Button */}
-                            <button
-                                onClick={handleDownloadTranscription}
-                                className="text-muted-fg hover:text-foreground transition-colors cursor-pointer disabled:opacity-40"
-                                title="Download Transcription"
-                                disabled={transcriptSegments.length === 0}
-                            >
-                                txt
-                            </button>
-
-                            <span>/</span>
-
-                            {/* Superpower Button */}
-                            <button
-                                onClick={handleSuperpower}
-                                disabled={isSynthesizing}
-                                className="text-muted-fg hover:text-foreground transition-colors cursor-pointer disabled:opacity-40"
-                                title="Superpower (AI Summary & Graph Linking)"
-                            >
-                                {isSynthesizing ? "synthesizing..." : "synthesize"}
-                            </button>
-
-                            <span>/</span>
-
                             {/* Delete Button */}
                             <button
                                 onClick={handleDelete}
@@ -668,6 +639,7 @@ export function NoteEditor() {
                             </button>
                         </div>
                     </div>
+
 
                     {/* Connections Breadcrumbs Row */}
                     {(connections.inbound.length > 0 || connections.outbound.length > 0) && (
@@ -805,118 +777,7 @@ export function NoteEditor() {
                             >
                                 transcript
                             </button>
-                            <span>/</span>
-                            <button
-                                onClick={() => setActiveTab('graph')}
-                                className={cn(
-                                    "transition-colors cursor-pointer",
-                                    activeTab === 'graph' ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground"
-                                )}
-                            >
-                                graph
-                            </button>
-                            <span>/</span>
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                                    className={cn(
-                                        "transition-colors cursor-pointer",
-                                        isSettingsOpen ? "text-foreground font-semibold" : "text-muted-fg hover:text-foreground"
-                                    )}
-                                >
-                                    layout
-                                </button>
-                                {isSettingsOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-[40]" onClick={() => setIsSettingsOpen(false)} />
-                                        <div className="absolute right-0 mt-1.5 w-44 bg-background border border-neutral-200 dark:border-neutral-800 rounded shadow-md p-3.5 z-[50] space-y-4">
-                                            {/* Font Family Selection */}
-                                            <div className="space-y-1.5">
-                                                <div className="text-[9px] text-muted-fg/40 font-mono uppercase tracking-wider">font</div>
-                                                <div className="flex gap-1">
-                                                    {['mono', 'sans', 'serif'].map((f) => (
-                                                        <button
-                                                            key={f}
-                                                            onClick={() => updateSetting('font_family', f)}
-                                                            className={cn(
-                                                                "px-1.5 py-0.5 rounded-sm text-[9px] font-mono cursor-pointer border transition-all duration-150",
-                                                                settings.font_family === f 
-                                                                    ? "border-neutral-300 dark:border-neutral-700 text-foreground bg-neutral-50 dark:bg-neutral-900" 
-                                                                    : "border-transparent text-muted-fg hover:text-foreground"
-                                                            )}
-                                                        >
-                                                            {f}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
 
-                                            {/* Font Size Selection */}
-                                            <div className="space-y-1.5">
-                                                <div className="text-[9px] text-muted-fg/40 font-mono uppercase tracking-wider">size</div>
-                                                <div className="flex gap-1">
-                                                    {['small', 'medium', 'large'].map((s) => (
-                                                        <button
-                                                            key={s}
-                                                            onClick={() => updateSetting('font_size', s)}
-                                                            className={cn(
-                                                                "px-1.5 py-0.5 rounded-sm text-[9px] font-mono cursor-pointer border transition-all duration-150",
-                                                                settings.font_size === s 
-                                                                    ? "border-neutral-300 dark:border-neutral-700 text-foreground bg-neutral-50 dark:bg-neutral-900" 
-                                                                    : "border-transparent text-muted-fg hover:text-foreground"
-                                                            )}
-                                                        >
-                                                            {s === 'small' ? 'sm' : s === 'medium' ? 'md' : 'lg'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Line Height Selection */}
-                                            <div className="space-y-1.5">
-                                                <div className="text-[9px] text-muted-fg/40 font-mono uppercase tracking-wider">spacing</div>
-                                                <div className="flex gap-1">
-                                                    {['tight', 'normal', 'loose'].map((l) => (
-                                                        <button
-                                                            key={l}
-                                                            onClick={() => updateSetting('line_height', l)}
-                                                            className={cn(
-                                                                "px-1.5 py-0.5 rounded-sm text-[9px] font-mono cursor-pointer border transition-all duration-150",
-                                                                settings.line_height === l 
-                                                                    ? "border-neutral-300 dark:border-neutral-700 text-foreground bg-neutral-50 dark:bg-neutral-900" 
-                                                                    : "border-transparent text-muted-fg hover:text-foreground"
-                                                            )}
-                                                        >
-                                                            {l}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Page Width Selection */}
-                                            <div className="space-y-1.5">
-                                                <div className="text-[9px] text-muted-fg/40 font-mono uppercase tracking-wider">width</div>
-                                                <div className="flex gap-1">
-                                                    {['compact', 'normal', 'wide'].map((w) => (
-                                                        <button
-                                                            key={w}
-                                                            onClick={() => updateSetting('page_width', w)}
-                                                            className={cn(
-                                                                "px-1.5 py-0.5 rounded-sm text-[9px] font-mono cursor-pointer border transition-all duration-150",
-                                                                settings.page_width === w 
-                                                                    ? "border-neutral-300 dark:border-neutral-700 text-foreground bg-neutral-50 dark:bg-neutral-900" 
-                                                                    : "border-transparent text-muted-fg hover:text-foreground"
-                                                            )}
-                                                        >
-                                                            {w === 'compact' ? 'comp' : w === 'normal' ? 'norm' : 'wide'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1037,17 +898,7 @@ export function NoteEditor() {
                             </div>
                         )}
 
-                        {activeTab === 'graph' && (
-                            <div className="w-full h-[500px] border border-muted mt-4 overflow-hidden rounded-sm">
-                                {graphData ? (
-                                    <GraphView data={graphData} />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs font-mono text-muted-fg lowercase">
-                                        loading graph...
-                                    </div>
-                                )}
-                            </div>
-                        )}
+
                     </div>
                 </div>
             </div>
